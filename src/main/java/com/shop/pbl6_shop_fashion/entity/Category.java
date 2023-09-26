@@ -13,42 +13,28 @@ import java.util.Objects;
 @AllArgsConstructor
 
 @Entity
-@Table(name = "brands")
-public class Brand {
+@Table(name = "categories")
+public class Category {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "name_brand")
+    @Column(name = "name_category")
     private String name;
-
-    @Column(name = "description")
-    private String decription;
     @JsonIgnore
-    @OneToMany(mappedBy = "brand")
+    @OneToMany(mappedBy = "category")
     List<Product> products;
 
     @Override
     public String toString() {
-        return "Brand{" +
+        return "Category{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", decription='" + decription + '\'' +
                 '}';
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Brand brand = (Brand) o;
-        return Objects.equals(id, brand.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
 }
+
+
+
+

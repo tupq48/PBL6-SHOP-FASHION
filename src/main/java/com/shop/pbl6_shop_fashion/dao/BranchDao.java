@@ -1,6 +1,7 @@
 package com.shop.pbl6_shop_fashion.dao;
 
 import com.shop.pbl6_shop_fashion.entity.Brand;
+import com.shop.pbl6_shop_fashion.entity.Product;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
+@ComponentScan(basePackages = "com.shop.pbl6_shop_fashion")
 public class BranchDao {
     @Autowired
     private SessionFactory sessionFactory;
@@ -26,7 +28,15 @@ public class BranchDao {
 
     public List<Brand> searchAllBranch() {
         return openSession()
-                .createNativeQuery("SELECT * FROM brands WHERE id IN (SELECT DISTINCT brand_id FROM products);", Brand.class)
+                .createNativeQuery("SELECT * FROM brands", Brand.class)
                 .getResultList();
+    }
+
+    public List<Product> saveOrUpdate(Product product){
+        return openSession().createNativeQuery("select * from products", Product.class).getResultList();
+    }
+
+    public List<Product> searchAllProducts() {
+        return openSession().createNativeQuery("select * from products", Product.class).getResultList();
     }
 }
