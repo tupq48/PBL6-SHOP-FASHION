@@ -1,5 +1,8 @@
 package com.shop.pbl6_shop_fashion.dto;
 
+import lombok.Getter;
+
+@Getter
 public class ProductDto {
 
     private Integer id;
@@ -10,8 +13,8 @@ public class ProductDto {
 
     private String status;
     private String decription;
-    private int quantity;
-    private int quantity_sold;
+    private long quantity;
+    private long quantity_sold;
     private String brand;
 
     private String type;
@@ -34,46 +37,6 @@ public class ProductDto {
                 '}';
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Long getPrice() {
-        return price;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public String getDecription() {
-        return decription;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public int getQuantity_sold() {
-        return quantity_sold;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
     public void setId(Integer id) {
         this.id = id;
     }
@@ -94,11 +57,11 @@ public class ProductDto {
         this.decription = decription;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(long quantity) {
         this.quantity = quantity;
     }
 
-    public void setQuantity_sold(int quantity_sold) {
+    public void setQuantity_sold(long quantity_sold) {
         this.quantity_sold = quantity_sold;
     }
 

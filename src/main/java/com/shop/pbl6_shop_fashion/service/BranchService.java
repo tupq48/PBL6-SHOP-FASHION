@@ -30,12 +30,12 @@ public class BranchService {
         ProductDto pr = new ProductDto();
         pr.setId(product.getId());
         pr.setBrand(product.getBrand().getName());
-        pr.setDecription(product.getDecription());
+        pr.setDecription(product.getDescription());
         pr.setName(product.getName());
         pr.setPrice(product.getPrice());
         pr.setStatus(product.getStatus());
         pr.setQuantity(product.getQuantity());
-        pr.setQuantity_sold(product.getQuantity_sold());
+        pr.setQuantity_sold(product.getQuantitySold());
         pr.setType(product.getCategory().getName());
         pr.setUnit(product.getUnit());
         return pr;

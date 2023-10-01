@@ -1,57 +1,45 @@
 package com.shop.pbl6_shop_fashion.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
 
-@Data
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
+
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 @Table(name = "products")
 public class Product {
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column(name = "name_product")
+    private int id;
+    @Column(unique = true)
     private String name;
-
-    @Column(name = "price")
-    private Long price;
-
-    @Column(name = "status")
-    private String status
-            ;
-    @Column(name = "description")
-    private String decription;
-
-    @Column(name = "quantity")
-    private int quantity;
-
-    @Column(name = "quantity_sold")
-    private int quantity_sold;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "brand_id", referencedColumnName = "id")
-    private Brand brand;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", referencedColumnName = "id")
-    private Category category;
-
-    @Column(name = "unit")
+    private String description;
+    private String status;
+    private long price;
+    private long quantity;
+    private long quantitySold;
     private String unit;
-
-    @Override
-    public String toString() {
-        return "Product{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", price=" + price +
-                ", status='" + status + '\'' +
-                ", decription='" + decription + '\'' +
-                ", quantity=" + quantity +
-                ", quantity_sold=" + quantity_sold +
-                ", unit='" + unit + '\'' +
-                '}';
-    }
+    @ManyToOne
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+    @ManyToMany
+    @JoinTable(
+            name = "product_size",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "size_id")
+    )
+    private List<Size> sizes;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<Comment> comments;
 }
