@@ -28,6 +28,7 @@ public class CartItem {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
     @PrePersist
     protected void onCreate() {
         createAt = LocalDateTime.now();
