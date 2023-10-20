@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 @ComponentScan(basePackages = "com.shop.pbl6_shop_fashion")
-public class BranchDao {
+public class BrandDao {
     @Autowired
     private SessionFactory sessionFactory;
 
@@ -32,11 +32,5 @@ public class BranchDao {
                 .getResultList();
     }
 
-    public List<Product> saveOrUpdate(Product product){
-        return openSession().createNativeQuery("select * from products", Product.class).getResultList();
-    }
 
-    public List<Product> searchAllProducts() {
-        return openSession().createNativeQuery("select * from products", Product.class).getResultList();
-    }
 }
