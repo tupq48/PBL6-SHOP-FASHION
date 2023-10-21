@@ -57,6 +57,27 @@ public class AuthService {
                 .refreshToken(refreshToken)
                 .build();
     }
+    
+    public AuthResponse register(String gmail) {
+        User newUser = new User();
+        newUser.setUsername(gmail);
+        newUser.setPassword(null);
+        //set name
+
+        Role role = roleRepository.findByName(RoleType.USER).get();
+        if (newUser.getRoles() == null) {
+            newUser.setRoles(new ArrayList<>());
+        }
+        newUser.getRoles().add(role);
+
+        userRepository.save(newUser);
+        String accessToken = jwtService.generateToken(newUser);
+        String refreshToken = jwtService.generateRefreshToken(newUser);
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
 
     public AuthResponse authenticate(AuthRequest request) {
         try {
@@ -87,6 +108,21 @@ public class AuthService {
                 .build();
     }
 
+    public AuthResponse authenticate(String gmail) {
+        var user = userRepository.findUserByUsername(gmail)
+                .orElse(null);
+        if (user == null) {
+        	return register(gmail);
+        }
+
+        String jwtToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        return AuthResponse.builder()
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

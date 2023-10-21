@@ -32,13 +32,10 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
-    @ManyToMany
-    @JoinTable(
-            name = "product_size",
-            joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "size_id")
-    )
-    private List<Size> sizes;
+
+    @OneToMany(mappedBy = "product")
+    private List<ProductSize> productSizes;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Comment> comments;
 }

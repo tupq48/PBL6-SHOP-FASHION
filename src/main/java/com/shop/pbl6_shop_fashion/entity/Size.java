@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name = "sizes")
 @AllArgsConstructor
@@ -21,4 +23,7 @@ public class Size {
     @Enumerated(EnumType.STRING)
     private SizeType name;
     private String description;
+
+    @OneToMany(mappedBy = "size")
+    private List<ProductSize> productSizes;
 }
