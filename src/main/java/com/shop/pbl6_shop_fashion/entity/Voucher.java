@@ -19,6 +19,7 @@ public class Voucher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    @Column(unique = true)
     private String code;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
@@ -27,4 +28,5 @@ public class Voucher {
     private double voucherValue;
     private double minimumPurchaseAmount;
     private int usageLimit;
+    private int usageCount;
 }

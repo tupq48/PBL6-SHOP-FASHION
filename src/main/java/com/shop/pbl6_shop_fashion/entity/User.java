@@ -23,8 +23,7 @@ public class User {
     @Column(unique = true)
     private String username;
     private String password;
-    private String firstName;
-    private String lastName;
+    private String fullName;
     private String urlImage;
     private String address;
     @Enumerated(EnumType.STRING)
@@ -33,8 +32,8 @@ public class User {
     private String phoneNumber;
     @Column(unique = true)
     private String gmail;
-    private boolean isEnabled;
-    private boolean isLock;
+    private boolean isEnabled = true;
+    private boolean isLocked = false;
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
