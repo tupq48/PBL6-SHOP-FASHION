@@ -15,22 +15,18 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 public class CartItem {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private int quantity;
     private double unitPrice;
-    private LocalDateTime createAt;
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-    @PrePersist
-    protected void onCreate() {
-        createAt = LocalDateTime.now();
-    }
-
+    /*
+        cần thiết không cái trường createAt, nghĩa là thời gian khah hàng add sản phẩm vào giỏ hàng à?
+     */
 }
