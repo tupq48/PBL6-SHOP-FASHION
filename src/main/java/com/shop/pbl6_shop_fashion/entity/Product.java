@@ -18,7 +18,7 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column(unique = true)
+//    @Column(unique = true) // sản phẩm thì không nhất thiết phải unique name, 2 sp 2 brand cùng name vẫn được
     private String name;
     private String description;
     private String status;
@@ -32,13 +32,10 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
-    @ManyToMany
-    @JoinTable(
-            name = "product_size",
-            joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "size_id")
-    )
-    private List<Size> sizes;
+
+    @OneToMany(mappedBy = "product")
+    private List<ProductSize> productSizes;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Comment> comments;
 }

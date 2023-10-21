@@ -27,8 +27,8 @@ public class Promotion {
     @Enumerated(EnumType.STRING)
     private DiscountType discountType;
     private double discountValue;
-    private boolean applicableToOrder = false;
-
+//    private boolean applicableToOrder = false;
+    private boolean isActive = false;           // mã giảm giá được dùng hay không
     @ManyToMany
     @JoinTable(
             name = "promotion_product",
