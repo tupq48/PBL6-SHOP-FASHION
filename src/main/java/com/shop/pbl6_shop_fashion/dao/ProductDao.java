@@ -1,6 +1,7 @@
 package com.shop.pbl6_shop_fashion.dao;
 
 import com.shop.pbl6_shop_fashion.dto.ProductDetailDto;
+import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.Product;
 import com.sun.jdi.IntegerType;
 import org.hibernate.Session;
@@ -34,11 +35,10 @@ public class ProductDao {
     Session getCurrentSession(){
         return sessionFactory.getCurrentSession();
     }
-
     public List<Product> searchAllProducts() {
         return openSession().createNativeQuery("select * from products", Product.class).getResultList();
     }
-    public List<Product>
+
     public ProductDetailDto searchDetailProducts(Integer id) {
 
         String sql="with AnhSanPham AS (\n" +
@@ -85,24 +85,9 @@ public class ProductDao {
                     System.err.println("Lỗi trong việc phân tích chuỗi ngày tháng: " + e.getMessage());
                 }
             }
-//            product.setBinhluan_created_at((Date) result[10]);
-
-            // Xử lý các trường khác tương tự
-//            java.sql.Timestamp timestamp = (java.sql.Timestamp) result[9]; // Lấy java.sql.Timestamp từ result
-//
-//// Chuyển đổi từ Timestamp sang Date
-//            Date date = new Date(timestamp.getTime());
-//
-//            product.setBinhluan_created_at(date); // Gán Date vào thuộc tính binhluan_created_at
-
-            // Xử lý group_concat
             String comments = (String) result[10];
             String imageUrls = (String) result[8];
             String usernames = (String) result[11];
-
-            // Xử lý chuỗi và gán giá trị cho product
-
-            // Ví dụ: chia chuỗi thành danh sách các URL ảnh
             List<String> cmtContent = List.of(comments.split(","));
             List<String> usernamesList = List.of(usernames.split(","));
             List<String> imageUrlArray = List.of(imageUrls.split(","));
@@ -111,11 +96,52 @@ public class ProductDao {
             product.setBinhluan_noi_dung(cmtContent);
             product.setSanpham_anh(imageUrlArray);
             product.setBinhluan_ten(usernamesList);
-
-
-            // Tương tự cho các trường còn lại
         }
 
         return product;
+    }
+    public List<ProductMobile> getProductsMobile(){
+        String sql="select pr.id, pr.name, pr.price, pr.quantity, pr.quantity_sold," +
+                "group_concat(ps.discount_value),  group_concat(ps.discount_type) " +
+                "from products pr " +
+                "left join promotion_product prp on pr.id=prp.product_id " +
+                "left join promotions ps on prp.promotion_id= ps.id " +
+                "group by pr.id";
+        Query query = openSession().createNativeQuery(sql);
+        List<Object[]> results = query.getResultList();
+        System.out.println("result:" + results.size());
+        List<ProductMobile> products = new ArrayList<>();
+        for (Object[] result:results){
+            ProductMobile product = new ProductMobile();
+            product.setProduct_name((String) result[1]);
+            product.setProduct_id((Integer) result[0]);
+            product.setPrice((Long) result[2]);
+            product.setQuantity((Long) result[3]);
+            product.setQuantity_sold((Long) result[4]);
+            List<String> discountValueList = new ArrayList<>();
+            String discountValue = (String) result[5];
+            if( discountValue != null) {
+                discountValueList = List.of(discountValue.split(","));
+            }
+            String discount_type = (String) result[6];
+            List<String> discountTypeList = new ArrayList<>();
+
+            if( discount_type != null) {
+                discountTypeList = List.of(discount_type.split(","));
+            }
+            Long proce_pro = (Long) result[2];
+            for (int i =0; i <discountTypeList.size(); i++){
+                    if (discountTypeList.get(i).equals("AMOUNT")) {
+                        proce_pro = proce_pro - Long.parseLong(discountValueList.get(i));
+                    }
+                    if (discountTypeList.get(i).equals("PERCENTAGE")) {
+                        proce_pro = proce_pro - (proce_pro * Long.parseLong(discountValueList.get(i))/100);
+
+                    }
+            }
+            product.setPrice_promote(proce_pro);
+            products.add(product);
+        }
+        return products;
     }
 }

@@ -3,6 +3,7 @@ package com.shop.pbl6_shop_fashion.service;
 import com.shop.pbl6_shop_fashion.dao.ProductDao;
 import com.shop.pbl6_shop_fashion.dto.ProductDetailDto;
 import com.shop.pbl6_shop_fashion.dto.ProductDto;
+import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,5 +47,8 @@ public class ProductService {
         ProductDetailDto product = productDao.searchDetailProducts(id);
         System.out.println("product service: " + product);
         return  product;
+    }
+    public List<ProductMobile> getProductsMobile(){
+        return productDao.getProductsMobile();
     }
 }
