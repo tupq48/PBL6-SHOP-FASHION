@@ -14,5 +14,6 @@ public class ProductMobile {
         private Long quantity_sold;
         private Integer product_id;
         private Long price_promote;
+        private List<String> product_image;
 
 }

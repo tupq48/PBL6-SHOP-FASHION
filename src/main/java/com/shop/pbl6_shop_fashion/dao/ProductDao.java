@@ -101,12 +101,17 @@ public class ProductDao {
         return product;
     }
     public List<ProductMobile> getProductsMobile(){
-        String sql="select pr.id, pr.name, pr.price, pr.quantity, pr.quantity_sold," +
-                "group_concat(ps.discount_value),  group_concat(ps.discount_type) " +
-                "from products pr " +
-                "left join promotion_product prp on pr.id=prp.product_id " +
-                "left join promotions ps on prp.promotion_id= ps.id " +
-                "group by pr.id";
+        String sql="with AnhSanPham AS (\n" +
+                "                select pr.*,group_concat(pi.url) as Link_anh \n" +
+                "                from products pr \n" +
+                "                join product_images pi on pi.product_id=pr.id \n" +
+                "                group by pr.id)\n" +
+                "select pr.id,pr.name, pr.price, pr.quantity, pr.quantity_sold,group_concat(ps.discount_value), group_concat(ps.discount_type), link_anh\n" +
+                "from products pr \n" +
+                "left join promotion_product prp on pr.id=prp.product_id\n" +
+                "left join promotions ps on prp.promotion_id= ps.id\n" +
+                "join AnhSanPham asp on asp.id = pr.id\n" +
+                "group by pr.id;";
         Query query = openSession().createNativeQuery(sql);
         List<Object[]> results = query.getResultList();
         System.out.println("result:" + results.size());
@@ -140,6 +145,9 @@ public class ProductDao {
                     }
             }
             product.setPrice_promote(proce_pro);
+            String images = (String) result[7];
+            List<String> imagesList = List.of(images.split(","));
+            product.setProduct_image(imagesList);
             products.add(product);
         }
         return products;
