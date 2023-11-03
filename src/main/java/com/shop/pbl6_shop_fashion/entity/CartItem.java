@@ -20,13 +20,17 @@ public class CartItem {
     private int id;
     private int quantity;
     private double unitPrice;
+    private LocalDateTime createAt;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-    /*
-        cần thiết không cái trường createAt, nghĩa là thời gian khah hàng add sản phẩm vào giỏ hàng à?
-     */
+
+    @PrePersist
+    protected void onCreate() {
+        createAt = LocalDateTime.now();
+    }
 }

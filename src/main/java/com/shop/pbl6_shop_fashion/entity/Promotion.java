@@ -29,11 +29,6 @@ public class Promotion {
     private double discountValue;
 //    private boolean applicableToOrder = false;
     private boolean isActive = false;           // mã giảm giá được dùng hay không
-    @ManyToMany
-    @JoinTable(
-            name = "promotion_product",
-            joinColumns = @JoinColumn(name = "promotion_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
+    @OneToMany(mappedBy = "promotion")
     List<Product> products;
 }
