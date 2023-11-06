@@ -42,15 +42,30 @@ public class ProductDao {
     public ProductDetailDto searchDetailProducts(Integer id) {
 
         String sql="with AnhSanPham AS (\n" +
-                "\t\t\t \t  select pr.*,group_concat(pi.url) as Link_anh from products pr join product_images pi on pi.product_id=pr.id group by pr.id)\n" +
-                "     \n" +
+                "\tselect pr.*,group_concat(pi.url) as Link_anh \n" +
+                "    from products pr \n" +
+                "    join product_images pi \n" +
+                "    on pi.product_id=pr.id group by pr.id),\n" +
+                "Sizes as( select group_concat(ps.quantity) as SoLuongConLai, pr.id as Id_sp,  group_concat(s.id) as loai_size, group_concat(s.name) as ten_size from product_size ps \n" +
+                "             left join products pr on pr.id = ps.product_id \n" +
+                "              left join sizes s on s.id = ps.size_id\n" +
+                "              group by pr.id),\n" +
+                "CMT_US as(select group_concat(cmt.content) as noidungcmt, group_concat(cmt.create_at) as ngaytaocmt, group_concat(us.full_name) as nguoicmt, pr.id as idsp, pr.name\n" +
+                "from products pr left join comments cmt \n" +
+                "on pr.id = cmt.product_id left join users us on us.id = cmt.user_id\n" +
+                "group by pr.id)\n" +
                 "\n" +
-                "     select ct.id as Loai_san_pham,ct.name as Ten_loại_san_pham,br.id AS Ma_thuong_hieu, br.name as Ten_thuong_hieu,\n" +
-                "\t pr.\n" +
-                "id, pr.name, pr.price, pr.description,Link_anh, group_concat(cmt.create_at),\n" +
-                "\t group_concat(cmt.content), group_concat(us.username) as nguoi_binh_luan from products pr join brands br on br.id = pr.brand_id join categories ct on ct.id= pr.category_id join comments cmt on cmt.product_id =pr.id join users us on us.id = cmt.user_id\n" +
-                "\t JOIN AnhSanPham asp on pr.id=asp.id\n" +
-                "     where pr.id =?  group by pr.id";
+                " select ct.id as Loai_san_pham,ct.name as Ten_loại_san_pham,br.id AS Ma_thuong_hieu, br.name as Ten_thuong_hieu,\n" +
+                "                pr.id, pr.name, pr.price, pr.description,Link_anh,ngaytaocmt, noidungcmt,nguoicmt,loai_size, ten_size,SoLuongConLai\n" +
+                "       from products pr \n" +
+                "       join brands br on br.id = pr.brand_id \n" +
+                "       join categories ct on ct.id= pr.category_id \n" +
+                "       join product_size psi on psi.product_id\n" +
+                "\t   JOIN AnhSanPham asp on pr.id=asp.id\n" +
+                "       join Sizes siz on siz.Id_sp = pr.id\n" +
+                "       join CMT_US on pr.id = CMT_US.idsp\n" +
+                "\t   where pr.id =?   \n" +
+                "       group by pr.id";
         // Tạo truy vấn native SQL
         Query query = openSession().createNativeQuery(sql);
         query.setParameter(1, id);
@@ -62,14 +77,14 @@ public class ProductDao {
 
         for (Object[] result : results) {
             product = new ProductDetailDto();
-            product.setLoai_san_pham((Integer) result[0]);
-            product.setLoaisanpham_ten((String) result[1]);
-            product.setNhom_id((Integer) result[2]);
-            product.setNhom_ten((String) result[3]);
-            product.setSanpham_id((Integer) result[4]);
-            product.setSanpham_ten((String) result[5]);
-            product.setLohang_gia_ban_ra((Long) result[6]);
-            product.setSanpham_mo_ta((String) result[7]);
+            product.setCategoryType((Integer) result[0]);
+            product.setCategoryName((String) result[1]);
+            product.setBrandType((Integer) result[2]);
+            product.setBrandName((String) result[3]);
+            product.setProductId((Integer) result[4]);
+            product.setProductName((String) result[5]);
+            product.setPrice((Long) result[6]);
+            product.setDecription((String) result[7]);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
             String dateString = (String) result[9]; // Lấy chuỗi ngày tháng từ result
             List<String> createDate = List.of(dateString.split(","));
@@ -80,7 +95,7 @@ public class ProductDao {
                 try {
                     Date date = dateFormat.parse(dateString1);
                     createDateList.add(date);
-                    product.setBinhluan_created_at(createDateList);
+                    product.setCommentCreatedAts(createDateList);
                 } catch (ParseException e) {
                     System.err.println("Lỗi trong việc phân tích chuỗi ngày tháng: " + e.getMessage());
                 }
@@ -88,14 +103,25 @@ public class ProductDao {
             String comments = (String) result[10];
             String imageUrls = (String) result[8];
             String usernames = (String) result[11];
+            String sizeTypes = (String) result[12];
+            String sizeNames = (String) result[13];
+            String SizeQuantity = (String) result[14];
+
             List<String> cmtContent = List.of(comments.split(","));
             List<String> usernamesList = List.of(usernames.split(","));
             List<String> imageUrlArray = List.of(imageUrls.split(","));
 
-            System.out.println(imageUrlArray);
-            product.setBinhluan_noi_dung(cmtContent);
-            product.setSanpham_anh(imageUrlArray);
-            product.setBinhluan_ten(usernamesList);
+            List<String> sizeTypeList = List.of(sizeTypes.split(","));
+            List<String> sizeNameList = List.of(sizeNames.split(","));
+            List<String> SizeQuantityList = List.of(SizeQuantity.split(","));
+
+            product.setCommentContents(cmtContent);
+            product.setProductUrls(imageUrlArray);
+            product.setCommentUsers(usernamesList);
+            product.setSizeTypes(sizeTypeList);
+            product.setSizeNames(sizeNameList);
+            product.setSizeQuantity(SizeQuantityList);
+
         }
 
         return product;
