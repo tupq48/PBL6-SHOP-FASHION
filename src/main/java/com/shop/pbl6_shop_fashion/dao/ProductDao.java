@@ -1,5 +1,6 @@
 package com.shop.pbl6_shop_fashion.dao;
 
+import com.shop.pbl6_shop_fashion.config.DatabaseConfig;
 import com.shop.pbl6_shop_fashion.dto.ProductDetailDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.Product;
@@ -25,9 +26,8 @@ import java.util.List;
 public class ProductDao {
     @Autowired
     private SessionFactory sessionFactory;
-
-
-
+    @Autowired
+    private DatabaseConfig databaseConfig;
     Session openSession() {
         return sessionFactory.openSession();
     }
@@ -40,7 +40,7 @@ public class ProductDao {
     }
 
     public ProductDetailDto searchDetailProducts(Integer id) {
-
+        databaseConfig.dataSource();
         String sql="with AnhSanPham AS (\n" +
                 "\tselect pr.*,group_concat(pi.url) as Link_anh \n" +
                 "    from products pr \n" +
