@@ -29,8 +29,10 @@ public class CartItem {
     @JoinColumn(name = "user_id")
     private User user;
 
+
     @PrePersist
     protected void onCreate() {
         createAt = LocalDateTime.now();
     }
+
 }

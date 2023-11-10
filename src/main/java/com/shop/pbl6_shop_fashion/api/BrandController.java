@@ -21,5 +21,4 @@ public class BrandController {
     public List<Brand> getAllBrand() {
         return brandService.getAllBrand();
     }
-
 }

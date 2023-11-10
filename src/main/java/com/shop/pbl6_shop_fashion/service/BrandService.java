@@ -1,13 +1,11 @@
 package com.shop.pbl6_shop_fashion.service;
 
 import com.shop.pbl6_shop_fashion.dao.BrandRepository;
-import com.shop.pbl6_shop_fashion.dto.BrandDto;
 import com.shop.pbl6_shop_fashion.entity.Brand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class BrandService {
@@ -17,4 +15,5 @@ public class BrandService {
     public List<Brand> getAllBrand() {
         return brandRepository.findAll();
     }
+
 }

@@ -1,16 +1,14 @@
 package com.shop.pbl6_shop_fashion.api;
 
+
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDetailDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
+import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -48,6 +46,26 @@ public class ProductController {
     public List<ProductDto> searchProduct(@PathVariable String searchValue, @PathVariable Integer page ) {
         return null;
         // giống trang home, sort theo số lượng bán
+    }
+
+
+    // lấy hết product - chưa code lại
+//    @GetMapping("/product")
+//    public List<com.shop.pbl6_shop_fashion.dto.ProductDto> searchAllProduct(){
+//        List<com.shop.pbl6_shop_fashion.dto.ProductDto> br = productService.searchAllProduct();
+//        return br;
+//    }
+
+    @GetMapping("/product_detail")
+    public com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto ProductDetail(
+            @RequestParam(name="id", required = false) Integer id){
+        com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto pr = productService.searchProductDetail(id);
+        System.out.println("product: " + pr);
+        return pr;
+    }
+    @GetMapping("/product/getAll")
+    public List<ProductMobile> getProductsMobile(){
+        return productService.getProductsMobile();
     }
 
 }

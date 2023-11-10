@@ -19,6 +19,5 @@ public class Brand {
     @Column(unique = true)
     private String name;
     private String description;
-    // one brand has a image
     private String imageUrl;
 }

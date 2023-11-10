@@ -1,5 +1,4 @@
 package com.shop.pbl6_shop_fashion.entity;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

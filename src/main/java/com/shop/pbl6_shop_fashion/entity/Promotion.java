@@ -29,6 +29,7 @@ public class Promotion {
     private double discountValue;
 //    private boolean applicableToOrder = false;
     private boolean isActive = false;           // mã giảm giá được dùng hay không
+
     @OneToMany(mappedBy = "promotion")
     List<Product> products;
 }
