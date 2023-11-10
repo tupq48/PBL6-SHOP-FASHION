@@ -18,6 +18,9 @@ public class ProductDetailDto {
     private Integer ProductId;
     private  String ProductName;
     private Long price;
+    private Long price_promote;
+    private Long quantity;
+    private Long quantity_sold;
     private String decription;
     private List<String> productUrls;
     private List<Date> commentCreatedAts;

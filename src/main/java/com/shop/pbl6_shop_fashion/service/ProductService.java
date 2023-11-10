@@ -49,6 +49,7 @@ public class ProductService {
         return  product;
     }
     public List<ProductMobile> getProductsMobile(){
+
         return productDao.getProductsMobile();
     }
 }

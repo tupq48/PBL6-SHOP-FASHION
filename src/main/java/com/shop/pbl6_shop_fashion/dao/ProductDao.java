@@ -53,19 +53,26 @@ public class ProductDao {
                 "CMT_US as(select group_concat(cmt.content) as noidungcmt, group_concat(cmt.create_at) as ngaytaocmt, group_concat(us.full_name) as nguoicmt, pr.id as idsp, pr.name\n" +
                 "from products pr left join comments cmt \n" +
                 "on pr.id = cmt.product_id left join users us on us.id = cmt.user_id\n" +
-                "group by pr.id)\n" +
+                "group by pr.id),\n" +
+                "KM as(select pr.id as SPID, group_concat(ps.discount_value) as discount_value, group_concat(ps.discount_type) as discount_type\n" +
+                "                from products pr\n" +
+                "                left join promotion_product prp on pr.id=prp.product_id\n" +
+                "                left join promotions ps on prp.promotion_id= ps.id\n" +
+                "                group by pr.id)\n" +
                 "\n" +
                 " select ct.id as Loai_san_pham,ct.name as Ten_loại_san_pham,br.id AS Ma_thuong_hieu, br.name as Ten_thuong_hieu,\n" +
-                "                pr.id, pr.name, pr.price, pr.description,Link_anh,ngaytaocmt, noidungcmt,nguoicmt,loai_size, ten_size,SoLuongConLai\n" +
+                "                pr.id, pr.name, pr.price, pr.quantity,pr.quantity_sold,pr.description,Link_anh,ngaytaocmt, noidungcmt,nguoicmt,loai_size, ten_size,SoLuongConLai,discount_value,discount_type\n" +
                 "       from products pr \n" +
                 "       join brands br on br.id = pr.brand_id \n" +
                 "       join categories ct on ct.id= pr.category_id \n" +
-                "       join product_size psi on psi.product_id\n" +
-                "\t   JOIN AnhSanPham asp on pr.id=asp.id\n" +
-                "       join Sizes siz on siz.Id_sp = pr.id\n" +
-                "       join CMT_US on pr.id = CMT_US.idsp\n" +
+                "       join product_size psi on psi.product_id=pr.id\n" +
+                "\t   LEFT JOIN AnhSanPham asp on pr.id=asp.id\n" +
+                "\tjoin Sizes siz on siz.Id_sp = pr.id\n" +
+                "       LEFT join CMT_US on pr.id = CMT_US.idsp\n" +
+                "       LEFT join KM on pr.id = KM.SPID\n" +
                 "\t   where pr.id =?   \n" +
-                "       group by pr.id";
+                "       group by pr.id;\n";
+
         // Tạo truy vấn native SQL
         Query query = openSession().createNativeQuery(sql);
         query.setParameter(1, id);
@@ -84,10 +91,16 @@ public class ProductDao {
             product.setProductId((Integer) result[4]);
             product.setProductName((String) result[5]);
             product.setPrice((Long) result[6]);
-            product.setDecription((String) result[7]);
+            product.setQuantity_sold((Long) result[7]);
+            product.setQuantity((Long) result[8]);
+            product.setDecription((String) result[9]);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
-            String dateString = (String) result[9]; // Lấy chuỗi ngày tháng từ result
-            List<String> createDate = List.of(dateString.split(","));
+            List<String> createDate = new ArrayList<>();
+
+            String dateString = (String) result[11]; // Lấy chuỗi ngày tháng từ result
+            if( dateString != null) {
+                createDate = List.of(dateString.split(","));
+            }
             System.out.println("ngay tao;" + createDate);
             List<Date> createDateList = new ArrayList<>();
 
@@ -100,20 +113,39 @@ public class ProductDao {
                     System.err.println("Lỗi trong việc phân tích chuỗi ngày tháng: " + e.getMessage());
                 }
             }
-            String comments = (String) result[10];
-            String imageUrls = (String) result[8];
-            String usernames = (String) result[11];
-            String sizeTypes = (String) result[12];
-            String sizeNames = (String) result[13];
-            String SizeQuantity = (String) result[14];
+            String comments = (String) result[12];
+            String imageUrls = (String) result[10];
+            String usernames = (String) result[13];
+            String sizeTypes = (String) result[14];
+            String sizeNames = (String) result[15];
+            String SizeQuantity = (String) result[16];
+            List<String> cmtContent = new ArrayList<>();
+            if( dateString != null) {
+                cmtContent = List.of(comments.split(","));
+            }
+            List<String> usernamesList = new ArrayList<>();
+            if(usernames != null){
+                usernamesList = List.of(usernames.split(","));
 
-            List<String> cmtContent = List.of(comments.split(","));
-            List<String> usernamesList = List.of(usernames.split(","));
-            List<String> imageUrlArray = List.of(imageUrls.split(","));
+            }
+            List<String> imageUrlArray = new ArrayList<>();
+            if(imageUrls != null) {
+                imageUrlArray = List.of(imageUrls.split(","));
+            }
 
-            List<String> sizeTypeList = List.of(sizeTypes.split(","));
-            List<String> sizeNameList = List.of(sizeNames.split(","));
-            List<String> SizeQuantityList = List.of(SizeQuantity.split(","));
+            List<String> sizeTypeList = new ArrayList<>();
+            if(sizeTypes != null) {
+                sizeTypeList = List.of(sizeTypes.split(","));
+            }
+
+            List<String> sizeNameList = new ArrayList<>();
+            if(sizeNames != null) {
+                sizeNameList = List.of(sizeNames.split(","));
+            }
+             List<String> SizeQuantityList = new ArrayList<>();
+             if(SizeQuantity != null) {
+                 SizeQuantityList = List.of(SizeQuantity.split(","));
+             }
 
             product.setCommentContents(cmtContent);
             product.setProductUrls(imageUrlArray);
@@ -121,6 +153,29 @@ public class ProductDao {
             product.setSizeTypes(sizeTypeList);
             product.setSizeNames(sizeNameList);
             product.setSizeQuantity(SizeQuantityList);
+
+            List<String> discountValueList = new ArrayList<>();
+            String discountValue = (String) result[17];
+            if( discountValue != null) {
+                discountValueList = List.of(discountValue.split(","));
+            }
+            String discount_type = (String) result[18];
+            List<String> discountTypeList = new ArrayList<>();
+
+            if( discount_type != null) {
+                discountTypeList = List.of(discount_type.split(","));
+            }
+            Long price_pro = (Long) result[6];
+            for (int i =0; i <discountTypeList.size(); i++){
+                if (discountTypeList.get(i).equals("AMOUNT")) {
+                    price_pro = price_pro - Long.parseLong(discountValueList.get(i));
+                }
+                if (discountTypeList.get(i).equals("PERCENTAGE")) {
+                    price_pro = price_pro - (price_pro * Long.parseLong(discountValueList.get(i))/100);
+
+                }
+            }
+            product.setPrice_promote(price_pro);
 
         }
 
