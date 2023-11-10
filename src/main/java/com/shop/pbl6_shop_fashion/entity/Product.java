@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -45,4 +46,19 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
+
+    private LocalDateTime createAt;
+    private LocalDateTime updateAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createAt = LocalDateTime.now();
+        updateAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updateAt = LocalDateTime.now();
+    }
+
 }

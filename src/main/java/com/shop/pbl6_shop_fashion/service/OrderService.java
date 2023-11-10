@@ -16,27 +16,7 @@ public class OrderService {
 
 
     public List<OrderDto> getAllOrderByUserId(Integer userId) {
-        return orderRepository.findAllByUserId(userId)
-                .stream().map(order -> {
-                    return OrderDto.builder()
-                            .khachhang_ten(order.getUser().getFullName())
-                            .khachhang_sdt(order.getPhoneNumber())
-                            .khachhang_diachi(order.getShippingAddress())
-                            .khachhang_email(order.getUser().getGmail())
-                            .donhang_ghi_chu(order.getNote())
-                            .donhang_tong_tien(order.getTotalAmount())
-                            .donhang_giam_gia(order.getDiscountAmount())
-                            .thoigian_dat_hang(order.getOrderDate())
-                            .chitietdonhang(order.getOrderItems().stream()
-                                                    .map(orderItem -> {
-                                                        return OrderItemDto.builder()
-                                                                .productId(orderItem.getProduct().getId())
-                                                                .productName(orderItem.getProduct().getName())
-                                                                .unitPrice(orderItem.getUnitPrice())
-                                                                .quantity(orderItem.getQuantity())
-                                                                .build();
-                                                    }).toList())
-                            .build();
-                }).toList();
+         return orderRepository.findAllOrderByUserId(userId);
     }
+
 }

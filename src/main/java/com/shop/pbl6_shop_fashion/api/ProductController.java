@@ -31,9 +31,23 @@ public class ProductController {
         return productService.getProductPromotionById(id);
     }
 
+    @GetMapping("/getByCategory/{categoryId}/{page}/{limit}")
+    public List<ProductDto> getProductByCategoryAndPage(@PathVariable Integer categoryId,
+                                                        @PathVariable Integer page,
+                                                        @PathVariable Integer limit)
+    {
+        if (page == null || page < 0) page = 0;
+        return productService.getProductByCategoryAndPage(categoryId, page, limit);
+    }
+    @GetMapping("/home/{number}")
+    private List<ProductDto> getNewestProduct(@PathVariable Integer number) {
+        return productService.getNewestProduct(number);
+    }
+
     @GetMapping("/search/{searchValue}/{page}")
     public List<ProductDto> searchProduct(@PathVariable String searchValue, @PathVariable Integer page ) {
         return null;
+        // giống trang home, sort theo số lượng bán
     }
 
 }

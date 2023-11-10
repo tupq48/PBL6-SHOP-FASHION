@@ -9,8 +9,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Integer>, ProductRepositoryCustom {
+
+public interface ProductRepositoryCustom {
+    public List<ProductDto> getNewestProduct(Integer number);
+
+    public ProductDetailDto getProductDetailById(Integer id);
+
+    public ProductPromotionDto getProductPromotionById(Integer id);
+
+    public List<ProductDto> getProductByCategoryAndPage(Integer categoryId, Integer page, Integer limit);
+
 
 }
-

@@ -14,18 +14,25 @@ public class AdminController {
     @Autowired
     AdminService adminService;
 
-    @PostMapping("/revenue")
-    public RevenueDto calculatorRevenue(@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) {
+    /*
+    date dạng String, format: YYYY-MM-DD
+     */
+    @GetMapping("/revenue/{startDate}/{endDate}")
+    public RevenueDto calculatorRevenue(@PathVariable("startDate") String startDate,
+                                        @PathVariable("endDate") String endDate)
+    {
         return adminService.calculatorRevenue(startDate, endDate);
     }
 
-    @PostMapping("/revenue/product")
+    /*
+    date dạng String, format: YYYY-MM-DD
+     */
+    @GetMapping("/revenue/product/{productId}/{startDate}/{endDate}")
     public Double calculatorRevenueProductById(
-            @RequestParam("productId") Integer productId,
-            @RequestParam("startDate") String startDate,
-            @RequestParam("endDate") String endDate
-    ){
-
+            @PathVariable("productId") Integer productId,
+            @PathVariable("startDate") String startDate,
+            @PathVariable("endDate") String endDate)
+    {
         return adminService.calculatorRevenueProductById(productId, startDate, endDate);
     }
 

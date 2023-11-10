@@ -1,6 +1,7 @@
 package com.shop.pbl6_shop_fashion.api;
 
 import com.shop.pbl6_shop_fashion.dto.BrandDto;
+import com.shop.pbl6_shop_fashion.entity.Brand;
 import com.shop.pbl6_shop_fashion.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,7 @@ public class BrandController {
     private BrandService brandService;
 
     @GetMapping()
-    public List<BrandDto> getAllBrand() {
+    public List<Brand> getAllBrand() {
         return brandService.getAllBrand();
     }
 

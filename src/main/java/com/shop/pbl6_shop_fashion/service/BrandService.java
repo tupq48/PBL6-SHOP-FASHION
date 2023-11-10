@@ -2,6 +2,7 @@ package com.shop.pbl6_shop_fashion.service;
 
 import com.shop.pbl6_shop_fashion.dao.BrandRepository;
 import com.shop.pbl6_shop_fashion.dto.BrandDto;
+import com.shop.pbl6_shop_fashion.entity.Brand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,16 +14,7 @@ public class BrandService {
     @Autowired
     private BrandRepository brandRepository;
 
-    public List<BrandDto> getAllBrand() {
-        return brandRepository.findAll()
-                .stream()
-                .map(entity -> {
-                    return BrandDto.builder()
-                            .nhom_ten(entity.getName())
-                            .nhom_id(entity.getId())
-                            .build();
-                })
-                .collect(Collectors.toList());
-
+    public List<Brand> getAllBrand() {
+        return brandRepository.findAll();
     }
 }

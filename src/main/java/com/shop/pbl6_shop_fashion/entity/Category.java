@@ -19,4 +19,6 @@ public class Category {
     @Column(unique = true)
     private String name;
     private String description;
+    // one category has a image
+    private String imageUrl;
 }
