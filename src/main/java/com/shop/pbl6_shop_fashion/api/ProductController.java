@@ -34,4 +34,9 @@ public class ProductController {
     public List<ProductMobile> getProductsMobile(){
         return productService.getProductsMobile();
     }
+    @GetMapping("/product/searchAll")
+    public List<ProductMobile> searchProductsMobile(
+            @RequestParam(name="keyword", required = false) String keyword){
+        return productService.searchProductsMobile(keyword);
+    }
 }

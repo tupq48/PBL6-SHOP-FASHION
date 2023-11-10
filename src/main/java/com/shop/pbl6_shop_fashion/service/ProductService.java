@@ -52,4 +52,8 @@ public class ProductService {
 
         return productDao.getProductsMobile();
     }
+
+    public List<ProductMobile> searchProductsMobile(String keyword) {
+        return  productDao.searchProductsMobile(keyword);
+    }
 }

@@ -233,4 +233,64 @@ public class ProductDao {
         }
         return products;
     }
+
+    public List<ProductMobile> searchProductsMobile(String keyword){
+        String sql = "WITH AnhSanPham AS ( "
+                + "  SELECT pr.*, GROUP_CONCAT(pi.url) AS Link_anh "
+                + "  FROM products pr "
+                + "  LEFT JOIN product_images pi ON pi.product_id = pr.id "
+                + "  GROUP BY pr.id) "
+                + "SELECT pr.id, pr.name, pr.price, pr.quantity, pr.quantity_sold, "
+                + "       GROUP_CONCAT(ps.discount_value), GROUP_CONCAT(ps.discount_type), link_anh "
+                + "FROM products pr "
+                + "LEFT JOIN promotion_product prp ON pr.id = prp.product_id "
+                + "LEFT JOIN promotions ps ON prp.promotion_id = ps.id "
+                + "JOIN AnhSanPham asp ON asp.id = pr.id "
+                + "WHERE pr.name LIKE :keyword "
+                + "GROUP BY pr.id";
+
+        Query query = openSession().createNativeQuery(sql);
+        query.setParameter("keyword","%" +keyword+"%");
+        List<Object[]> results = query.getResultList();
+        System.out.println("result:" + results.size());
+        List<ProductMobile> products = new ArrayList<>();
+        for (Object[] result:results){
+            ProductMobile product = new ProductMobile();
+            product.setProduct_name((String) result[1]);
+            product.setProduct_id((Integer) result[0]);
+            product.setPrice((Long) result[2]);
+            product.setQuantity((Long) result[3]);
+            product.setQuantity_sold((Long) result[4]);
+            List<String> discountValueList = new ArrayList<>();
+            String discountValue = (String) result[5];
+            if( discountValue != null) {
+                discountValueList = List.of(discountValue.split(","));
+            }
+            String discount_type = (String) result[6];
+            List<String> discountTypeList = new ArrayList<>();
+
+            if( discount_type != null) {
+                discountTypeList = List.of(discount_type.split(","));
+            }
+            Long proce_pro = (Long) result[2];
+            for (int i =0; i <discountTypeList.size(); i++){
+                if (discountTypeList.get(i).equals("AMOUNT")) {
+                    proce_pro = proce_pro - Long.parseLong(discountValueList.get(i));
+                }
+                if (discountTypeList.get(i).equals("PERCENTAGE")) {
+                    proce_pro = proce_pro - (proce_pro * Long.parseLong(discountValueList.get(i))/100);
+
+                }
+            }
+            product.setPrice_promote(proce_pro);
+            String images = (String) result[7];
+            List<String> imagesList= new ArrayList<>();
+            if(images != null){
+                imagesList = List.of(images.split(","));
+            }
+            product.setProduct_image(imagesList);
+            products.add(product);
+        }
+        return products;
+    }
 }
