@@ -6,8 +6,8 @@ import jakarta.mail.MessagingException;
 import java.security.Principal;
 
 public interface PasswordService {
-    void changePassword(PasswordChangeRequest request, Principal connectedUser);
-    void sendOTPEmail(String email) throws MessagingException;
-    boolean verifyOTP(String email,String otp);
-    void resetPassword(String token,String newPassword);
+    boolean changePassword(PasswordChangeRequest request, Principal connectedUser);
+    String sendOTPEmail(String username) throws MessagingException;
+    String verifyOTP(String email,String otp);
+    boolean resetPassword(String token,String newPassword);
 }

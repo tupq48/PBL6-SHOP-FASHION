@@ -1,6 +1,6 @@
 package com.shop.pbl6_shop_fashion.security;
 
-import com.shop.pbl6_shop_fashion.repository.UserRepository;
+import com.shop.pbl6_shop_fashion.dao.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +22,7 @@ public class BeanConfig {
     public UserDetailsService userDetailsService() {
         return username ->
                 userRepository.findUserByUsername(username)
-                        .orElseThrow(() -> new UsernameNotFoundException("Username not found : "+username));
+                        .orElseThrow(() -> new UsernameNotFoundException("Username not found : " + username));
     }
 
     @Bean

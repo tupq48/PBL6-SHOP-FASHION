@@ -1,4 +1,4 @@
-package com.shop.pbl6_shop_fashion.security.oauth2;
+package com.shop.pbl6_shop_fashion.security.oauth2.user;
 
 import lombok.AllArgsConstructor;
 

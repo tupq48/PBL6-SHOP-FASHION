@@ -12,15 +12,9 @@ import java.util.Map;
 
 @SpringBootApplication
 @EnableAsync()
-@RestController()
 public class Pbl6ShopFashionApplication {
     public static void main(String[] args) {
         SpringApplication.run(Pbl6ShopFashionApplication.class, args);
     }
-    @GetMapping()
-    public Map<String, Object> hello(OAuth2AuthenticationToken oAuth2AuthenticationToken){
-       return oAuth2AuthenticationToken.getPrincipal().getAttributes();
-    }
-
 }
 

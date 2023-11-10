@@ -2,12 +2,12 @@ package com.shop.pbl6_shop_fashion.fakedata;
 
 import com.shop.pbl6_shop_fashion.entity.Role;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
-import com.shop.pbl6_shop_fashion.repository.RoleRepository;
+import com.shop.pbl6_shop_fashion.dao.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-//@Component
+@Component
 @RequiredArgsConstructor
 public class AddRole implements CommandLineRunner {
 
