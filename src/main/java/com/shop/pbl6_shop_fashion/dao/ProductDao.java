@@ -244,15 +244,18 @@ public class ProductDao {
                 "                group by pr.id)\n" +
                 "                select pr.id,pr.name, pr.price, pr.quantity, pr.quantity_sold,group_concat(ps.discount_value), group_concat(ps.discount_type), link_anh\n" +
                 "                from products pr\n" +
-                 "LEFT JOIN promotion_product prp ON pr.id = prp.product_id "+
-                 "LEFT JOIN promotions ps ON prp.promotion_id = ps.id "     +           "                join AnhSanPham asp on asp.id = pr.id\n" +
+                 "LEFT JOIN promotions ps ON pr.promotion_id = ps.id "     +           "                join AnhSanPham asp on asp.id = pr.id\n" +
                 "                join categories ct on ct.id = pr.category_id\n" +
-                "                where pr.name like :keyword and pr.price BETWEEN 0 AND 100000 and ct.name like :category \n" +
+                "                where pr.name like :keyword and pr.price BETWEEN :minprice AND :maxprice and ct.name like :category \n" +
                 "                group by pr.id";
 
-        Query query = openSession().createNativeQuery(sql);
+        Query query = ConnectionProvider.openSession().createNativeQuery(sql);
         query.setParameter("keyword","%" +keyword+"%");
         query.setParameter("category","%" +category+"%");
+        query.setParameter("minprice", minprice);
+        query.setParameter("maxprice", maxprice);
+
+
 
 
         List<Object[]> results = query.getResultList();
