@@ -53,7 +53,7 @@ public class ProductService {
         return productDao.getProductsMobile();
     }
 
-    public List<ProductMobile> searchProductsMobile(String keyword) {
-        return  productDao.searchProductsMobile(keyword);
+    public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category) {
+        return  productDao.searchProductsMobile(keyword, minprice, maxprice, category);
     }
 }

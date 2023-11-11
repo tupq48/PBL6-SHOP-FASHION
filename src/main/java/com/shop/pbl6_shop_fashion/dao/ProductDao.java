@@ -234,23 +234,38 @@ public class ProductDao {
         return products;
     }
 
-    public List<ProductMobile> searchProductsMobile(String keyword){
-        String sql = "WITH AnhSanPham AS ( "
-                + "  SELECT pr.*, GROUP_CONCAT(pi.url) AS Link_anh "
-                + "  FROM products pr "
-                + "  LEFT JOIN product_images pi ON pi.product_id = pr.id "
-                + "  GROUP BY pr.id) "
-                + "SELECT pr.id, pr.name, pr.price, pr.quantity, pr.quantity_sold, "
-                + "       GROUP_CONCAT(ps.discount_value), GROUP_CONCAT(ps.discount_type), link_anh "
-                + "FROM products pr "
-                + "LEFT JOIN promotion_product prp ON pr.id = prp.product_id "
-                + "LEFT JOIN promotions ps ON prp.promotion_id = ps.id "
-                + "JOIN AnhSanPham asp ON asp.id = pr.id "
-                + "WHERE pr.name LIKE :keyword "
-                + "GROUP BY pr.id";
+    public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice,Integer maxprice, String category){
+//        String sql = "WITH AnhSanPham AS ( "
+//                + "  SELECT pr.*, GROUP_CONCAT(pi.url) AS Link_anh "
+//                + "  FROM products pr "
+//                + "  LEFT JOIN product_images pi ON pi.product_id = pr.id "
+//                + "  GROUP BY pr.id) "
+//                + "SELECT pr.id, pr.name, pr.price, pr.quantity, pr.quantity_sold, "
+//                + "       GROUP_CONCAT(ps.discount_value), GROUP_CONCAT(ps.discount_type), link_anh "
+//                + "FROM products pr "
+//                + "LEFT JOIN promotion_product prp ON pr.id = prp.product_id "
+//                + "LEFT JOIN promotions ps ON prp.promotion_id = ps.id "
+//                + "JOIN AnhSanPham asp ON asp.id = pr.id "
+//                + "WHERE pr.name LIKE :keyword "
+//                + "GROUP BY pr.id";
+        String sql="with AnhSanPham AS (\n" +
+                "        select pr.*,group_concat(pi.url) as Link_anh \n" +
+                "               from products pr \n" +
+                "                          left join product_images pi on pi.product_id=pr.id \n" +
+                "                group by pr.id)\n" +
+                "                select pr.id,pr.name, pr.price, pr.quantity, pr.quantity_sold,group_concat(ps.discount_value), group_concat(ps.discount_type), link_anh\n" +
+                "                from products pr\n" +
+                 "LEFT JOIN promotion_product prp ON pr.id = prp.product_id "+
+                 "LEFT JOIN promotions ps ON prp.promotion_id = ps.id "     +           "                join AnhSanPham asp on asp.id = pr.id\n" +
+                "                join categories ct on ct.id = pr.category_id\n" +
+                "                where pr.name like :keyword and pr.price BETWEEN 0 AND 100000 and ct.name like :category \n" +
+                "                group by pr.id";
 
         Query query = openSession().createNativeQuery(sql);
         query.setParameter("keyword","%" +keyword+"%");
+        query.setParameter("category","%" +category+"%");
+
+
         List<Object[]> results = query.getResultList();
         System.out.println("result:" + results.size());
         List<ProductMobile> products = new ArrayList<>();

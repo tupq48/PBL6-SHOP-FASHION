@@ -36,7 +36,10 @@ public class ProductController {
     }
     @GetMapping("/product/searchAll")
     public List<ProductMobile> searchProductsMobile(
-            @RequestParam(name="keyword", required = false) String keyword){
-        return productService.searchProductsMobile(keyword);
+            @RequestParam(name="keyword", defaultValue = "") String keyword,
+            @RequestParam(name="minprice", defaultValue = "0") Integer minprice,
+            @RequestParam(name="maxprice", defaultValue = "100000") Integer maxprice,
+            @RequestParam(name="category", defaultValue = "") String category){
+        return productService.searchProductsMobile(keyword,minprice,maxprice,category);
     }
 }
