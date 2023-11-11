@@ -1,4 +1,5 @@
-package com.shop.pbl6_shop_fashion.security.oauth2;
+package com.shop.pbl6_shop_fashion.security.oauth2.user;
+
 
 import java.util.Map;
 
@@ -20,4 +21,5 @@ public class OAuth2UserGoogle extends OAuth2UserInfo {
     public String getPicture() {
         return (String) attributes.get("picture");
     }
+
 }

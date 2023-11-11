@@ -6,7 +6,7 @@ import java.util.Random;
 
 @Component
 public class OtpGenerator {
-    public String generateOTP() {
+    public static String generateOTP() {
         // Define the length of the OTP
         final int otpLength = 6;
 

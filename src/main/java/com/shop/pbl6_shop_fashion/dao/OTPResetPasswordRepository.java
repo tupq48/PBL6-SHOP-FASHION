@@ -1,4 +1,4 @@
-package com.shop.pbl6_shop_fashion.repository;
+package com.shop.pbl6_shop_fashion.dao;
 
 import com.shop.pbl6_shop_fashion.entity.OTPSetPassword;
 import com.shop.pbl6_shop_fashion.entity.User;
