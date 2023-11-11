@@ -1,5 +1,4 @@
 package com.shop.pbl6_shop_fashion.entity;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,4 +18,6 @@ public class Category {
     @Column(unique = true)
     private String name;
     private String description;
+    // one category has a image
+    private String imageUrl;
 }
