@@ -1,8 +1,11 @@
 package com.shop.pbl6_shop_fashion.service;
 
+
 import com.shop.pbl6_shop_fashion.dao.ProductDao;
-import com.shop.pbl6_shop_fashion.dto.ProductDetailDto;
-import com.shop.pbl6_shop_fashion.dto.ProductDto;
+import com.shop.pbl6_shop_fashion.dao.ProductRepository;
+import com.shop.pbl6_shop_fashion.dto.Product.ProductDetailDto;
+import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
+import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.Product;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,19 +14,35 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Service
 public class ProductService {
     @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
     private ProductDao productDao;
 
-    public List<ProductDto> searchAllProduct() {
-        List<Product> products = productDao.searchAllProducts();
-
-        return products.stream().map(this::convertProductToProductDto).collect(Collectors.toList());
+    public ProductDetailDto getProductDetailById(Integer id) {
+        return productRepository.getProductDetailById(id);
     }
 
-    private ProductDto convertProductToProductDto(Product product) {
-        ProductDto pr = new ProductDto();
+    public ProductPromotionDto getProductPromotionById(Integer id) {
+        return productRepository.getProductPromotionById(id);
+    }
+
+    public List<ProductDto> getNewestProduct(Integer number) {
+        return productRepository.getNewestProduct(number);
+    }
+
+    public List<ProductDto> getProductByCategoryAndPage(Integer categoryId, Integer page, Integer limit) {
+
+        return productRepository.getProductByCategoryAndPage(categoryId, page, limit);
+    }
+
+/*
+    private com.shop.pbl6_shop_fashion.dto.ProductDto convertProductToProductDto(Product product) {
+        com.shop.pbl6_shop_fashion.dto.ProductDto pr = new com.shop.pbl6_shop_fashion.dto.ProductDto();
         pr.setId(product.getId());
         pr.setLomoi(0);
         pr.setSanpham_ten(product.getName());
@@ -42,9 +61,12 @@ public class ProductService {
 //        pr.setUnit(product.getUnit());
         return pr;
     }
+*/
 
-    public ProductDetailDto searchProductDetail(Integer id) {
-        ProductDetailDto product = productDao.searchDetailProducts(id);
+
+
+    public com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto searchProductDetail(Integer id) {
+        com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto product = productDao.searchDetailProducts(id);
         System.out.println("product service: " + product);
         return  product;
     }
@@ -56,4 +78,5 @@ public class ProductService {
     public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category) {
         return  productDao.searchProductsMobile(keyword, minprice, maxprice, category);
     }
+
 }

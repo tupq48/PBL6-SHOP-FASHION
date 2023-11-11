@@ -1,9 +1,10 @@
 package com.shop.pbl6_shop_fashion.dao;
 
 import com.shop.pbl6_shop_fashion.config.DatabaseConfig;
-import com.shop.pbl6_shop_fashion.dto.ProductDetailDto;
+import com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.Product;
+import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import com.sun.jdi.IntegerType;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -24,23 +25,13 @@ import java.util.List;
 
 @Repository
 public class ProductDao {
-    @Autowired
-    private SessionFactory sessionFactory;
-    @Autowired
-    private DatabaseConfig databaseConfig;
-    Session openSession() {
-        return sessionFactory.openSession();
-    }
 
-    Session getCurrentSession(){
-        return sessionFactory.getCurrentSession();
-    }
     public List<Product> searchAllProducts() {
-        return openSession().createNativeQuery("select * from products", Product.class).getResultList();
+        return ConnectionProvider.openSession().createNativeQuery("select * from products", Product.class).getResultList();
     }
 
-    public ProductDetailDto searchDetailProducts(Integer id) {
-        databaseConfig.dataSource();
+    public ProductDetailMobileDto searchDetailProducts(Integer id) {
+//        databaseConfig.dataSource();
         String sql="with AnhSanPham AS (\n" +
                 "\tselect pr.*,group_concat(pi.url) as Link_anh \n" +
                 "    from products pr \n" +
@@ -56,8 +47,7 @@ public class ProductDao {
                 "group by pr.id),\n" +
                 "KM as(select pr.id as SPID, group_concat(ps.discount_value) as discount_value, group_concat(ps.discount_type) as discount_type\n" +
                 "                from products pr\n" +
-                "                left join promotion_product prp on pr.id=prp.product_id\n" +
-                "                left join promotions ps on prp.promotion_id= ps.id\n" +
+                "                left join promotions ps on pr.promotion_id= ps.id\n" +
                 "                group by pr.id)\n" +
                 "\n" +
                 " select ct.id as Loai_san_pham,ct.name as Ten_loại_san_pham,br.id AS Ma_thuong_hieu, br.name as Ten_thuong_hieu,\n" +
@@ -74,16 +64,16 @@ public class ProductDao {
                 "       group by pr.id;\n";
 
         // Tạo truy vấn native SQL
-        Query query = openSession().createNativeQuery(sql);
+        Query query = ConnectionProvider.openSession().createNativeQuery(sql);
         query.setParameter(1, id);
 
         // Thực hiện truy vấn
         List<Object[]> results = query.getResultList();
         System.out.println("result:" + results.size());
-        ProductDetailDto product = null;
+        ProductDetailMobileDto product = null;
 
         for (Object[] result : results) {
-            product = new ProductDetailDto();
+            product = new ProductDetailMobileDto();
             product.setCategoryType((Integer) result[0]);
             product.setCategoryName((String) result[1]);
             product.setBrandType((Integer) result[2]);
@@ -189,11 +179,10 @@ public class ProductDao {
                 "                group by pr.id)\n" +
                 "select pr.id,pr.name, pr.price, pr.quantity, pr.quantity_sold,group_concat(ps.discount_value), group_concat(ps.discount_type), link_anh\n" +
                 "from products pr \n" +
-                "left join promotion_product prp on pr.id=prp.product_id\n" +
-                "left join promotions ps on prp.promotion_id= ps.id\n" +
+                "left join promotions ps on pr.promotion_id= ps.id\n" +
                 "join AnhSanPham asp on asp.id = pr.id\n" +
                 "group by pr.id;";
-        Query query = openSession().createNativeQuery(sql);
+        Query query = ConnectionProvider.openSession().createNativeQuery(sql);
         List<Object[]> results = query.getResultList();
         System.out.println("result:" + results.size());
         List<ProductMobile> products = new ArrayList<>();
