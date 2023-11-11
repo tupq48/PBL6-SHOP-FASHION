@@ -47,8 +47,7 @@ public class ProductDao {
                 "group by pr.id),\n" +
                 "KM as(select pr.id as SPID, group_concat(ps.discount_value) as discount_value, group_concat(ps.discount_type) as discount_type\n" +
                 "                from products pr\n" +
-                "                left join promotion_product prp on pr.id=prp.product_id\n" +
-                "                left join promotions ps on prp.promotion_id= ps.id\n" +
+                "                left join promotions ps on pr.promotion_id= ps.id\n" +
                 "                group by pr.id)\n" +
                 "\n" +
                 " select ct.id as Loai_san_pham,ct.name as Ten_loại_san_pham,br.id AS Ma_thuong_hieu, br.name as Ten_thuong_hieu,\n" +
@@ -180,8 +179,7 @@ public class ProductDao {
                 "                group by pr.id)\n" +
                 "select pr.id,pr.name, pr.price, pr.quantity, pr.quantity_sold,group_concat(ps.discount_value), group_concat(ps.discount_type), link_anh\n" +
                 "from products pr \n" +
-                "left join promotion_product prp on pr.id=prp.product_id\n" +
-                "left join promotions ps on prp.promotion_id= ps.id\n" +
+                "left join promotions ps on pr.promotion_id= ps.id\n" +
                 "join AnhSanPham asp on asp.id = pr.id\n" +
                 "group by pr.id;";
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);

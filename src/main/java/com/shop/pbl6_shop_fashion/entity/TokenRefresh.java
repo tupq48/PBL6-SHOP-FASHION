@@ -9,29 +9,20 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cart_items")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
-public class CartItem {
+public class TokenRefresh {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private int quantity;
-    private double unitPrice;
-    private LocalDateTime createAt;
-
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
-    @ManyToOne
+    @Column(unique = true)
+    private String token;
+    private LocalDateTime expirationDate;
+    private boolean resetRequired = false;
+    @OneToOne()
     @JoinColumn(name = "user_id")
     private User user;
-
-    @PrePersist
-    protected void onCreate() {
-        createAt = LocalDateTime.now();
-    }
 
 }

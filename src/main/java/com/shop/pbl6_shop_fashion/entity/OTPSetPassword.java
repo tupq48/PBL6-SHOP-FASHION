@@ -13,16 +13,15 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "password_reset_requests")
-public class PasswordReset {
+public class OTPSetPassword {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String token;
+    private String otpValue;
     private LocalDateTime expirationTime;
     private boolean used = false;
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 }
