@@ -13,7 +13,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @EntityGraph(attributePaths = {"roles"}, type = EntityGraph.EntityGraphType.FETCH)
     Optional<User> findUserByUsername(String username);
 
-    Optional<User> findByUsernameOrGmail(String username,String gmail);
+    Optional<User> findByUsername(String username);
+
 
     boolean existsUserByUsernameAndAccountProvider(String username, AccountProvider accountProvider);
 

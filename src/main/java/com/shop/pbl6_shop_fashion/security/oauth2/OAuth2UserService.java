@@ -32,15 +32,17 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         User user = checkOAuth2User(oAuth2User, userRequest);
-
+//        return User;
 
         return CustomUserOAuth.builder()
                 .id(user.getId())
-                .name(user.getFullName())
+                .fullName(user.getFullName())
                 .isLocked(user.isLocked())
                 .username(user.getUsername())
                 .password(user.getPassword())
                 .accountProvider(user.getAccountProvider())
+                .email(user.getGmail())
+                .avatarUrl(user.getUrlImage())
                 .attributes(oAuth2User.getAttributes())
                 .authorities(user.getAuthorities())
                 .build();
@@ -62,7 +64,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     private User updateUser(User user, OAuth2UserInfo oAuth2UserInfo) {
         if (user.isLocked()) {
             throw new AuthenticationException("User name is lock or disable : " + user.getUsername()) {
-
             };
         }
         user.setFullName(oAuth2UserInfo.getName());

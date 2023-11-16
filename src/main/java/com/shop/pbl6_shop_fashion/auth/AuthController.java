@@ -1,6 +1,6 @@
 package com.shop.pbl6_shop_fashion.auth;
 
-import com.shop.pbl6_shop_fashion.dto.ResetPasswordRequest;
+import com.shop.pbl6_shop_fashion.dto.password.ResetPasswordRequest;
 import com.shop.pbl6_shop_fashion.service.PasswordService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,11 +9,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,7 +34,7 @@ public class AuthController {
     }
 
 
-    @PostMapping("/api/v1/auth/refresh-token")
+    @PostMapping("/refresh-token")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         authService.refreshToken(request, response);
     }
@@ -59,10 +57,9 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<?> verifyOtp(String email, String otp) {
-        String token = passwordService.verifyOTP(email, otp);
+    public ResponseEntity<?> verifyOtp(String username, String otp) {
+        String token = passwordService.verifyOTP(username, otp);
         return ResponseEntity.ok(token);
-
     }
     
 }

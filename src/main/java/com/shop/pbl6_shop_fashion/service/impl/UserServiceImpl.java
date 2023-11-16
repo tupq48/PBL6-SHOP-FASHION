@@ -8,6 +8,7 @@ import com.shop.pbl6_shop_fashion.dto.mapper.impl.UserMapperImpl;
 import com.shop.pbl6_shop_fashion.entity.Role;
 import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
+import com.shop.pbl6_shop_fashion.exception.BaseException;
 import com.shop.pbl6_shop_fashion.exception.RoleException;
 import com.shop.pbl6_shop_fashion.exception.UniqueConstraintViolationException;
 import com.shop.pbl6_shop_fashion.exception.UserNotFoundException;
@@ -84,15 +85,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(userDb);
         } catch (DataIntegrityViolationException e) {
             // Handle the unique constraint violation
-            if (e.getCause() instanceof ConstraintViolationException) {
-                if (e.getCause() instanceof ConstraintViolationException) {
-                    String message = e.getCause().getMessage();
-                    if (message.contains("UniqueConstraintName")) {
-                        // Handle the unique constraint violation for phoneNumber or gmail
-                        throw new UniqueConstraintViolationException("Phone number or Gmail is already in use.");
-                    }
-                }
-            }
+            throw  new BaseException(e.getMessage());
         }
 
         return userMapper.userToUserResponse(userDb);
@@ -123,11 +116,11 @@ public class UserServiceImpl implements UserService {
      * hasRole Admin
      * Cập nhật quyền (permission) cho người dùng dựa trên loại quyền đã cho.
      *
-     * @param id ID của người dùng cần cập nhật quyền.
+     * @param id       ID của người dùng cần cập nhật quyền.
      * @param roleType Loại quyền (RoleType) cần được cập nhật cho người dùng.
      * @return Danh sách quyền sau khi cập nhật.
      * @throws UserNotFoundException Nếu không tìm thấy người dùng với ID đã cho.
-     * @throws RoleException Nếu xảy ra lỗi khi cập nhật quyền, ví dụ: quyền đã tồn tại hoặc quyền không tồn tại.
+     * @throws RoleException         Nếu xảy ra lỗi khi cập nhật quyền, ví dụ: quyền đã tồn tại hoặc quyền không tồn tại.
      */
     @Override
     @Transactional

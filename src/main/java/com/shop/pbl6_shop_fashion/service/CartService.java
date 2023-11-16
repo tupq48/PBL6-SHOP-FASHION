@@ -5,14 +5,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 public interface CartService {
-    boolean addCartItem(CartItemDto cartItemDto);
-    boolean addCartItem(List<CartItemDto> cartItemDtoList);
-    boolean removeItem(CartItemDto cartItemDto);
-    boolean removeItem(List<CartItemDto> cartItemDtoList);
-    boolean editItem(CartItemDto cartItemDto);
-    boolean checkoutCart(CartItemDto cartItemDto);
-    boolean checkoutCart(List<CartItemDto> cartItemDtoList);
+    List<CartItemDto> getCartItemsByUserId(int userId);
 
+    boolean addCartItem(int userId, List<CartItemDto> cartItemDtoList);
+
+    boolean removeItems(int userId, List<CartItemDto> cartItemDtoList);
+
+    boolean editCartItem(int userId, CartItemDto cartItemDto);
+
+    boolean checkoutCart(int userId, List<CartItemDto> cartItemDtoList);
+
+    boolean clearCart(int userId);
 }

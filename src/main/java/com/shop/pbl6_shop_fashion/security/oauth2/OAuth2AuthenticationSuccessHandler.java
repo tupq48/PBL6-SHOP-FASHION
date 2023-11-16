@@ -1,18 +1,25 @@
 package com.shop.pbl6_shop_fashion.security.oauth2;
 
+import com.shop.pbl6_shop_fashion.entity.Role;
 import com.shop.pbl6_shop_fashion.entity.User;
+import com.shop.pbl6_shop_fashion.enums.RoleType;
 import com.shop.pbl6_shop_fashion.security.jwt.JwtService;
+import com.shop.pbl6_shop_fashion.security.oauth2.user.CustomUserOAuth;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -27,7 +34,27 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         String targetUrl = redirectUri.isEmpty() ?
                 determineTargetUrl(request, response, authentication) : redirectUri;
-        User userDetails = (User) authentication.getPrincipal();
+        CustomUserOAuth customUserOAuth = (CustomUserOAuth) authentication.getPrincipal();
+
+        User userDetails = new User();
+        userDetails.setId(customUserOAuth.getId());
+
+        Collection<? extends GrantedAuthority> authorities = customUserOAuth.getAuthorities();
+        // If your GrantedAuthority implementation is Role
+        List<Role> roles = authorities.stream()
+                .map(authority -> {
+                    Role role = new Role();
+                    String roleType = authority.getAuthority().substring("ROLE_".length());
+                    role.setName(RoleType.valueOf(roleType)); // Assuming authority is the String representation of your RoleType enum
+                    return role;
+                })
+                .collect(Collectors.toList());
+        userDetails.setRoles(roles);
+        userDetails.setUsername(customUserOAuth.getUsername());
+        userDetails.setFullName(userDetails.getFullName());
+        userDetails.setGmail(userDetails.getGmail());
+        userDetails.setUrlImage(customUserOAuth.getAvatarUrl());
+
 
         String accessToken = jwtService.generateToken(userDetails);
         targetUrl = UriComponentsBuilder.fromUriString(targetUrl).queryParam("token", accessToken).build().toUriString();
