@@ -41,7 +41,7 @@ public class ProductDao {
                 "             left join products pr on pr.id = ps.product_id \n" +
                 "              left join sizes s on s.id = ps.size_id\n" +
                 "              group by pr.id),\n" +
-                "CMT_US as(select group_concat(cmt.content) as noidungcmt, group_concat(cmt.create_at) as ngaytaocmt, group_concat(us.full_name) as nguoicmt, pr.id as idsp, pr.name\n" +
+                "CMT_US as(select group_concat(cmt.content) as noidungcmt, group_concat(cmt.create_at) as ngaytaocmt, group_concat(us.full_name)as nguoicmt, group_concat(us.url_image) as Avatar,pr.id as idsp, pr.name\n" +
                 "from products pr left join comments cmt \n" +
                 "on pr.id = cmt.product_id left join users us on us.id = cmt.user_id\n" +
                 "group by pr.id),\n" +
@@ -51,7 +51,7 @@ public class ProductDao {
                 "                group by pr.id)\n" +
                 "\n" +
                 " select ct.id as Loai_san_pham,ct.name as Ten_loại_san_pham,br.id AS Ma_thuong_hieu, br.name as Ten_thuong_hieu,\n" +
-                "                pr.id, pr.name, pr.price, pr.quantity,pr.quantity_sold,pr.description,Link_anh,ngaytaocmt, noidungcmt,nguoicmt,loai_size, ten_size,SoLuongConLai,discount_value,discount_type\n" +
+                "                pr.id, pr.name, pr.price, pr.quantity,pr.quantity_sold,pr.description,Link_anh,ngaytaocmt, noidungcmt,nguoicmt,Avatar,loai_size, ten_size,SoLuongConLai,discount_value,discount_type\n" +
                 "       from products pr \n" +
                 "       join brands br on br.id = pr.brand_id \n" +
                 "       join categories ct on ct.id= pr.category_id \n" +
@@ -60,8 +60,8 @@ public class ProductDao {
                 "\tjoin Sizes siz on siz.Id_sp = pr.id\n" +
                 "       LEFT join CMT_US on pr.id = CMT_US.idsp\n" +
                 "       LEFT join KM on pr.id = KM.SPID\n" +
-                "\t   where pr.id =?   \n" +
-                "       group by pr.id;\n";
+                "\t   where pr.id = ?\t   \n" +
+                "       group by pr.id;";
 
         // Tạo truy vấn native SQL
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
@@ -106,9 +106,10 @@ public class ProductDao {
             String comments = (String) result[12];
             String imageUrls = (String) result[10];
             String usernames = (String) result[13];
-            String sizeTypes = (String) result[14];
-            String sizeNames = (String) result[15];
-            String SizeQuantity = (String) result[16];
+            String avatar = (String) result[14];
+            String sizeTypes = (String) result[15];
+            String sizeNames = (String) result[16];
+            String SizeQuantity = (String) result[17];
             List<String> cmtContent = new ArrayList<>();
             if( dateString != null) {
                 cmtContent = List.of(comments.split(","));
@@ -116,7 +117,10 @@ public class ProductDao {
             List<String> usernamesList = new ArrayList<>();
             if(usernames != null){
                 usernamesList = List.of(usernames.split(","));
-
+            }
+            List<String> avatarList = new ArrayList<>();
+            if( avatar != null) {
+                avatarList = List.of(avatar.split(","));
             }
             List<String> imageUrlArray = new ArrayList<>();
             if(imageUrls != null) {
@@ -140,6 +144,7 @@ public class ProductDao {
             product.setCommentContents(cmtContent);
             product.setProductUrls(imageUrlArray);
             product.setCommentUsers(usernamesList);
+            product.setAvatarUsers(avatarList);
             product.setSizeTypes(sizeTypeList);
             product.setSizeNames(sizeNameList);
             product.setSizeQuantity(SizeQuantityList);
