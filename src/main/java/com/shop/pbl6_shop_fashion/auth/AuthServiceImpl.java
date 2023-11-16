@@ -72,14 +72,17 @@ public class AuthServiceImpl implements AuthService {
         return getAuthResponse(newUser, tokenRefresh);
     }
 
-    private AuthResponse getAuthResponse(User newUser, TokenRefresh tokenRefresh) {
+    private AuthResponse getAuthResponse(User user, TokenRefresh tokenRefresh) {
         tokenRefresh.setToken(UUID.randomUUID().toString());
         tokenRefresh.setExpirationDate(LocalDateTime.now().plusDays(refreshExpirationDay));
         tokenRefreshRepository.save(tokenRefresh);
 
-        String accessToken = jwtService.generateToken(newUser);
+        String accessToken = jwtService.generateToken(user);
         String refreshToken = tokenRefresh.getToken();
-        return AuthResponse.builder()
+        return  AuthResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
@@ -139,6 +142,9 @@ public class AuthServiceImpl implements AuthService {
             }
             String accessToken = jwtService.generateToken(user);
             AuthResponse authResponse = AuthResponse.builder()
+                    .id(user.getId())
+                    .fullName(user.getFullName())
+                    .username(user.getUsername())
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .build();
