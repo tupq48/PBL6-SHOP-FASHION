@@ -8,9 +8,9 @@ import java.util.List;
 public interface CartService {
     List<CartItemDto> getCartItemsByUserId(int userId);
 
-    boolean addCartItem(int userId, List<CartItemDto> cartItemDtoList);
+    boolean addCartItem(int userId, CartItemDto cartItemDto);
 
-    boolean removeItems(int userId, List<CartItemDto> cartItemDtoList);
+    boolean removeItems(int userId, List<Integer> cartItemDtoList);
 
     boolean editCartItem(int userId, CartItemDto cartItemDto);
 

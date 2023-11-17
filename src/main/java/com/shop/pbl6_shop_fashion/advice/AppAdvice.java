@@ -40,10 +40,11 @@ public class AppAdvice {
     }
 
     @ExceptionHandler(InvalidUserException.class)
-    public ResponseEntity<String> handleException(InvalidUserException ex) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleException(InvalidUserException ex, HttpServletRequest request) {
         // Xử lý ngoại lệ ở đây
         String errorMessage = ex.getMessage();
-        return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

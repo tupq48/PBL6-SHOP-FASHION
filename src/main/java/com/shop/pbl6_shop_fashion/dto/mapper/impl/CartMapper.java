@@ -19,6 +19,7 @@ public class CartMapper implements TypeMapper<CartItemDto, CartItem> {
                 .userId(source.getUser().getId())
                 .productId(source.getProduct().getId())
                 .createdAt(source.getCreateAt())
+                .size(source.getSize())
                 .build();
     }
 
@@ -29,8 +30,7 @@ public class CartMapper implements TypeMapper<CartItemDto, CartItem> {
         cartItem.setQuantity(target.getQuantity());
         cartItem.setUnitPrice(target.getUnitPrice());
         cartItem.setCreateAt(target.getCreatedAt());
-
-
+        cartItem.setSize(target.getSize());
         return cartItem;
 
     }
