@@ -1,5 +1,6 @@
 package com.shop.pbl6_shop_fashion.entity;
 
+import com.shop.pbl6_shop_fashion.enums.SizeType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +22,7 @@ public class CartItem {
     private int quantity;
     private double unitPrice;
     private LocalDateTime createAt;
-
+    private SizeType size;
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
@@ -31,6 +32,10 @@ public class CartItem {
 
     @PrePersist
     protected void onCreate() {
+        createAt = LocalDateTime.now();
+    }
+    @PreUpdate
+    protected void onUpdate() {
         createAt = LocalDateTime.now();
     }
 

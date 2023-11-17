@@ -18,27 +18,27 @@ public class CartController {
     public ResponseEntity<?> getCartItemsByIdUser(@PathVariable int userId) {
         return ResponseEntity.ok(cartService.getCartItemsByUserId(userId));
     }
-//    @PostMapping
-//    public ResponseEntity<?> addCartItem(CartItemDto itemDto) {
-//        //write for me
-//
-//        return ResponseEntity.ok(cartService.addCartItem(itemDto));
-//    }
-//
-//    @PostMapping
-//    public ResponseEntity<?> addCartItem(List<CartItemDto> itemsDto) {
-//        return ResponseEntity.ok(cartService.removeItem(itemsDto));
-//    }
-//
-//    @DeleteMapping
-//    public ResponseEntity<?> removeItem(List<CartItemDto> itemsDto) {
-//        return ResponseEntity.ok(cartService.removeItem(itemsDto));
-//    }
-//
-//    @PutMapping
-//    public ResponseEntity<?> updateItem(CartItemDto itemsDto) {
-//        return ResponseEntity.ok(cartService.editItem(itemsDto));
-//    }
+
+    @PostMapping("{userId}")
+    public ResponseEntity<?> addCartItem(@PathVariable int userId, @RequestBody CartItemDto itemDto) {
+        return ResponseEntity.ok(cartService.addCartItem(userId, itemDto));
+    }
+
+    @DeleteMapping("{userId}")
+    public ResponseEntity<?> deleteCart(@PathVariable int userId, @RequestBody List<Integer> ids) {
+        return ResponseEntity.ok(cartService.removeItems(userId, ids));
+    }
+
+
+    @DeleteMapping("{userId}/clean")
+    public ResponseEntity<?> cleanCart(@PathVariable int userId) {
+        return ResponseEntity.ok(cartService.clearCart(userId));
+    }
+
+    @PutMapping("{userId}")
+    public ResponseEntity<?> updateItem(@PathVariable int userId,@RequestBody CartItemDto itemsDto) {
+        return ResponseEntity.ok(cartService.editCartItem(userId,itemsDto));
+    }
 //
 //    @PostMapping("/checkout")
 //    public ResponseEntity<?> checkout(List<CartItemDto> itemsDto) {

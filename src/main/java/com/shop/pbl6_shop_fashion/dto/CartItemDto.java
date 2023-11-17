@@ -1,5 +1,6 @@
 package com.shop.pbl6_shop_fashion.dto;
 
+import com.shop.pbl6_shop_fashion.enums.SizeType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,4 +18,5 @@ public class CartItemDto {
     private LocalDateTime createdAt;
     private int productId;
     private int userId;
+    private SizeType size;
 }
