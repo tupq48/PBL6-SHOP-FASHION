@@ -93,27 +93,33 @@ public class GoogleDriveUtils {
 
 
     // ========================== FUNCTION ================================
-    public static String uploadImage(MultipartFile multipartFile) throws Exception {
-        java.io.File file = convertMultiPartToFile(multipartFile);
-        File fileMetadata = new File();
-        System.out.println(file.getName());
-        fileMetadata.setName(file.getName());
-        fileMetadata.setParents(Collections.singletonList("1QzWRpFokX1pH0pwqVXSgru9DGYEUY0ar")); // Đặt thư mục muốn lưu file vào
-
-        FileContent mediaContent = new FileContent("application/octet-stream", file);
-
-        File uploadedFile = service.files().create(fileMetadata, mediaContent)
-                .setFields("id")
-                .execute();
-
+    public static String uploadImage(MultipartFile multipartFile) {
         String urlImage = null;
-        urlImage = "https://drive.google.com/uc?id=" + uploadedFile.getId() + "&export=media";
-        file.delete();
+        java.io.File file = null;
+        try {
+            file = convertMultiPartToFile(multipartFile);
+
+            File fileMetadata = new File();
+            System.out.println(file.getName());
+            fileMetadata.setName(file.getName());
+            fileMetadata.setParents(Collections.singletonList("1QzWRpFokX1pH0pwqVXSgru9DGYEUY0ar")); // Đặt thư mục muốn lưu file vào
+
+            FileContent mediaContent = new FileContent("application/octet-stream", file);
+
+            File uploadedFile = service.files().create(fileMetadata, mediaContent)
+                    .setFields("id")
+                    .execute();
+
+            urlImage = "https://drive.google.com/uc?export=view&id=" + uploadedFile.getId();
+            file.delete();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return urlImage;
     }
 
     private static java.io.File convertMultiPartToFile(MultipartFile file) throws Exception {
-        java.io.File tempFile = java.io.File.createTempFile("image","png");
+        java.io.File tempFile = java.io.File.createTempFile("image",".png");
 
         tempFile.deleteOnExit();
 

@@ -9,6 +9,7 @@ import com.shop.pbl6_shop_fashion.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    // =============================== PQT ============================================
     @GetMapping("/detail/{id}")
     public ResponseEntity<ProductDetailDto> getProductById(@PathVariable Integer id) {
         return ResponseEntity.ok(productService.getProductDetailById(id));
@@ -48,13 +50,20 @@ public class ProductController {
         // giống trang home, sort theo số lượng bán
     }
 
-
+    @PatchMapping("/images/{id}")
+    public void updateImages(@PathVariable Integer id,
+                            @RequestParam("files") List<MultipartFile> files)
+    {
+        productService.updateImages(id, files);
+    }
     // lấy hết product - chưa code lại
 //    @GetMapping("/product")
 //    public List<com.shop.pbl6_shop_fashion.dto.ProductDto> searchAllProduct(){
 //        List<com.shop.pbl6_shop_fashion.dto.ProductDto> br = productService.searchAllProduct();
 //        return br;
 //    }
+
+    // =============================== HIEU ============================================
 
     @GetMapping("/product_detail")
     public com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto ProductDetail(

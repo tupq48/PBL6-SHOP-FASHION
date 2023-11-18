@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 public class CategoryHomePageDto {
     private Integer categoryId;
-    private List<BrandDto> brands;
     private String name;
+    private List<BrandDto> brands;
+
 }

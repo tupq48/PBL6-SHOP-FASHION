@@ -20,6 +20,9 @@ public class ConnectionProvider {
         configuration.setProperty("hibernate.connection.username", dataSourceProperties.getUsername());
         configuration.setProperty("hibernate.connection.password", dataSourceProperties.getPassword());
         configuration.setProperty("hibernate.connection.driver_class", dataSourceProperties.getDriverClassName());
+        configuration.setProperty("hibernate.show_sql", "true");
+        configuration.setProperty("hibernate.format_sql", "true");
+        configuration.setProperty("hibernate.use_sql_comments", "true");
 
         sessionFactory = configuration.buildSessionFactory();
     }

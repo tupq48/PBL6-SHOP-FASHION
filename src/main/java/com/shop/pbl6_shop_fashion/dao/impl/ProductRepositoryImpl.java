@@ -1,6 +1,5 @@
 package com.shop.pbl6_shop_fashion.dao.impl;
 
-import com.shop.pbl6_shop_fashion.dao.ProductRepository;
 import com.shop.pbl6_shop_fashion.dao.ProductRepositoryCustom;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDetailDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
@@ -13,6 +12,7 @@ import com.shop.pbl6_shop_fashion.enums.DiscountType;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.hibernate.type.StandardBasicTypes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +61,10 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                     "limit :limit                                                               \n" +
                     "offset :offset";
 
+    final String DELETE_PRODUCT_IMAGE_BY_PRODUCT_ID = "DELETE FROM product_images WHERE product_id = ?";
+
+    final String INSERT_PRODUCT_IMAGE_BY_PRODUCT_ID = "INSERT INTO product_images(product_id, url) VALUES ";
+
     @Override
     public List<ProductDto> getNewestProduct(Integer number) {
         Session session = ConnectionProvider.openSession();
@@ -105,7 +109,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     @Override
     public List<ProductDto> getProductByCategoryAndPage(Integer categoryId, Integer page, Integer limit) {
         Session session = ConnectionProvider.openSession();
-        Integer offset = page * limit;
+        Integer offset = (page - 1) * limit;
         Query query = session.createNativeQuery(GET_PRODUCTS_PAGE_BY_CATEGORY)
                 .setParameter("categoryId", categoryId)
                 .setParameter("limit", limit)
@@ -155,6 +159,42 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
 
         session.close();
         return result;
+    }
+
+
+    @Override
+    public void updateProductImages(Integer productId, List<String> imageUrls) {
+        Session session = ConnectionProvider.openSession();
+        Transaction transaction = null;
+        try {
+            transaction = session.beginTransaction();
+
+            // Xóa ảnh sản phẩm cũ
+            Query deleteQuery = session.createNativeQuery(DELETE_PRODUCT_IMAGE_BY_PRODUCT_ID)
+                    .setParameter(1, productId);
+            deleteQuery.executeUpdate();
+
+
+
+            // Chèn URL ảnh mới
+            if (imageUrls != null) {
+                String sql = INSERT_PRODUCT_IMAGE_BY_PRODUCT_ID;
+                for (String imageUrl : imageUrls) {
+                    sql = sql + "(" + productId + ", \"" + imageUrl + "\"),";
+                }
+                System.out.println(sql);
+                sql = sql.substring(0, sql.length()-1);
+
+                session.createNativeQuery(sql).executeUpdate();
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            throw e; // Hoặc xử lý ngoại lệ theo cách bạn muốn
+        } finally {
+            session.close();
+        }
+
     }
 
 

@@ -20,4 +20,5 @@ public interface ProductRepositoryCustom {
     public List<ProductDto> getProductByCategoryAndPage(Integer categoryId, Integer page, Integer limit);
 
 
+    void updateProductImages(Integer productId, List<String> imageUrls);
 }

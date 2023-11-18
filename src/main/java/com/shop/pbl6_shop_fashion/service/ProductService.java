@@ -8,9 +8,12 @@ import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.Product;
+import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,4 +78,12 @@ public class ProductService {
         return productDao.getProductsMobile();
     }
 
+    public void updateImages(Integer id, List<MultipartFile> files) {
+        List<String> imageUrls = new ArrayList<>();
+        files.forEach(file -> {
+            String imageurl = GoogleDriveUtils.uploadImage(file);
+            imageUrls.add(imageurl);
+        });
+        productRepository.updateProductImages(id, imageUrls);
+    }
 }
