@@ -1,6 +1,8 @@
 package com.shop.pbl6_shop_fashion.security.oauth2;
 
+import com.shop.pbl6_shop_fashion.dao.TokenRefreshRepository;
 import com.shop.pbl6_shop_fashion.entity.Role;
+import com.shop.pbl6_shop_fashion.entity.TokenRefresh;
 import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
 import com.shop.pbl6_shop_fashion.security.jwt.JwtService;
@@ -17,8 +19,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,6 +34,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private String redirectUri;
 
     private final JwtService jwtService;
+    private final TokenRefreshRepository tokenRefreshRepository;
+    @Value("${application.security.jwt.refresh-token.expiration-day}")
+    private long refreshExpirationDay;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -55,9 +63,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         userDetails.setGmail(userDetails.getGmail());
         userDetails.setUrlImage(customUserOAuth.getAvatarUrl());
 
-
+        TokenRefresh tokenRefresh = new TokenRefresh();
+        tokenRefresh.setUser(userDetails);
+        tokenRefresh.setToken(UUID.randomUUID().toString());
+        tokenRefresh.setExpirationDate(LocalDateTime.now().plusDays(refreshExpirationDay));
+        tokenRefreshRepository.save(tokenRefresh);
         String accessToken = jwtService.generateToken(userDetails);
-        targetUrl = UriComponentsBuilder.fromUriString(targetUrl).queryParam("token", accessToken).build().toUriString();
+        targetUrl = UriComponentsBuilder.fromUriString(targetUrl).queryParam("accessToken", accessToken).queryParam("refreshToken",tokenRefresh.getToken()).build().toUriString();
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
