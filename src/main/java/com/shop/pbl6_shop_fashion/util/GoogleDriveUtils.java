@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -118,6 +119,14 @@ public class GoogleDriveUtils {
         return urlImage;
     }
 
+    public static List<String> uploadImages(List<MultipartFile> images) {
+        List<String> imageUrls = new ArrayList<>();
+        images.forEach(image -> {
+            imageUrls.add(uploadImage(image));
+        });
+        return imageUrls;
+    }
+
     private static java.io.File convertMultiPartToFile(MultipartFile file) throws Exception {
         java.io.File tempFile = java.io.File.createTempFile("image",".png");
 
@@ -126,4 +135,6 @@ public class GoogleDriveUtils {
         file.transferTo(tempFile);
         return tempFile;
     }
+
+
 }

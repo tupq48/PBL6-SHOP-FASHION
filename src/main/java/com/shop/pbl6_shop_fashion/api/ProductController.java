@@ -63,6 +63,37 @@ public class ProductController {
 //        return br;
 //    }
 
+    @PostMapping()
+    public void addProduct(@RequestParam("name") String name,
+                           @RequestParam("desc") String desc,
+                           @RequestParam("price") Integer price,
+                           @RequestParam("unit") String unit,
+                           @RequestParam("brandId") Integer brandId,
+                           @RequestParam("categoryId") Integer categoryId,
+                           @RequestParam("productSizes") List<String> productSizes, // size:quantity
+                           @RequestParam("images") List<MultipartFile> images,
+                           @RequestParam("promotionId") Integer promotionId
+                           ) {
+        productService.addProduct(name,desc,price,unit,brandId,categoryId,productSizes,images,promotionId);
+    }
+
+
+    @PatchMapping("/{productId}")
+    public void updateProduct(@PathVariable(value = "productId") Integer productId,
+                              @RequestParam(value = "name", required = false) String name,
+                              @RequestParam(value = "desc", required = false) String desc,
+                              @RequestParam(value = "price", required = false) Integer price,
+                              @RequestParam(value = "unit", required = false) String unit,
+                              @RequestParam(value = "brandId", required = false) Integer brandId,
+                              @RequestParam(value = "categoryId", required = false) Integer categoryId,
+                              @RequestParam(value = "productSizes", required = false) List<String> productSizes, // size:quantity
+                              @RequestParam(value = "images", required = false) List<MultipartFile> images,
+                              @RequestParam(value = "promotionId", required = false) Integer promotionId
+                              ) {
+        System.out.println(images);
+        productService.updateProduct(productId, name,desc,price,unit,brandId,categoryId,productSizes,images,promotionId);
+    }
+
     // =============================== HIEU ============================================
 
     @GetMapping("/product_detail")

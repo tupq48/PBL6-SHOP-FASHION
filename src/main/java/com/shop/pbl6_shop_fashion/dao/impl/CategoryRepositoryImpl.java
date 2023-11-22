@@ -60,6 +60,9 @@ public class CategoryRepositoryImpl implements CategoryRepositoryCustom {
                 .addScalar("uniqueBrandNames", StandardBasicTypes.STRING)
                 .addScalar("order_count", StandardBasicTypes.INTEGER);
         List<Object[]> rows = query.getResultList();
+
+        session.close();
+
         List<CategoryHomePageDto> result = rows.stream()
                 .map(row -> {
                     Integer categoryId = (Integer) row[0];
@@ -83,7 +86,7 @@ public class CategoryRepositoryImpl implements CategoryRepositoryCustom {
                             .brands(brands).build();
                 })
                 .toList();
-        session.close();
+
         return result;
     }
 
