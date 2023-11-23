@@ -16,6 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/users")
 @RequiredArgsConstructor
@@ -23,14 +25,14 @@ public class UserController {
     private final UserService userService;
     private final PasswordService passwordService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+    //    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
-    public ResponseEntity<?> getAllUsers(@PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<?> getAllUsers(@PageableDefault(size = 25) Pageable pageable) {
         Page<UserResponse> users = userService.getAllUsers(pageable);
         return ResponseEntity.ok(users);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    //    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable int id) {
         return ResponseEntity.ok(userService.getUserById(id));
@@ -57,6 +59,12 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
         return ResponseEntity.ok(passwordService.changePassword(newPassword, authentication));
+    }
+
+    @GetMapping("search")
+    public ResponseEntity<?> searchUsers(@RequestParam(value = "keyword", required = false) String keyword, @PageableDefault(size = 25) Pageable pageable) {
+        Page<UserResponse> userResponses= userService.searchUsers(keyword,pageable);
+        return ResponseEntity.ok(userResponses);
     }
 
 }

@@ -30,6 +30,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
 
 
     /**
@@ -42,7 +43,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
-        UserMapper userMapper = new UserMapperImpl();
         Page<UserResponse> userResponses = users.map(user -> userMapper.userToUserResponse(user));
         return userResponses;
     }
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(userDb);
         } catch (DataIntegrityViolationException e) {
             // Handle the unique constraint violation
-            throw  new BaseException(e.getMessage());
+            throw new BaseException(e.getMessage());
         }
 
         return userMapper.userToUserResponse(userDb);
@@ -143,5 +143,15 @@ public class UserServiceImpl implements UserService {
                 throw new RoleException("Role is not found: " + roleType.name());
             }
         }
+    }
+
+    @Override
+    public Page<UserResponse> searchUsers(String keyword, Pageable pageable) {
+        if (keyword.isBlank()) {
+            return null;
+        }
+        Page<User> users = userRepository.searchUsersByKeyword(keyword, pageable);
+        Page<UserResponse> userResponses = users.map(user -> userMapper.userToUserResponse(user));
+        return userResponses;
     }
 }

@@ -63,13 +63,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         userDetails.setGmail(userDetails.getGmail());
         userDetails.setUrlImage(customUserOAuth.getAvatarUrl());
 
-        TokenRefresh tokenRefresh = new TokenRefresh();
-        tokenRefresh.setUser(userDetails);
+
+        TokenRefresh tokenRefresh = tokenRefreshRepository.getTokenRefreshByUser(userDetails);
+        if (tokenRefresh == null) {
+            tokenRefresh = new TokenRefresh();
+            tokenRefresh.setUser(userDetails);
+        }
         tokenRefresh.setToken(UUID.randomUUID().toString());
         tokenRefresh.setExpirationDate(LocalDateTime.now().plusDays(refreshExpirationDay));
         tokenRefreshRepository.save(tokenRefresh);
         String accessToken = jwtService.generateToken(userDetails);
-        targetUrl = UriComponentsBuilder.fromUriString(targetUrl).queryParam("accessToken", accessToken).queryParam("refreshToken",tokenRefresh.getToken()).build().toUriString();
+        targetUrl = UriComponentsBuilder.fromUriString(targetUrl).queryParam("accessToken", accessToken).queryParam("refreshToken", tokenRefresh.getToken()).build().toUriString();
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

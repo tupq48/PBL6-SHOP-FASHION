@@ -19,4 +19,5 @@ public interface UserService {
     boolean lockUser(int id);
 
     List<Role> updatePermissionUser(int id, RoleType roleType);
+    Page<UserResponse> searchUsers(String keyword,Pageable pageable);
 }

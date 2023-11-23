@@ -1,6 +1,7 @@
 package com.shop.pbl6_shop_fashion.auth;
 
 import com.shop.pbl6_shop_fashion.dto.password.ResetPasswordRequest;
+import com.shop.pbl6_shop_fashion.security.oauth2.GoogleVerify;
 import com.shop.pbl6_shop_fashion.service.PasswordService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -20,6 +22,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final PasswordService passwordService;
+    private final GoogleVerify googleVerify;
 
 
     @PostMapping("/register")
@@ -61,5 +64,10 @@ public class AuthController {
         String token = passwordService.verifyOTP(username, otp);
         return ResponseEntity.ok(token);
     }
-    
+
+    @PostMapping("/verify")
+    public void verify(@RequestParam("token") String token) throws GeneralSecurityException, IOException {
+        googleVerify.verifyGoogleSignIn(token);
+    }
+
 }
