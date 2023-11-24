@@ -24,6 +24,7 @@ public class ProductDetailMobileDto {
     private List<Date> commentCreatedAts;
     private List<String> CommentContents;
     private List<String> CommentUsers;
+    private List<String> AvatarUsers;
     private List<String> SizeTypes;
     private List<String> SizeNames;
     private List<String> SizeQuantity;
