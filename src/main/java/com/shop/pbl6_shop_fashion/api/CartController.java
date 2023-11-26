@@ -20,8 +20,13 @@ public class CartController {
     }
 
     @PostMapping("{userId}")
-    public ResponseEntity<?> addCartItem(@PathVariable int userId, @RequestBody CartItemDto itemDto) {
-        return ResponseEntity.ok(cartService.addCartItem(userId, itemDto));
+    public ResponseEntity<?> addCartItem(@PathVariable int userId, @RequestBody CartItemDto itemDto, @RequestParam(defaultValue = "0") int edit) {
+        if (edit==0) {
+            return ResponseEntity.ok(cartService.addCartItem(userId, itemDto));
+        }
+        else {
+            return ResponseEntity.ok(cartService.editCartItem(userId,itemDto));
+        }
     }
 
     @DeleteMapping("{userId}")
@@ -33,11 +38,6 @@ public class CartController {
     @DeleteMapping("{userId}/clean")
     public ResponseEntity<?> cleanCart(@PathVariable int userId) {
         return ResponseEntity.ok(cartService.clearCart(userId));
-    }
-
-    @PutMapping("{userId}")
-    public ResponseEntity<?> updateItem(@PathVariable int userId,@RequestBody CartItemDto itemsDto) {
-        return ResponseEntity.ok(cartService.editCartItem(userId,itemsDto));
     }
 //
 //    @PostMapping("/checkout")

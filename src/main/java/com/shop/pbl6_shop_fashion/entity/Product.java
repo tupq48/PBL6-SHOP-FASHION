@@ -44,7 +44,7 @@ public class Product {
     @OneToMany(mappedBy = "product")
     private List<ProductImage> images;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
 

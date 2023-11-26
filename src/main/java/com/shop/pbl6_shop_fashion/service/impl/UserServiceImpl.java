@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
 
 
     /**
@@ -42,7 +44,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
-        UserMapper userMapper = new UserMapperImpl();
         Page<UserResponse> userResponses = users.map(user -> userMapper.userToUserResponse(user));
         return userResponses;
     }
@@ -85,7 +86,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(userDb);
         } catch (DataIntegrityViolationException e) {
             // Handle the unique constraint violation
-            throw  new BaseException(e.getMessage());
+            throw new BaseException(e.getMessage());
         }
 
         return userMapper.userToUserResponse(userDb);
@@ -143,5 +144,22 @@ public class UserServiceImpl implements UserService {
                 throw new RoleException("Role is not found: " + roleType.name());
             }
         }
+    }
+
+    @Override
+    public Page<UserResponse> searchUsers(String keyword, Pageable pageable) {
+        if (keyword==null || keyword.isEmpty()) {
+            throw new IllegalArgumentException("Keyword cannot be");
+        }
+
+        keyword = removeAccents(keyword).toLowerCase();
+        System.out.println("keto: " + keyword);
+        Page<User> users = userRepository.searchUsersByKeyword(keyword, pageable);
+        Page<UserResponse> userResponses = users.map(user -> userMapper.userToUserResponse(user));
+        return userResponses;
+    }
+    private String removeAccents(String input) {
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
     }
 }

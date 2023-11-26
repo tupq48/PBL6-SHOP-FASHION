@@ -22,11 +22,12 @@ public class CartItem {
     private int quantity;
     private double unitPrice;
     private LocalDateTime createAt;
+    @Enumerated(EnumType.STRING)
     private SizeType size;
-    @ManyToOne
+    @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
-    @ManyToOne
+    @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
