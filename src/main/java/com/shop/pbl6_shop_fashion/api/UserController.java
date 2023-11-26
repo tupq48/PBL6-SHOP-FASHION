@@ -62,7 +62,7 @@ public class UserController {
     }
 
     @GetMapping("search")
-    public ResponseEntity<?> searchUsers(@RequestParam(value = "keyword", required = false) String keyword, @PageableDefault(size = 25) Pageable pageable) {
+    public ResponseEntity<?> searchUsers(@RequestParam(value = "k") String keyword, @PageableDefault(size = 20) Pageable pageable) {
         Page<UserResponse> userResponses= userService.searchUsers(keyword,pageable);
         return ResponseEntity.ok(userResponses);
     }

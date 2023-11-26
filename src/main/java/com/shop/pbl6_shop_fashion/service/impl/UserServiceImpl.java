@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Optional;
 
@@ -147,11 +148,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<UserResponse> searchUsers(String keyword, Pageable pageable) {
-        if (keyword.isBlank()) {
-            return null;
+        if (keyword==null || keyword.isEmpty()) {
+            throw new IllegalArgumentException("Keyword cannot be");
         }
+
+        keyword = removeAccents(keyword).toLowerCase();
+        System.out.println("keto: " + keyword);
         Page<User> users = userRepository.searchUsersByKeyword(keyword, pageable);
         Page<UserResponse> userResponses = users.map(user -> userMapper.userToUserResponse(user));
         return userResponses;
+    }
+    private String removeAccents(String input) {
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
     }
 }

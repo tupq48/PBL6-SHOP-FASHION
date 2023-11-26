@@ -8,6 +8,7 @@ import com.shop.pbl6_shop_fashion.dto.mapper.impl.CartMapper;
 import com.shop.pbl6_shop_fashion.entity.CartItem;
 import com.shop.pbl6_shop_fashion.entity.Product;
 import com.shop.pbl6_shop_fashion.entity.User;
+import com.shop.pbl6_shop_fashion.enums.SizeType;
 import com.shop.pbl6_shop_fashion.exception.ProductException;
 import com.shop.pbl6_shop_fashion.exception.UserNotFoundException;
 import com.shop.pbl6_shop_fashion.service.CartService;
@@ -34,42 +35,6 @@ public class CartItemImpl implements CartService {
                 .map(cartMapper::mapperFrom)  // Map each CartItem entity to CartItemDto
                 .collect(Collectors.toList());
     }
-
-    @Override
-    public boolean addCartItem(int userId, CartItemDto cartItemDto) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id : " + userId));
-        Product product = productRepository.findById(cartItemDto.getProductId()).orElseThrow(() -> new ProductException("Product not found with id : " + cartItemDto.getProductId()));
-        List<CartItem> existingCartItems = cartRepository.findByUserIdAndProductId(userId, product.getId());
-
-        CartItem cartItem = null;
-
-        for (CartItem existingCartItem : existingCartItems) {
-            if (cartItemDto.getSize().equals(existingCartItem.getSize())) {
-                // Product is already in the cart and size matches, update quantity
-                cartItem = existingCartItem;
-                int newQuantity = cartItem.getQuantity() + cartItemDto.getQuantity();
-                cartItem.setQuantity(newQuantity);
-                // You might want to update other properties as needed
-                break; // Exit the loop if a matching cart item is found
-            }
-        }
-
-        if (cartItem == null) {
-            // No matching cart item found, create a new CartItem
-            cartItem = new CartItem();
-            cartItem.setQuantity(cartItemDto.getQuantity());
-            cartItem.setSize(cartItemDto.getSize());
-            cartItem.setUnitPrice(product.getPrice());
-            cartItem.setProduct(product);
-            cartItem.setUser(user);
-        }
-
-        cartRepository.save(cartItem);
-
-        return true;
-    }
-
-
     @Transactional
     @Override
     public boolean removeItems(int userId, List<Integer> ids) {
@@ -80,33 +45,24 @@ public class CartItemImpl implements CartService {
 
     @Override
     public boolean editCartItem(int userId, CartItemDto cartItemDto) {
+        CartItem existingCartItem = cartRepository.findById(cartItemDto.getId()).orElse(null);
+        Product product = productRepository.findById(cartItemDto.getProductId()).orElseThrow(() -> new ProductException("Product not found with id : " + cartItemDto.getProductId()));
 
-        try {
-            // Find the existing cart item by user ID and item ID
-            CartItem existingCartItem = cartRepository.findById(cartItemDto.getId()).orElseThrow();
-            Product product = productRepository.findById(cartItemDto.getProductId()).orElseThrow();
+        if (existingCartItem != null) {
+            // Step 2: Update quantity and size for the existing cart item
+            existingCartItem.setQuantity(cartItemDto.getQuantity());
+            existingCartItem.setSize(cartItemDto.getSize());
+            cartRepository.save(existingCartItem);
+            // Step 3: Check if there are other items with the same size, and merge them
+            mergeItemsWithSameSize(existingCartItem);
 
-            if (existingCartItem != null) {
-                // Update the existing cart item with the information from cartItemDto
-                existingCartItem.setUnitPrice(product.getPrice());
 
-                existingCartItem.setQuantity(cartItemDto.getQuantity());
-                existingCartItem.setSize(cartItemDto.getSize());
-
-                // Save the updated cart item
-                cartRepository.save(existingCartItem);
-
-                return true; // Indicate successful edit
-            } else {
-                // The item with the given user ID and item ID was not found
-                return false;
-            }
-        } catch (Exception e) {
-            // Handle exceptions, log or rethrow as necessary
-            return false; // Indicate failure due to an exception
+            return true;
         }
-    }
+        return false;
 
+
+    }
     @Override
     public boolean checkoutCart(int userId, List<CartItemDto> cartItemDtoList) {
         return false;
@@ -118,4 +74,62 @@ public class CartItemImpl implements CartService {
         cartRepository.deleteAllByUserId(userId);
         return true;
     }
+
+    @Override
+    public boolean addCartItem(int userId, CartItemDto cartItemDto) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        Product product = productRepository.findById(cartItemDto.getProductId()).orElseThrow(() -> new ProductException("Product not found with id: " + cartItemDto.getProductId()));
+        List<CartItem> existingCartItems = cartRepository.findByUserIdAndProductId(userId, cartItemDto.getProductId());
+
+        CartItem cartItem = findCartItem(existingCartItems, cartItemDto.getSize());
+
+        if (cartItem == null) {
+            // No matching cart item found, create a new CartItem
+            cartItem = createCartItem(cartItemDto, product, user);
+        } else {
+            // Product is already in the cart and size matches, update quantity
+            int newQuantity = cartItem.getQuantity() + cartItemDto.getQuantity();
+            cartItem.setQuantity(newQuantity);
+        }
+
+        cartRepository.save(cartItem);
+        return true;
+    }
+
+    private CartItem findCartItem(List<CartItem> existingCartItems, SizeType size) {
+        return existingCartItems.stream()
+                .filter(item -> size.equals(item.getSize()))
+                .findFirst()
+                .orElse(null);
+    }
+    private CartItem createCartItem(CartItemDto cartItemDto, Product product, User user) {
+        CartItem cartItem = new CartItem();
+        cartItem.setQuantity(cartItemDto.getQuantity());
+        cartItem.setSize(cartItemDto.getSize());
+        cartItem.setUnitPrice(product.getPrice());
+        cartItem.setProduct(product);
+        cartItem.setUser(user);
+        return cartItem;
+    }
+
+
+
+    private void mergeItemsWithSameSize(CartItem existingCartItem) {
+
+        List<CartItem> items = cartRepository.findByUserIdAndProductId(existingCartItem.getUser().getId(), existingCartItem.getProduct().getId());
+
+        for (CartItem item : items) {
+           if(item.getSize().equals(existingCartItem.getSize()) && item.getId()!=existingCartItem.getId()){
+               // Có một sản phẩm khác cùng kích thước trong giỏ hàng
+
+               // Gộp sản phẩm: cộng thêm số lượng vào sản phẩm hiện tại và xóa sản phẩm cũ
+               existingCartItem.setQuantity(existingCartItem.getQuantity() + item.getQuantity());
+               cartRepository.save(existingCartItem);
+               cartRepository.delete(item);
+
+               break;
+           }
+        }
+    }
+
 }

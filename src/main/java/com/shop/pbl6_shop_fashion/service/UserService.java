@@ -6,6 +6,7 @@ import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
@@ -19,5 +20,5 @@ public interface UserService {
     boolean lockUser(int id);
 
     List<Role> updatePermissionUser(int id, RoleType roleType);
-    Page<UserResponse> searchUsers(String keyword,Pageable pageable);
+    Page<UserResponse> searchUsers(String keyword, Pageable pageable);
 }
