@@ -1,9 +1,6 @@
 package com.shop.pbl6_shop_fashion.entity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "categories")
@@ -11,6 +8,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,6 +16,5 @@ public class Category {
     @Column(unique = true)
     private String name;
     private String description;
-    // one category has a image
     private String imageUrl;
 }
