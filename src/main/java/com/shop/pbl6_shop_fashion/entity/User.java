@@ -34,6 +34,8 @@ public class User implements UserDetails {
     private String fullName;
     private String urlImage;
     private String address;
+    @OneToMany(mappedBy = "user")
+    private List<UserAddress> userAddress;
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private String phoneNumber;

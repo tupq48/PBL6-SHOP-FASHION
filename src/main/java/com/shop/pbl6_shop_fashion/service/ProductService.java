@@ -117,15 +117,7 @@ public class ProductService {
 
         Promotion promotion = entityManager.find(Promotion.class, promotionId);
 
-        System.out.println("upload anh : " + LocalDateTime.now());
 
-        List<String> imageUrls = GoogleDriveUtils.uploadImages(images);
-        List<ProductImage> productImages = new ArrayList<>();
-        imageUrls.forEach(imageUrl -> {
-            productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
-        });
-
-        System.out.println("save product : " + LocalDateTime.now());
 
         product.setName(name);
         product.setDescription(desc);
@@ -137,14 +129,26 @@ public class ProductService {
         product.setCategory(category);
         product.setProductSizes(sizes);
         product.setComments(null);
-        product.setImages(productImages);
         product.setPromotion(promotion);
         product.setCreateAt(LocalDateTime.now());
         product.setUpdateAt(null);
 
-        productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
 
-        System.out.println("done :" + LocalDateTime.now());
+        int id = savedProduct.getId();
+        Thread thread = new Thread(() -> {
+            Product updateProduct = productRepository.findById(id).get();
+            List<String> imageUrls = GoogleDriveUtils.uploadImages(images);
+            List<ProductImage> productImages = new ArrayList<>();
+            imageUrls.forEach(imageUrl -> {
+                productImages.add(ProductImage.builder().url(imageUrl).product(updateProduct).build());
+            });
+            updateProduct.setImages(productImages);
+            productRepository.save(updateProduct);
+        });
+        thread.start();
+
+        return;
     }
 
     public void updateProduct(Integer productId, String name, String desc, Integer price, String unit, Integer brandId,
@@ -178,20 +182,26 @@ public class ProductService {
             product.setQuantity(quantity);
         }
         if (promotionId != null) product.setPromotion(entityManager.find(Promotion.class, promotionId));
-        if (images != null) {
-            System.out.println("upload image!");
-            List<String> imageUrls = GoogleDriveUtils.uploadImages(images);
-            List<ProductImage> productImages = new ArrayList<>();
-            imageUrls.forEach(imageUrl -> {
-                productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
-            });
-            product.setImages(productImages);
-            System.out.println("done!");
-        }
+
         product.setUpdateAt(LocalDateTime.now());
+        Product savedProduct = productRepository.save(product);
 
+        int id = savedProduct.getId();
 
-        productRepository.save(product);
+        if (images != null) {
+            Thread thread = new Thread(() -> {
+                Product updateProduct = productRepository.findById(id).get();
+                List<String> imageUrls = GoogleDriveUtils.uploadImages(images);
+                List<ProductImage> productImages = new ArrayList<>();
+                imageUrls.forEach(imageUrl -> {
+                    productImages.add(ProductImage.builder().url(imageUrl).product(updateProduct).build());
+                });
+                updateProduct.setImages(productImages);
+                productRepository.save(updateProduct);
+            });
+            thread.start();
+        }
+        return;
     }
 
     List<ProductSize> convertProductSizes(List<String> productSizes, Product product) {
