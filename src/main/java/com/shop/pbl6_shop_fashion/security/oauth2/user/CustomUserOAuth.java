@@ -9,22 +9,42 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import java.util.Collection;
 import java.util.Map;
 
-@Setter
-@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Setter
+@Getter
 public class CustomUserOAuth implements UserDetails, OAuth2User {
     private int id;
     private String username;
     private String password;
-    private String name;
+    private String fullName;
     private String email;
     private String avatarUrl;
     private boolean isLocked=false;
     private AccountProvider accountProvider;
     private Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
 
     @Override
     public boolean isAccountNonExpired() {
@@ -44,5 +64,10 @@ public class CustomUserOAuth implements UserDetails, OAuth2User {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public String getName() {
+        return fullName;
     }
 }

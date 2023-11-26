@@ -8,6 +8,7 @@ import com.shop.pbl6_shop_fashion.dto.mapper.impl.UserMapperImpl;
 import com.shop.pbl6_shop_fashion.entity.Role;
 import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
+import com.shop.pbl6_shop_fashion.exception.BaseException;
 import com.shop.pbl6_shop_fashion.exception.RoleException;
 import com.shop.pbl6_shop_fashion.exception.UniqueConstraintViolationException;
 import com.shop.pbl6_shop_fashion.exception.UserNotFoundException;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +31,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
 
 
     /**
@@ -41,7 +44,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
-        UserMapper userMapper = new UserMapperImpl();
         Page<UserResponse> userResponses = users.map(user -> userMapper.userToUserResponse(user));
         return userResponses;
     }
@@ -84,15 +86,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(userDb);
         } catch (DataIntegrityViolationException e) {
             // Handle the unique constraint violation
-            if (e.getCause() instanceof ConstraintViolationException) {
-                if (e.getCause() instanceof ConstraintViolationException) {
-                    String message = e.getCause().getMessage();
-                    if (message.contains("UniqueConstraintName")) {
-                        // Handle the unique constraint violation for phoneNumber or gmail
-                        throw new UniqueConstraintViolationException("Phone number or Gmail is already in use.");
-                    }
-                }
-            }
+            throw new BaseException(e.getMessage());
         }
 
         return userMapper.userToUserResponse(userDb);
@@ -123,11 +117,11 @@ public class UserServiceImpl implements UserService {
      * hasRole Admin
      * Cập nhật quyền (permission) cho người dùng dựa trên loại quyền đã cho.
      *
-     * @param id ID của người dùng cần cập nhật quyền.
+     * @param id       ID của người dùng cần cập nhật quyền.
      * @param roleType Loại quyền (RoleType) cần được cập nhật cho người dùng.
      * @return Danh sách quyền sau khi cập nhật.
      * @throws UserNotFoundException Nếu không tìm thấy người dùng với ID đã cho.
-     * @throws RoleException Nếu xảy ra lỗi khi cập nhật quyền, ví dụ: quyền đã tồn tại hoặc quyền không tồn tại.
+     * @throws RoleException         Nếu xảy ra lỗi khi cập nhật quyền, ví dụ: quyền đã tồn tại hoặc quyền không tồn tại.
      */
     @Override
     @Transactional
@@ -150,5 +144,22 @@ public class UserServiceImpl implements UserService {
                 throw new RoleException("Role is not found: " + roleType.name());
             }
         }
+    }
+
+    @Override
+    public Page<UserResponse> searchUsers(String keyword, Pageable pageable) {
+        if (keyword==null || keyword.isEmpty()) {
+            throw new IllegalArgumentException("Keyword cannot be");
+        }
+
+        keyword = removeAccents(keyword).toLowerCase();
+        System.out.println("keto: " + keyword);
+        Page<User> users = userRepository.searchUsersByKeyword(keyword, pageable);
+        Page<UserResponse> userResponses = users.map(user -> userMapper.userToUserResponse(user));
+        return userResponses;
+    }
+    private String removeAccents(String input) {
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
     }
 }

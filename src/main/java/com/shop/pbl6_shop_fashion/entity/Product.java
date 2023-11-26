@@ -28,14 +28,14 @@ public class Product {
     private long quantity;
     private long quantitySold;
     private String unit;
-    @ManyToOne
-    @JoinColumn(name = "brand_id" )
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
     private Brand brand;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product",fetch = FetchType.LAZY)
     private List<ProductSize> productSizes;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
@@ -44,7 +44,7 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductImage> images;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
 

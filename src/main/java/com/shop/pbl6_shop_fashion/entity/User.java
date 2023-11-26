@@ -37,7 +37,6 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private String phoneNumber;
-    @Column(unique = true)
     private String gmail;
     private boolean isEnabled = true;
     private boolean isLocked = false;

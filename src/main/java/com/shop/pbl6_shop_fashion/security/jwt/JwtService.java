@@ -2,6 +2,7 @@ package com.shop.pbl6_shop_fashion.security.jwt;
 
 import com.shop.pbl6_shop_fashion.entity.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -20,12 +21,13 @@ public class JwtService {
     private String secretKey;
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
-    @Value("${application.security.jwt.refresh-token.expiration}")
+    @Value("${application.security.jwt.refresh-token.expiration-day}")
     private long refreshExpiration;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
+
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
@@ -48,8 +50,9 @@ public class JwtService {
     }
 
     private String buildToken(Map<String, Object> extraClaims, User userDetails, long expiration) {
-        extraClaims.put("authorities", userDetails.getAuthorities());
         extraClaims.put("id", userDetails.getId());
+        extraClaims.put("authorities", userDetails.getAuthorities());
+
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
@@ -63,6 +66,14 @@ public class JwtService {
     public boolean isTokenValid(String token, User userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+    }
+    public boolean validateToken(String jwtToken) {
+        try {
+            Jws<Claims> claimsJws = Jwts.parser().setSigningKey(getSignInKey()).parseClaimsJws(jwtToken);
+            return true; // Token is valid
+        } catch (Exception e) {
+            return false; // Token is invalid
+        }
     }
 
     private boolean isTokenExpired(String token) {

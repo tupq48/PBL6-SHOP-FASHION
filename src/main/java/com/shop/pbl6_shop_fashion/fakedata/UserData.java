@@ -8,6 +8,7 @@ import com.shop.pbl6_shop_fashion.enums.RoleType;
 import com.shop.pbl6_shop_fashion.dao.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class UserData implements CommandLineRunner {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public void generateAndSaveRandomUsers(int numberOfUsers) {
         Faker faker = new Faker();
@@ -23,7 +25,7 @@ public class UserData implements CommandLineRunner {
         for (int i = 0; i < numberOfUsers; i++) {
             User user = new User();
             user.setUsername(faker.name().username());
-            user.setPassword("password"); // Thay đổi thành mã hóa mật khẩu thực tế
+            user.setPassword(passwordEncoder.encode("1")); // Thay đổi thành mã hóa mật khẩu thực tế
             user.setFullName(faker.name().fullName());
             user.setUrlImage(faker.internet().url());
             user.setAddress(faker.address().fullAddress());
