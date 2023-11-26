@@ -16,6 +16,7 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.shop.pbl6_shop_fashion.config.DriveQuickstart;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -126,6 +127,7 @@ public class GoogleDriveUtils {
         });
         return imageUrls;
     }
+
 
     private static java.io.File convertMultiPartToFile(MultipartFile file) throws Exception {
         java.io.File tempFile = java.io.File.createTempFile("image",".png");

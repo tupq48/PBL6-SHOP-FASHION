@@ -21,10 +21,7 @@ public class GoogleDriveController {
     public String handleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam("user") String user) {
         System.out.println(user + "================================================");
         try {
-
             String imageUrl = googleDriveService.uploadFile(file);
-
-
             return imageUrl;
         } catch (Exception e) {
             e.printStackTrace();

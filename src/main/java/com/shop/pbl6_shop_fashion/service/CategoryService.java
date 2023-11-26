@@ -44,9 +44,20 @@ public class CategoryService {
     }
 
     public Category createCategory(String name, String desc, MultipartFile image) {
-        String imageUrl = GoogleDriveUtils.uploadImage(image);
-        Category category = Category.builder().name(name).description(desc).imageUrl(imageUrl).build();
-        return categoryRepository.save(category);
+
+//        Category category = Category.builder().name(name).description(desc).imageUrl(imageUrl).build();
+        Category category = Category.builder().name(name).description(desc).build();
+        Category newCategory = categoryRepository.save(category);
+        final int id = newCategory.getId();
+
+        Thread thread = new Thread(() -> {
+            String imageUrl = GoogleDriveUtils.uploadImage(image);
+            Category updateCategory = categoryRepository.findById(id).get();
+            updateCategory.setImageUrl(imageUrl);
+            categoryRepository.save(updateCategory);
+        });
+        thread.start();
+        return newCategory;
     }
 
     public Category updateCategory(Integer categoryId, String name, String desc, MultipartFile image) {
@@ -64,7 +75,21 @@ public class CategoryService {
         if (desc != null) {
             category.setDescription(desc);
         }
-        return categoryRepository.save(category);
+
+        Category savedCategory = categoryRepository.save(category);
+
+        final int id = savedCategory.getId();
+        if (image != null) {
+            Thread thread = new Thread(() -> {
+                String imageUrl = GoogleDriveUtils.uploadImage(image);
+                Category updateCategory = categoryRepository.findById(id).get();
+                updateCategory.setImageUrl(imageUrl);
+                categoryRepository.save(updateCategory);
+            });
+            thread.start();
+        }
+
+        return savedCategory;
     }
 
     //======================================== OTHER PEOPLE ========================
