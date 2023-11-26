@@ -28,6 +28,9 @@ public class ProductDetailMobileDto {
     private List<String> SizeTypes;
     private List<String> SizeNames;
     private List<String> SizeQuantity;
+    private List<Integer> rate;
+    private Double avgRate;
+
 
 
 }

@@ -32,36 +32,90 @@ public class ProductDao {
 
     public ProductDetailMobileDto searchDetailProducts(Integer id) {
 //        databaseConfig.dataSource();
-        String sql="with AnhSanPham AS (\n" +
-                "\tselect pr.*,group_concat(pi.url) as Link_anh \n" +
-                "    from products pr \n" +
-                "    join product_images pi \n" +
-                "    on pi.product_id=pr.id group by pr.id),\n" +
-                "Sizes as( select group_concat(ps.quantity) as SoLuongConLai, pr.id as Id_sp,  group_concat(s.id) as loai_size, group_concat(s.name) as ten_size from product_size ps \n" +
-                "             left join products pr on pr.id = ps.product_id \n" +
-                "              left join sizes s on s.id = ps.size_id\n" +
-                "              group by pr.id),\n" +
-                "CMT_US as(select group_concat(cmt.content) as noidungcmt, group_concat(cmt.create_at) as ngaytaocmt, group_concat(us.full_name)as nguoicmt, group_concat(us.url_image) as Avatar,pr.id as idsp, pr.name\n" +
-                "from products pr left join comments cmt \n" +
-                "on pr.id = cmt.product_id left join users us on us.id = cmt.user_id\n" +
-                "group by pr.id),\n" +
-                "KM as(select pr.id as SPID, group_concat(ps.discount_value) as discount_value, group_concat(ps.discount_type) as discount_type\n" +
-                "                from products pr\n" +
-                "                left join promotions ps on pr.promotion_id= ps.id\n" +
-                "                group by pr.id)\n" +
-                "\n" +
-                " select ct.id as Loai_san_pham,ct.name as Ten_loại_san_pham,br.id AS Ma_thuong_hieu, br.name as Ten_thuong_hieu,\n" +
-                "                pr.id, pr.name, pr.price, pr.quantity,pr.quantity_sold,pr.description,Link_anh,ngaytaocmt, noidungcmt,nguoicmt,Avatar,loai_size, ten_size,SoLuongConLai,discount_value,discount_type\n" +
-                "       from products pr \n" +
-                "       join brands br on br.id = pr.brand_id \n" +
-                "       join categories ct on ct.id= pr.category_id \n" +
-                "       join product_size psi on psi.product_id=pr.id\n" +
-                "\t   LEFT JOIN AnhSanPham asp on pr.id=asp.id\n" +
-                "\tjoin Sizes siz on siz.Id_sp = pr.id\n" +
-                "       LEFT join CMT_US on pr.id = CMT_US.idsp\n" +
-                "       LEFT join KM on pr.id = KM.SPID\n" +
-                "\t   where pr.id = ?\t   \n" +
-                "       group by pr.id;";
+        String sql="WITH AnhSanPham AS (\n" +
+                "    SELECT\n" +
+                "        pr.*,\n" +
+                "        GROUP_CONCAT(pi.url) AS Link_anh\n" +
+                "    FROM\n" +
+                "        products pr\n" +
+                "    JOIN product_images pi ON pi.product_id = pr.id\n" +
+                "    GROUP BY\n" +
+                "        pr.id\n" +
+                "),\n" +
+                "Sizes AS (\n" +
+                "    SELECT\n" +
+                "        GROUP_CONCAT(ps.quantity) AS SoLuongConLai,\n" +
+                "        pr.id AS Id_sp,\n" +
+                "        GROUP_CONCAT(s.id) AS loai_size,\n" +
+                "        GROUP_CONCAT(s.name) AS ten_size\n" +
+                "    FROM\n" +
+                "        product_size ps\n" +
+                "    LEFT JOIN products pr ON pr.id = ps.product_id\n" +
+                "    LEFT JOIN sizes s ON s.id = ps.size_id\n" +
+                "    GROUP BY\n" +
+                "        pr.id\n" +
+                "),\n" +
+                "CMT_US AS (\n" +
+                "    SELECT\n" +
+                "        GROUP_CONCAT(cmt.content) AS noidungcmt,\n" +
+                "        GROUP_CONCAT(cmt.create_at) AS ngaytaocmt,\n" +
+                "        GROUP_CONCAT(us.full_name) AS nguoicmt,\n" +
+                "        GROUP_CONCAT(us.url_image) AS Avatar,\n" +
+                "        pr.id AS idsp,\n" +
+                "        pr.name,\n" +
+                "        GROUP_CONCAT(cmt.rate) as star\n" +
+                "    FROM\n" +
+                "        products pr\n" +
+                "    LEFT JOIN comments cmt ON pr.id = cmt.product_id\n" +
+                "    LEFT JOIN users us ON us.id = cmt.user_id\n" +
+                "    GROUP BY\n" +
+                "        pr.id\n" +
+                "),\n" +
+                "KM AS (\n" +
+                "    SELECT\n" +
+                "        pr.id AS SPID,\n" +
+                "        GROUP_CONCAT(ps.discount_value) AS discount_value,\n" +
+                "        GROUP_CONCAT(ps.discount_type) AS discount_type\n" +
+                "    FROM\n" +
+                "        products pr\n" +
+                "    LEFT JOIN promotions ps ON pr.promotion_id = ps.id\n" +
+                "    GROUP BY\n" +
+                "        pr.id\n" +
+                ")\n" +
+                "SELECT\n" +
+                "    ct.id AS Loai_san_pham,\n" +
+                "    ct.name AS Ten_loai_san_pham,\n" +
+                "    br.id AS Ma_thuong_hieu,\n" +
+                "    br.name AS Ten_thuong_hieu,\n" +
+                "    pr.id,\n" +
+                "    pr.name,\n" +
+                "    pr.price,\n" +
+                "    pr.quantity,\n" +
+                "    pr.quantity_sold,\n" +
+                "    pr.description,\n" +
+                "    Link_anh,\n" +
+                "    ngaytaocmt,\n" +
+                "    noidungcmt,\n" +
+                "    nguoicmt,\n" +
+                "    Avatar,\n" +
+                "    loai_size,\n" +
+                "    ten_size,\n" +
+                "    SoLuongConLai,\n" +
+                "    discount_value,\n" +
+                "    discount_type, star\n" +
+                "FROM\n" +
+                "    products pr\n" +
+                "JOIN brands br ON br.id = pr.brand_id\n" +
+                "JOIN categories ct ON ct.id = pr.category_id\n" +
+                "JOIN product_size psi ON psi.product_id = pr.id\n" +
+                "LEFT JOIN AnhSanPham asp ON pr.id = asp.id\n" +
+                "JOIN Sizes siz ON siz.Id_sp = pr.id\n" +
+                "LEFT JOIN CMT_US ON pr.id = CMT_US.idsp\n" +
+                "LEFT JOIN KM ON pr.id = KM.SPID\n" +
+                "WHERE\n" +
+                "    pr.id = ? "+
+                "GROUP BY\n" +
+                "    pr.id;";
 
         // Tạo truy vấn native SQL
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
@@ -110,6 +164,7 @@ public class ProductDao {
             String sizeTypes = (String) result[15];
             String sizeNames = (String) result[16];
             String SizeQuantity = (String) result[17];
+            String star = (String) result[20];
             List<String> cmtContent = new ArrayList<>();
             if( dateString != null) {
                 cmtContent = List.of(comments.split(","));
@@ -140,6 +195,11 @@ public class ProductDao {
              if(SizeQuantity != null) {
                  SizeQuantityList = List.of(SizeQuantity.split(","));
              }
+            List<String> rateList = new ArrayList<>();
+            if( star != null) {
+                rateList = List.of(star.split(","));
+            }
+            List<Integer> rateListInteger = convertStringListToIntegerList(rateList);
 
             product.setCommentContents(cmtContent);
             product.setProductUrls(imageUrlArray);
@@ -148,7 +208,7 @@ public class ProductDao {
             product.setSizeTypes(sizeTypeList);
             product.setSizeNames(sizeNameList);
             product.setSizeQuantity(SizeQuantityList);
-
+            product.setRate(rateListInteger);
             List<String> discountValueList = new ArrayList<>();
             String discountValue = (String) result[17];
             if( discountValue != null) {
@@ -170,6 +230,13 @@ public class ProductDao {
 
                 }
             }
+            Double avgRate=0.0;
+            for(int i=0; i< rateListInteger.size();i++){
+                avgRate+=rateListInteger.get(i);
+            }
+            avgRate= avgRate/rateListInteger.size();
+            System.out.println("avRate:" + avgRate);
+            product.setAvgRate(avgRate);
             product.setPrice_promote(price_pro);
 
         }
@@ -304,5 +371,22 @@ public class ProductDao {
             products.add(product);
         }
         return products;
+    }
+    private static List<Integer> convertStringListToIntegerList(List<String> stringList) {
+        List<Integer> integerList = new ArrayList<>();
+
+        for (String str : stringList) {
+            try {
+                // Chuyển đổi từ chuỗi sang số nguyên
+                int number = Integer.parseInt(str);
+                // Thêm số nguyên vào danh sách
+                integerList.add(number);
+            } catch (NumberFormatException e) {
+                // Xử lý nếu chuỗi không thể chuyển đổi thành số nguyên
+                System.err.println("Không thể chuyển đổi chuỗi thành số nguyên: " + str);
+            }
+        }
+
+        return integerList;
     }
 }
