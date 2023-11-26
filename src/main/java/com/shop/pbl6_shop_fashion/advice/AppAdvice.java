@@ -1,8 +1,6 @@
 package com.shop.pbl6_shop_fashion.advice;
 
-import com.shop.pbl6_shop_fashion.exception.DuplicateUsernameException;
-import com.shop.pbl6_shop_fashion.exception.InvalidUserException;
-import com.shop.pbl6_shop_fashion.exception.UserNotFoundException;
+import com.shop.pbl6_shop_fashion.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,25 +40,57 @@ public class AppAdvice {
     }
 
     @ExceptionHandler(InvalidUserException.class)
-    public ResponseEntity<String> handleException(InvalidUserException ex) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleException(InvalidUserException ex, HttpServletRequest request) {
         // Xử lý ngoại lệ ở đây
         String errorMessage = ex.getMessage();
-        return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(DuplicateUsernameException.class)
     public ErrorResponse handleDuplicateUsernameException(DuplicateUsernameException ex, HttpServletRequest request) {
-        return getErrorResponse(request, ex.getMessage(), ex,HttpStatus.BAD_REQUEST.value());
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
+    }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(LockedOrDisableUserException.class)
+    public ErrorResponse handleLockedOrDisableUserException(LockedOrDisableUserException ex, HttpServletRequest request) {
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.UNAUTHORIZED.value());
     }
 
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(UserNotFoundException.class)
     public ErrorResponse handleUserNotException(UserNotFoundException ex, HttpServletRequest request) {
-        return getErrorResponse(request, ex.getMessage(), ex,HttpStatus.NOT_FOUND.value());
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.NOT_FOUND.value());
     }
-    private ErrorResponse getErrorResponse(HttpServletRequest request, String message, Exception ex,int status) {
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(UniqueConstraintViolationException.class)
+    public ErrorResponse handleUserNotException(UniqueConstraintViolationException ex, HttpServletRequest request) {
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(OTPSetPasswordException.class)
+    public ErrorResponse handleUserNotException(OTPSetPasswordException ex, HttpServletRequest request) {
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(PasswordException.class)
+    public ErrorResponse handleUserNotException(PasswordException ex, HttpServletRequest request) {
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(RoleException.class)
+    public ErrorResponse handleUserNotException(RoleException ex, HttpServletRequest request) {
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
+    }
+
+    private ErrorResponse getErrorResponse(HttpServletRequest request, String message, Exception ex, int status) {
         ErrorResponse errorResponse = new ErrorResponse();
         Map<String, String> errors = new HashMap<>();
         errors.put("message", message);

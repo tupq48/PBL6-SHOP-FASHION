@@ -1,4 +1,4 @@
-package com.shop.pbl6_shop_fashion.dto;
+package com.shop.pbl6_shop_fashion.dto.password;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -9,6 +9,6 @@ public class ResetPasswordRequest {
     @NotBlank
     String token;
     @NotBlank
-    @Length(min = 8, max = 100)
+    @Length(min = 6, max = 100)
     String newPassword;
 }

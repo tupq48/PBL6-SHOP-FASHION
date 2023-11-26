@@ -4,7 +4,9 @@ import com.shop.pbl6_shop_fashion.dto.UserResponse;
 import com.shop.pbl6_shop_fashion.dto.mapper.UserMapper;
 import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.enums.Gender;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UserMapperImpl implements UserMapper {
     @Override
     public UserResponse userToUserResponse(User user) {
