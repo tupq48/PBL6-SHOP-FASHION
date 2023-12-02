@@ -1,20 +1,19 @@
 package com.shop.pbl6_shop_fashion.dto.mapper.impl;
 
-import com.shop.pbl6_shop_fashion.dto.UserResponse;
+import com.shop.pbl6_shop_fashion.dto.UserDto;
 import com.shop.pbl6_shop_fashion.dto.mapper.UserMapper;
 import com.shop.pbl6_shop_fashion.entity.User;
-import com.shop.pbl6_shop_fashion.enums.Gender;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapperImpl implements UserMapper {
     @Override
-    public UserResponse userToUserResponse(User user) {
+    public UserDto userToUserDTO(User user) {
         if (user == null) {
             return null;
         }
 
-        return UserResponse.builder()
+        return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .name(user.getFullName())
@@ -29,12 +28,15 @@ public class UserMapperImpl implements UserMapper {
     }
 
     @Override
-    public User userResponseToUser(UserResponse userResponse,User user) {
+    public User userDTOToUser(UserDto userResponse, User user) {
         if (userResponse == null) {
             return null;
         }
+        if (user == null) {
+            user = new User();
+        }
 
-        if (userResponse.getName() != null) {
+        if (userResponse.getName() != null && !userResponse.getName().isEmpty()) {
             user.setFullName(userResponse.getName());
         }
 
