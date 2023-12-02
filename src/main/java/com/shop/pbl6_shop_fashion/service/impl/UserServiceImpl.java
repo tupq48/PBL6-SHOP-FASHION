@@ -2,7 +2,7 @@ package com.shop.pbl6_shop_fashion.service.impl;
 
 import com.shop.pbl6_shop_fashion.dao.RoleRepository;
 import com.shop.pbl6_shop_fashion.dao.UserRepository;
-import com.shop.pbl6_shop_fashion.dto.UserResponse;
+import com.shop.pbl6_shop_fashion.dto.UserDto;
 import com.shop.pbl6_shop_fashion.dto.mapper.UserMapper;
 import com.shop.pbl6_shop_fashion.dto.mapper.impl.UserMapperImpl;
 import com.shop.pbl6_shop_fashion.entity.Role;
@@ -13,14 +13,16 @@ import com.shop.pbl6_shop_fashion.exception.RoleException;
 import com.shop.pbl6_shop_fashion.exception.UniqueConstraintViolationException;
 import com.shop.pbl6_shop_fashion.exception.UserNotFoundException;
 import com.shop.pbl6_shop_fashion.service.UserService;
+import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
+import com.shop.pbl6_shop_fashion.util.ImageChecker;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.text.Normalizer;
 import java.util.List;
@@ -32,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final ImageChecker imageChecker;
 
 
     /**
@@ -39,12 +42,12 @@ public class UserServiceImpl implements UserService {
      * Lấy danh sách người dùng theo trang và kích thước trang đã cho.
      *
      * @param pageable Đối tượng Pageable để xác định trang và kích thước trang.
-     * @return Đối tượng Page<UserResponse> chứa danh sách người dùng theo trang.
+     * @return Đối tượng Page<UserDto> chứa danh sách người dùng theo trang.
      */
     @Override
-    public Page<UserResponse> getAllUsers(Pageable pageable) {
+    public Page<UserDto> getAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
-        Page<UserResponse> userResponses = users.map(user -> userMapper.userToUserResponse(user));
+        Page<UserDto> userResponses = users.map(user -> userMapper.userToUserDTO(user));
         return userResponses;
     }
 
@@ -54,43 +57,60 @@ public class UserServiceImpl implements UserService {
      * Lấy thông tin người dùng dựa trên ID.
      *
      * @param id ID của người dùng cần lấy thông tin.
-     * @return Đối tượng UserResponse chứa thông tin của người dùng.
+     * @return Đối tượng UserDto chứa thông tin của người dùng.
      * @throws UserNotFoundException Nếu không tìm thấy người dùng với ID đã cho.
      */
     @Override
-    public UserResponse getUserById(int id) {
+    public UserDto getUserById(int id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User is not found: " + id));
         UserMapper userMapper = new UserMapperImpl();
-        return userMapper.userToUserResponse(user);
+        return userMapper.userToUserDTO(user);
     }
-
 
     /**
      * all user
-     * Cập nhật thông tin người dùng dựa trên thông tin được cung cấp trong đối tượng UserResponse.
+     * Cập nhật thông tin người dùng dựa trên thông tin được cung cấp trong đối tượng UserDto.
      *
-     * @param userResponse Đối tượng UserResponse chứa thông tin cần cập nhật.
-     * @return Đối tượng UserResponse chứa thông tin người dùng đã được cập nhật.
+     * @param userResponse Đối tượng UserDto chứa thông tin cần cập nhật.
+     * @return Đối tượng UserDto chứa thông tin người dùng đã được cập nhật.
      * @throws UserNotFoundException              Nếu không tìm thấy người dùng với ID đã cho.
      * @throws UniqueConstraintViolationException Nếu xảy ra vi phạm ràng buộc duy nhất (unique constraint) cho số điện thoại hoặc địa chỉ email.
      */
     @Override
-    public UserResponse updateUser(UserResponse userResponse) {
-        User userDb = userRepository.findById(userResponse.getId())
-                .orElseThrow(() -> new UserNotFoundException("User is not found : " + userResponse.getId()));
+    public UserDto updateInfoUser(int userId, UserDto userResponse) {
+        User userDb = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User is not found: " + userResponse.getId()));
 
-        UserMapper userMapper = new UserMapperImpl();
         try {
-            userDb = userMapper.userResponseToUser(userResponse, userDb);
+            userDb = userMapper.userDTOToUser(userResponse, userDb);
             userRepository.save(userDb);
         } catch (DataIntegrityViolationException e) {
             // Handle the unique constraint violation
             throw new BaseException(e.getMessage());
         }
 
-        return userMapper.userToUserResponse(userDb);
+        return userMapper.userToUserDTO(userDb);
     }
+
+    @Override
+    public void updateAvatar(int userId, MultipartFile multipartFile) {
+        long MAX_FILE_SIZE = 1024 * 1024; // 1 MB as an example
+        if (multipartFile.getSize() > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("Invalid File: File size exceeds the limit");
+        }
+        if(!imageChecker.isImageFile(multipartFile)){
+            throw new IllegalArgumentException("Invalid File ");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Không tìm thấy người dùng: " + userId));
+
+        String imageUrl = GoogleDriveUtils.uploadImage(multipartFile);
+        user.setUrlImage(imageUrl);
+        userRepository.save(user);
+    }
+
 
 
     /**
@@ -147,17 +167,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserResponse> searchUsers(String keyword, Pageable pageable) {
-        if (keyword==null || keyword.isEmpty()) {
+    public Page<UserDto> searchUsers(String keyword, Pageable pageable) {
+        if (keyword == null || keyword.isEmpty()) {
             throw new IllegalArgumentException("Keyword cannot be");
         }
 
         keyword = removeAccents(keyword).toLowerCase();
         System.out.println("keto: " + keyword);
         Page<User> users = userRepository.searchUsersByKeyword(keyword, pageable);
-        Page<UserResponse> userResponses = users.map(user -> userMapper.userToUserResponse(user));
+        Page<UserDto> userResponses = users.map(user -> userMapper.userToUserDTO(user));
         return userResponses;
     }
+
+
     private String removeAccents(String input) {
         return Normalizer.normalize(input, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "");

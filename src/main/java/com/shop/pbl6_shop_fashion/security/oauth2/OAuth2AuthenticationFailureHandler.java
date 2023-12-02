@@ -1,12 +1,9 @@
 package com.shop.pbl6_shop_fashion.security.oauth2;
 
-import com.shop.pbl6_shop_fashion.security.jwt.JwtService;
-import com.shop.pbl6_shop_fashion.security.oauth2.user.CustomUserOAuth;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;

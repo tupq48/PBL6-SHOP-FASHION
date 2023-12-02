@@ -90,6 +90,13 @@ public class AppAdvice {
         return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
     }
 
+    @ExceptionHandler(JwtException.class)
+    public ErrorResponse handleJwtException(JwtException ex, HttpServletRequest request) {
+        ResponseStatus httpStatus =ex.getClass().getAnnotation(ResponseStatus.class);
+        return getErrorResponse(request, ex.getMessage(), ex, httpStatus.value().value());
+    }
+
+
     private ErrorResponse getErrorResponse(HttpServletRequest request, String message, Exception ex, int status) {
         ErrorResponse errorResponse = new ErrorResponse();
         Map<String, String> errors = new HashMap<>();
