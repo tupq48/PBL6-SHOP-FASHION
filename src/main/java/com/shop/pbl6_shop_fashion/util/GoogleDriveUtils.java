@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -100,8 +101,8 @@ public class GoogleDriveUtils {
         java.io.File file = null;
         try {
             file = convertMultiPartToFile(multipartFile);
-
             File fileMetadata = new File();
+
             System.out.println(file.getName());
             fileMetadata.setName(file.getName());
             fileMetadata.setParents(Collections.singletonList("1QzWRpFokX1pH0pwqVXSgru9DGYEUY0ar")); // Đặt thư mục muốn lưu file vào
@@ -131,9 +132,7 @@ public class GoogleDriveUtils {
 
     private static java.io.File convertMultiPartToFile(MultipartFile file) throws Exception {
         java.io.File tempFile = java.io.File.createTempFile("image",".png");
-
         tempFile.deleteOnExit();
-
         file.transferTo(tempFile);
         return tempFile;
     }
