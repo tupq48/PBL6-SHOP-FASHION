@@ -8,6 +8,7 @@ import com.shop.pbl6_shop_fashion.entity.Brand;
 import com.shop.pbl6_shop_fashion.entity.Category;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
+import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hibernate.type.StandardBasicTypes;
@@ -45,28 +46,24 @@ public class CategoryService {
 
     public Category createCategory(String name, String desc, MultipartFile image) {
 
-//        Category category = Category.builder().name(name).description(desc).imageUrl(imageUrl).build();
-        Category category = Category.builder().name(name).description(desc).build();
-        Category newCategory = categoryRepository.save(category);
-        final int id = newCategory.getId();
+        String imageUrl = ImgBBUtils.uploadImage(image);
 
-        Thread thread = new Thread(() -> {
-            String imageUrl = GoogleDriveUtils.uploadImage(image);
-            Category updateCategory = categoryRepository.findById(id).get();
-            updateCategory.setImageUrl(imageUrl);
-            categoryRepository.save(updateCategory);
-        });
-        thread.start();
+        Category category = Category.builder().name(name).description(desc).imageUrl(imageUrl).build();
+        Category newCategory = categoryRepository.save(category);
         return newCategory;
     }
 
     public Category updateCategory(Integer categoryId, String name, String desc, MultipartFile image) {
+        if (name == null && desc == null && image == null) return null;
+
         Optional<Category> opt = categoryRepository.findById(categoryId);
         Category category = null;
+
         if (opt.isEmpty()) return null;
         else category = opt.get();
+
         if (image != null) {
-            String imageUrl = GoogleDriveUtils.uploadImage(image);
+            String imageUrl = ImgBBUtils.uploadImage(image);
             category.setImageUrl(imageUrl);
         }
         if (name != null) {
@@ -77,18 +74,6 @@ public class CategoryService {
         }
 
         Category savedCategory = categoryRepository.save(category);
-
-        final int id = savedCategory.getId();
-        if (image != null) {
-            Thread thread = new Thread(() -> {
-                String imageUrl = GoogleDriveUtils.uploadImage(image);
-                Category updateCategory = categoryRepository.findById(id).get();
-                updateCategory.setImageUrl(imageUrl);
-                categoryRepository.save(updateCategory);
-            });
-            thread.start();
-        }
-
         return savedCategory;
     }
 

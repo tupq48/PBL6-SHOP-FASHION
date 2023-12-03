@@ -3,6 +3,7 @@ package com.shop.pbl6_shop_fashion.service;
 import com.shop.pbl6_shop_fashion.dao.BrandRepository;
 import com.shop.pbl6_shop_fashion.entity.Brand;
 import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
+import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,17 +28,14 @@ public class BrandService {
 
         // Brand brand = Brand.builder().name(name).description(desc).imageUrl(imageUrl).build();
         Brand brand = Brand.builder().name(name).description(desc).build();
+
+
+        String imageUrl = ImgBBUtils.uploadImage(image);
+        brand.setImageUrl(imageUrl);
+
         Brand savedBrand = brandRepository.save(brand);
-        final int id = savedBrand.getId();
-        Thread thread = new Thread(() -> {
-            String imageUrl = GoogleDriveUtils.uploadImage(image);
-            Brand updateBrand = brandRepository.findById(id).get();
-            updateBrand.setImageUrl(imageUrl);
-            brandRepository.save(updateBrand);
-        });
-        thread.start();
         // ==============
-        return brandRepository.save(brand);
+        return savedBrand;
     }
 
     public Brand patchBrand(Integer brandId, String name, String desc, MultipartFile image) {
@@ -52,18 +50,11 @@ public class BrandService {
         if (desc != null) {
             brand.setDescription(desc);
         }
-        Brand updatedBrand = brandRepository.save(brand);
 
-        final int id = brand.getId();
-        if (image != null) {
-            Thread thread = new Thread(() -> {
-                String imageUrl = GoogleDriveUtils.uploadImage(image);
-                Brand updateBrand = brandRepository.findById(id).get();
-                updateBrand.setImageUrl(imageUrl);
-                brandRepository.save(updateBrand);
-            });
-            thread.start();
-        }
+
+        String imageUrl = ImgBBUtils.uploadImage(image);
+        brand.setImageUrl(imageUrl);
+        Brand updatedBrand = brandRepository.save(brand);
         return updatedBrand;
     }
 }

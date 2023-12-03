@@ -86,28 +86,28 @@ public class GoogleDriveService {
         return credential;
     }
 
-//    public static void main(String... args) throws IOException, GeneralSecurityException {
-//        // Build a new authorized API client service.
-//        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-//        Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-//                .setApplicationName(APPLICATION_NAME)
-//                .build();
-//
-//        // Print the names and IDs for up to 10 files.
-//        FileList result = service.files().list()
-//                .setPageSize(5)
-//                .setFields("nextPageToken, files(id, name)")
-//                .execute();
-//        List<com.google.api.services.drive.model.File> files = result.getFiles();
-//        if (files == null || files.isEmpty()) {
-//            System.out.println("No files found.");
-//        } else {
-//            System.out.println("Files:");
-//            for (com.google.api.services.drive.model.File file : files) {
-//                System.out.printf("%s (%s)\n", file.getName(), file.getId());
-//            }
-//        }
-//    }
+    public static void main(String... args) throws IOException, GeneralSecurityException {
+        // Build a new authorized API client service.
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                .setApplicationName(APPLICATION_NAME)
+                .build();
+
+        // Print the names and IDs for up to 10 files.
+        FileList result = service.files().list()
+                .setPageSize(5)
+                .setFields("nextPageToken, files(id, name)")
+                .execute();
+        List<com.google.api.services.drive.model.File> files = result.getFiles();
+        if (files == null || files.isEmpty()) {
+            System.out.println("No files found.");
+        } else {
+            System.out.println("Files:");
+            for (com.google.api.services.drive.model.File file : files) {
+                System.out.printf("%s (%s)\n", file.getName(), file.getId());
+            }
+        }
+    }
     // ======================= service function =======================
     public String uploadFile(MultipartFile file) throws Exception {
 //        File fileMetadata = new File();

@@ -10,6 +10,7 @@ import com.shop.pbl6_shop_fashion.entity.*;
 import com.shop.pbl6_shop_fashion.enums.SizeType;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
+import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,8 +93,6 @@ public class ProductService {
 
         Promotion promotion = entityManager.find(Promotion.class, promotionId);
 
-
-
         product.setName(name);
         product.setDescription(desc);
         product.setStatus(null);
@@ -108,21 +107,14 @@ public class ProductService {
         product.setCreateAt(LocalDateTime.now());
         product.setUpdateAt(null);
 
-        Product savedProduct = productRepository.save(product);
-
-        int id = savedProduct.getId();
-        Thread thread = new Thread(() -> {
-            Product updateProduct = productRepository.findById(id).get();
-            List<String> imageUrls = GoogleDriveUtils.uploadImages(images);
-            List<ProductImage> productImages = new ArrayList<>();
-            imageUrls.forEach(imageUrl -> {
-                productImages.add(ProductImage.builder().url(imageUrl).product(updateProduct).build());
-            });
-            updateProduct.setImages(productImages);
-            productRepository.save(updateProduct);
+        List<String> imageUrls = ImgBBUtils.uploadImages(images);
+        List<ProductImage> productImages = new ArrayList<>();
+        imageUrls.forEach(imageUrl -> {
+            productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
         });
-        thread.start();
+        product.setImages(productImages);
 
+        Product savedProduct = productRepository.save(product);
         return;
     }
 
@@ -159,23 +151,15 @@ public class ProductService {
         if (promotionId != null) product.setPromotion(entityManager.find(Promotion.class, promotionId));
 
         product.setUpdateAt(LocalDateTime.now());
+
+        List<String> imageUrls = ImgBBUtils.uploadImages(images);
+        List<ProductImage> productImages = new ArrayList<>();
+        imageUrls.forEach(imageUrl -> {
+            productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
+        });
+        product.setImages(productImages);
+
         Product savedProduct = productRepository.save(product);
-
-        int id = savedProduct.getId();
-
-        if (images != null) {
-            Thread thread = new Thread(() -> {
-                Product updateProduct = productRepository.findById(id).get();
-                List<String> imageUrls = GoogleDriveUtils.uploadImages(images);
-                List<ProductImage> productImages = new ArrayList<>();
-                imageUrls.forEach(imageUrl -> {
-                    productImages.add(ProductImage.builder().url(imageUrl).product(updateProduct).build());
-                });
-                updateProduct.setImages(productImages);
-                productRepository.save(updateProduct);
-            });
-            thread.start();
-        }
         return;
     }
 
