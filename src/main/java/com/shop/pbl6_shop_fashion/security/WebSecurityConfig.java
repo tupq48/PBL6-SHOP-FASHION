@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class WebSecurityConfig {
-    private static final String[] WHITE_LIST_URL = {"/api/product/**",
+    private static final String[] WHITE_LIST_URL = {"/api/product/**","/api/category/**","/api/brand/**",
             "/public/**", "/api/auth/**", "/oauth2/**",
             "/", "/error", "/csrf", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**",
     };
