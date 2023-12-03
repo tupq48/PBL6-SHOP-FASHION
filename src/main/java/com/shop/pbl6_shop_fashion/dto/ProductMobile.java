@@ -15,5 +15,11 @@ public class ProductMobile {
         private Integer product_id;
         private Long price_promote;
         private List<String> product_image;
+        private Integer category_id;
+        private String category_name;
+        private Integer brand_id;
+        private String brand_name;
+
+
 
 }

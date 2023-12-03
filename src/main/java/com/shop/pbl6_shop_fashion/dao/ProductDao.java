@@ -243,17 +243,21 @@ public class ProductDao {
 
         return product;
     }
-    public List<ProductMobile> getProductsMobile(){
-        String sql="with AnhSanPham AS (\n" +
-                "                select pr.*,group_concat(pi.url) as Link_anh \n" +
-                "                from products pr \n" +
-                "                join product_images pi on pi.product_id=pr.id \n" +
-                "                group by pr.id)\n" +
-                "select pr.id,pr.name, pr.price, pr.quantity, pr.quantity_sold,group_concat(ps.discount_value), group_concat(ps.discount_type), link_anh\n" +
-                "from products pr \n" +
-                "left join promotions ps on pr.promotion_id= ps.id\n" +
-                "join AnhSanPham asp on asp.id = pr.id\n" +
-                "group by pr.id;";
+    public List<ProductMobile> getAllProducts(){
+        String sql="WITH AnhSanPham AS (\n" +
+                "    SELECT pr.*,GROUP_CONCAT(pi.url) AS Link_anh\n" +
+                "    FROM products pr\n" +
+                "    JOIN product_images pi ON pi.product_id = pr.id\n" +
+                "    GROUP BY pr.id\n" +
+                ")\n" +
+                "SELECT pr.id,pr.name,pr.price,pr.quantity,pr.quantity_sold,\tGROUP_CONCAT(ps.discount_value) AS discount_values,GROUP_CONCAT(ps.discount_type) AS discount_types,link_anh,\n" +
+                "    pr.category_id as Loai,ct.name as Ten_loai,pr.brand_id as Thuong_hieu,br.name as Ten_thuong_hieu\n" +
+                "FROM products pr\n" +
+                "LEFT JOIN promotions ps ON pr.promotion_id = ps.id\n" +
+                "LEFT JOIN AnhSanPham asp ON asp.id = pr.id\n" +
+                "LEFT JOIN categories ct on ct.id = pr.category_id\n" +
+                "LEFT JOIN brands br on br.id = pr.brand_id\n" +
+                "GROUP BY pr.id;";
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
         List<Object[]> results = query.getResultList();
         System.out.println("result:" + results.size());
@@ -265,6 +269,12 @@ public class ProductDao {
             product.setPrice((Long) result[2]);
             product.setQuantity((Long) result[3]);
             product.setQuantity_sold((Long) result[4]);
+            product.setCategory_id((Integer) result[8]);
+            product.setCategory_id((Integer) result[8]);
+            product.setCategory_name((String) result[9]);
+            product.setBrand_id((Integer) result[10]);
+            product.setBrand_name((String) result[11]);
+
             List<String> discountValueList = new ArrayList<>();
             String discountValue = (String) result[5];
             if( discountValue != null) {
@@ -288,7 +298,10 @@ public class ProductDao {
             }
             product.setPrice_promote(proce_pro);
             String images = (String) result[7];
-            List<String> imagesList = List.of(images.split(","));
+            List<String> imagesList = new ArrayList<>();
+            if(images != null){
+                imagesList = List.of(images.split(","));
+            }
             product.setProduct_image(imagesList);
             products.add(product);
         }
