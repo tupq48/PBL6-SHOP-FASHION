@@ -54,9 +54,9 @@ public class ProductService {
         System.out.println("product service: " + product);
         return  product;
     }
-    public List<ProductMobile> getProductsMobile(){
+    public List<ProductMobile> getAllProducts(){
 
-        return productDao.getProductsMobile();
+        return productDao.getAllProducts();
     }
 
 
