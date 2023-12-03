@@ -105,7 +105,7 @@ public class ProductController {
     }
     @GetMapping("/product/getAll")
     public List<ProductMobile> getProductsMobile(){
-        return productService.getProductsMobile();
+        return productService.getAllProducts();
     }
     @GetMapping("/product/searchAll")
     public List<ProductMobile> searchProductsMobile(
