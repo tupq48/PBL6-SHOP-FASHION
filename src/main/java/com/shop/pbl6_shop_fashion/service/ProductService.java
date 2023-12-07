@@ -62,6 +62,10 @@ public class ProductService {
 
         return productDao.getAllProducts();
     }
+    public List<ProductMobile> getProductsByCategoryorBrand(Integer category_id,Integer brand_id){
+
+        return productDao.getProductsByCategoryorBrand(category_id,brand_id);
+    }
 
 
     public void updateImages(Integer id, List<MultipartFile> files) {
