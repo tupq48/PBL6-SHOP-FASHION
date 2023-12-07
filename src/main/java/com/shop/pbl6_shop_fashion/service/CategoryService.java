@@ -1,22 +1,13 @@
 package com.shop.pbl6_shop_fashion.service;
 
 import com.shop.pbl6_shop_fashion.dao.CategoryRepository;
-import com.shop.pbl6_shop_fashion.dto.BrandDto;
-import com.shop.pbl6_shop_fashion.dto.category.CategoryDto;
 import com.shop.pbl6_shop_fashion.dto.category.CategoryHomePageDto;
-import com.shop.pbl6_shop_fashion.entity.Brand;
 import com.shop.pbl6_shop_fashion.entity.Category;
-import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
-import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
 import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.hibernate.type.StandardBasicTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 

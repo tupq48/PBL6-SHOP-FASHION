@@ -2,7 +2,6 @@ package com.shop.pbl6_shop_fashion.service;
 
 import com.shop.pbl6_shop_fashion.dao.BrandRepository;
 import com.shop.pbl6_shop_fashion.entity.Brand;
-import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
 import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
