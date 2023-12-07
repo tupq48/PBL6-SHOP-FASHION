@@ -107,6 +107,14 @@ public class ProductController {
     public List<ProductMobile> getProductsMobile(){
         return productService.getAllProducts();
     }
+    @GetMapping("/product/getByCategory")
+    public List<ProductMobile> getProductsByCategoryorBrand(
+            @RequestParam(name="category_id", defaultValue = "0") Integer category_id,
+            @RequestParam(name="brand_id", defaultValue = "0") Integer brand_id
+
+            ){
+        return productService.getProductsByCategoryorBrand(category_id,brand_id);
+    }
     @GetMapping("/product/searchAll")
     public List<ProductMobile> searchProductsMobile(
             @RequestParam(name="keyword", defaultValue = "") String keyword,
