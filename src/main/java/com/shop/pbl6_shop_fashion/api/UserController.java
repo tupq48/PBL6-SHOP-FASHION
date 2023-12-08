@@ -1,7 +1,7 @@
 package com.shop.pbl6_shop_fashion.api;
 
 
-import com.shop.pbl6_shop_fashion.dto.UserDto;
+import com.shop.pbl6_shop_fashion.dto.user.UserDto;
 import com.shop.pbl6_shop_fashion.dto.password.PasswordChangeRequest;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
 import com.shop.pbl6_shop_fashion.service.PasswordService;

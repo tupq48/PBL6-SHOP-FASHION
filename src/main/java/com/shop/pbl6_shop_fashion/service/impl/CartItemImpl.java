@@ -3,8 +3,8 @@ package com.shop.pbl6_shop_fashion.service.impl;
 import com.shop.pbl6_shop_fashion.dao.CartRepository;
 import com.shop.pbl6_shop_fashion.dao.ProductRepository;
 import com.shop.pbl6_shop_fashion.dao.UserRepository;
-import com.shop.pbl6_shop_fashion.dto.CartItemDto;
-import com.shop.pbl6_shop_fashion.dto.mapper.impl.CartMapper;
+import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
+import com.shop.pbl6_shop_fashion.dto.cart.CartMapper;
 import com.shop.pbl6_shop_fashion.entity.CartItem;
 import com.shop.pbl6_shop_fashion.entity.Product;
 import com.shop.pbl6_shop_fashion.entity.User;
@@ -35,6 +35,7 @@ public class CartItemImpl implements CartService {
                 .map(cartMapper::mapperFrom)  // Map each CartItem entity to CartItemDto
                 .collect(Collectors.toList());
     }
+
     @Transactional
     @Override
     public boolean removeItems(int userId, List<Integer> ids) {
@@ -62,10 +63,6 @@ public class CartItemImpl implements CartService {
         return false;
 
 
-    }
-    @Override
-    public boolean checkoutCart(int userId, List<CartItemDto> cartItemDtoList) {
-        return false;
     }
 
     @Transactional
@@ -102,6 +99,7 @@ public class CartItemImpl implements CartService {
                 .findFirst()
                 .orElse(null);
     }
+
     private CartItem createCartItem(CartItemDto cartItemDto, Product product, User user) {
         CartItem cartItem = new CartItem();
         cartItem.setQuantity(cartItemDto.getQuantity());
@@ -113,22 +111,21 @@ public class CartItemImpl implements CartService {
     }
 
 
-
     private void mergeItemsWithSameSize(CartItem existingCartItem) {
 
         List<CartItem> items = cartRepository.findByUserIdAndProductId(existingCartItem.getUser().getId(), existingCartItem.getProduct().getId());
 
         for (CartItem item : items) {
-           if(item.getSize().equals(existingCartItem.getSize()) && item.getId()!=existingCartItem.getId()){
-               // Có một sản phẩm khác cùng kích thước trong giỏ hàng
+            if (item.getSize().equals(existingCartItem.getSize()) && item.getId() != existingCartItem.getId()) {
+                // Có một sản phẩm khác cùng kích thước trong giỏ hàng
 
-               // Gộp sản phẩm: cộng thêm số lượng vào sản phẩm hiện tại và xóa sản phẩm cũ
-               existingCartItem.setQuantity(existingCartItem.getQuantity() + item.getQuantity());
-               cartRepository.save(existingCartItem);
-               cartRepository.delete(item);
+                // Gộp sản phẩm: cộng thêm số lượng vào sản phẩm hiện tại và xóa sản phẩm cũ
+                existingCartItem.setQuantity(existingCartItem.getQuantity() + item.getQuantity());
+                cartRepository.save(existingCartItem);
+                cartRepository.delete(item);
 
-               break;
-           }
+                break;
+            }
         }
     }
 

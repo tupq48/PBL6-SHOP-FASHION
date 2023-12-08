@@ -1,4 +1,4 @@
-package com.shop.pbl6_shop_fashion.dto;
+package com.shop.pbl6_shop_fashion.dto.cart;
 
 import com.shop.pbl6_shop_fashion.enums.SizeType;
 import lombok.Builder;

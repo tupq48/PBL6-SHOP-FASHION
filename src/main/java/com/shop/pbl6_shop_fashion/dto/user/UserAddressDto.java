@@ -1,4 +1,4 @@
-package com.shop.pbl6_shop_fashion.dto;
+package com.shop.pbl6_shop_fashion.dto.user;
 
 import com.shop.pbl6_shop_fashion.entity.User;
 import jakarta.persistence.Id;

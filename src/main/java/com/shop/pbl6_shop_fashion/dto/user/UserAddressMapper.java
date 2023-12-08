@@ -1,7 +1,6 @@
-package com.shop.pbl6_shop_fashion.dto.mapper.impl;
+package com.shop.pbl6_shop_fashion.dto.user;
 
-import com.shop.pbl6_shop_fashion.dto.UserAddressDto;
-import com.shop.pbl6_shop_fashion.dto.mapper.TypeMapper;
+import com.shop.pbl6_shop_fashion.dto.TypeMapper;
 import com.shop.pbl6_shop_fashion.entity.UserAddress;
 import org.springframework.stereotype.Component;
 

@@ -9,6 +9,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -38,7 +42,7 @@ public class ImgBBUtils {
             body.add("image", new ByteArrayResource(imageBytes) {
                 @Override
                 public String getFilename() {
-                    return "image.jpg"; // Tên file của hình ảnh
+                    return image.getName(); // Tên file của hình ảnh
                 }
             });
 

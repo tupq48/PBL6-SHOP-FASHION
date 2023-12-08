@@ -1,11 +1,9 @@
 package com.shop.pbl6_shop_fashion.api;
 
-import com.shop.pbl6_shop_fashion.dto.UserAddressDto;
-import com.shop.pbl6_shop_fashion.dto.UserDto;
-import com.shop.pbl6_shop_fashion.dto.mapper.impl.UserAddressMapper;
+import com.shop.pbl6_shop_fashion.dto.user.UserAddressDto;
+import com.shop.pbl6_shop_fashion.dto.user.UserAddressMapper;
 import com.shop.pbl6_shop_fashion.entity.UserAddress;
 import com.shop.pbl6_shop_fashion.service.UserAddressService;
-import com.shop.pbl6_shop_fashion.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

@@ -1,7 +1,7 @@
-package com.shop.pbl6_shop_fashion.dto.mapper.impl;
+package com.shop.pbl6_shop_fashion.dto.user;
 
-import com.shop.pbl6_shop_fashion.dto.UserDto;
-import com.shop.pbl6_shop_fashion.dto.mapper.UserMapper;
+import com.shop.pbl6_shop_fashion.dto.user.UserDto;
+import com.shop.pbl6_shop_fashion.dto.user.UserMapper;
 import com.shop.pbl6_shop_fashion.entity.User;
 import org.springframework.stereotype.Component;
 
@@ -38,10 +38,6 @@ public class UserMapperImpl implements UserMapper {
 
         if (userResponse.getName() != null && !userResponse.getName().isEmpty()) {
             user.setFullName(userResponse.getName());
-        }
-
-        if (userResponse.getUrlImage() != null) {
-            user.setUrlImage(userResponse.getUrlImage());
         }
 
         if (userResponse.getAddress() != null) {

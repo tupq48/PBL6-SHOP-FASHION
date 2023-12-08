@@ -1,5 +1,7 @@
 package com.shop.pbl6_shop_fashion.security.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shop.pbl6_shop_fashion.advice.ErrorResponse;
 import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.exception.JwtException;
 import com.shop.pbl6_shop_fashion.exception.UserNotFoundException;
@@ -12,7 +14,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,15 +25,19 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 
@@ -73,11 +81,40 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException |
                  IllegalArgumentException ex) {
-            throw new JwtException(ex.getMessage());
+            handleUnauthorizedError(ex, request, response);
         }
-        // Handle the exceptions here
-        // You can log the exception or perform any necessary actions
     }
+
+    public void handleUnauthorizedError(Exception ex, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            log.error("Unauthorized error. Message - {}", ex.getMessage());
+
+            // Create a custom ErrorResponse
+            ErrorResponse errorResponse = new ErrorResponse();
+            Map<String, String> errors = new HashMap<>();
+            errors.put("message", "Error JWT token");
+
+            errorResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+            errorResponse.setError(errors);
+
+            // Set the path based on the incoming request
+            URI uri = ServletUriComponentsBuilder.fromRequestUri(request).build().toUri();
+            errorResponse.setPath(uri.getPath());
+
+            // Serialize the error response to JSON
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonResponse = objectMapper.writeValueAsString(errorResponse);
+
+            // Set the response status and write the JSON response
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write(jsonResponse);
+        } catch (IOException e) {
+            log.error("Error serializing error response to JSON: {}", e.getMessage());
+            // Handle the exception appropriately, e.g., log it or throw a custom exception
+        }
+    }
+
 
 }
 

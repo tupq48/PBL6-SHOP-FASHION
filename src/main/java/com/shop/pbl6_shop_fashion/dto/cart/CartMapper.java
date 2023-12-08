@@ -1,9 +1,7 @@
-package com.shop.pbl6_shop_fashion.dto.mapper.impl;
+package com.shop.pbl6_shop_fashion.dto.cart;
 
-import com.shop.pbl6_shop_fashion.dto.CartItemDto;
-import com.shop.pbl6_shop_fashion.dto.mapper.TypeMapper;
+import com.shop.pbl6_shop_fashion.dto.TypeMapper;
 import com.shop.pbl6_shop_fashion.entity.CartItem;
-import com.shop.pbl6_shop_fashion.entity.Product;
 import org.springframework.stereotype.Component;
 
 @Component

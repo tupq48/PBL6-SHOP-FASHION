@@ -1,6 +1,6 @@
 package com.shop.pbl6_shop_fashion.api;
 
-import com.shop.pbl6_shop_fashion.dto.CartItemDto;
+import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
 import com.shop.pbl6_shop_fashion.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -39,14 +39,4 @@ public class CartController {
     public ResponseEntity<?> cleanCart(@PathVariable int userId) {
         return ResponseEntity.ok(cartService.clearCart(userId));
     }
-//
-//    @PostMapping("/checkout")
-//    public ResponseEntity<?> checkout(List<CartItemDto> itemsDto) {
-//        return ResponseEntity.ok(cartService.checkoutCart(itemsDto));
-//    }
-//
-//    @PostMapping("/checkout")
-//    public ResponseEntity<?> checkout(CartItemDto itemsDto) {
-//        return ResponseEntity.ok(cartService.checkoutCart(itemsDto));
-//    }
 }

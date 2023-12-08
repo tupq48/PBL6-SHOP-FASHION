@@ -96,6 +96,11 @@ public class AppAdvice {
         return getErrorResponse(request, ex.getMessage(), ex, httpStatus.value().value());
     }
 
+    @ExceptionHandler(VoucherBaseException.class)
+    public ErrorResponse handleVoucherException(VoucherBaseException ex,HttpServletRequest request){
+        return getErrorResponse(request, ex.getMessage(), ex, ex.getStatusCode().value());
+    }
+
 
     private ErrorResponse getErrorResponse(HttpServletRequest request, String message, Exception ex, int status) {
         ErrorResponse errorResponse = new ErrorResponse();
