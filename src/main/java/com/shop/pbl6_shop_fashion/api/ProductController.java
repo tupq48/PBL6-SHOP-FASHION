@@ -116,7 +116,6 @@ public class ProductController {
             @RequestParam(name="brand_id", defaultValue = "0") Integer brand_id,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
-
             ){
         return productService.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
     }
