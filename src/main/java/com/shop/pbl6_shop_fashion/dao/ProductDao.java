@@ -1,6 +1,7 @@
 package com.shop.pbl6_shop_fashion.dao;
 
 import com.shop.pbl6_shop_fashion.config.DatabaseConfig;
+import com.shop.pbl6_shop_fashion.dto.PaginationResponse;
 import com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.Product;
@@ -107,7 +108,7 @@ public class ProductDao {
                 "    products pr\n" +
                 "JOIN brands br ON br.id = pr.brand_id\n" +
                 "JOIN categories ct ON ct.id = pr.category_id\n" +
-                "JOIN product_size psi ON psi.product_id = pr.id\n" +
+                "left JOIN product_size psi ON psi.product_id = pr.id\n" +
                 "LEFT JOIN AnhSanPham asp ON pr.id = asp.id\n" +
                 "JOIN Sizes siz ON siz.Id_sp = pr.id\n" +
                 "LEFT JOIN CMT_US ON pr.id = CMT_US.idsp\n" +
@@ -311,7 +312,7 @@ public class ProductDao {
         return products;
     }
 
-    public List<ProductMobile> getProductsByCategoryorBrand(Integer category_id,Integer brand_id,int page, int pageSize){
+    public PaginationResponse<ProductMobile> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
         int firstResult = (page - 1) * pageSize;
         String sql="WITH AnhSanPham AS (\n" +
                 "    SELECT pr.*,GROUP_CONCAT(pi.url) AS Link_anh\n" +
@@ -341,8 +342,7 @@ public class ProductDao {
                     "GROUP BY pr.id;";
         }
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
-        query.setMaxResults(pageSize);
-        query.setFirstResult(firstResult);
+
         if(brand_id !=0 && category_id == 0){
             query.setParameter(1,brand_id);
         }
@@ -352,9 +352,14 @@ public class ProductDao {
             query.setParameter(1,brand_id);
             query.setParameter(2,category_id);
         }
-
-        System.out.println("sql:"+sql);
         List<Object[]> results = query.getResultList();
+        int totalItems = results.size();
+
+        Double totalPage = Math.ceil(results.size()/(double)pageSize);
+        System.out.println("total:" + totalPage);
+        query.setMaxResults(pageSize);
+        query.setFirstResult(firstResult);
+        results = query.getResultList();
         System.out.println("result:" + results.size());
         List<ProductMobile> products = new ArrayList<>();
         for (Object[] result:results){
@@ -392,10 +397,14 @@ public class ProductDao {
                 }
                 if (discountTypeList.get(i).equals("PERCENTAGE")) {
                     proce_pro = proce_pro - (proce_pro * Long.parseLong(discountValueList.get(i))/100);
-
                 }
             }
-            product.setPrice_promote(proce_pro);
+            if(proce_pro < 0){
+                product.setPrice_promote(Long.parseLong("0"));
+            }
+            else{
+                product.setPrice_promote(proce_pro);
+            }
             String images = (String) result[7];
             List<String> imagesList = new ArrayList<>();
             if(images != null){
@@ -404,7 +413,15 @@ public class ProductDao {
             product.setProduct_image(imagesList);
             products.add(product);
         }
-        return products;
+        PaginationResponse<ProductMobile> response = new PaginationResponse<>();
+        response.setItems(products);
+        response.setTotalItems(totalItems);
+        response.setCurrentPage(page);
+        response.setTotalPages(totalPage);
+        response.setPageSize(pageSize);
+
+        // Trả về đối tượng phản hồi
+        return response;
     }
 
     public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice,Integer maxprice, String category){

@@ -1,6 +1,7 @@
 package com.shop.pbl6_shop_fashion.api;
 
 
+import com.shop.pbl6_shop_fashion.dto.PaginationResponse;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDetailDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
@@ -111,7 +112,7 @@ public class ProductController {
         return productService.getAllProducts(page, pageSize);
     }
     @GetMapping("/product/getByCategory")
-    public List<ProductMobile> getProductsByCategoryorBrand(
+    public PaginationResponse<ProductMobile> getProductsByCategoryorBrand(
             @RequestParam(name="category_id", defaultValue = "0") Integer category_id,
             @RequestParam(name="brand_id", defaultValue = "0") Integer brand_id,
             @RequestParam(value = "page", defaultValue = "1") int page,
