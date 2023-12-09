@@ -243,7 +243,8 @@ public class ProductDao {
 
         return product;
     }
-    public List<ProductMobile> getAllProducts(){
+    public List<ProductMobile> getAllProducts(int page, int pageSize){
+        int firstResult = (page - 1) * pageSize;
         String sql="WITH AnhSanPham AS (\n" +
                 "    SELECT pr.*,GROUP_CONCAT(pi.url) AS Link_anh\n" +
                 "    FROM products pr\n" +
@@ -259,6 +260,8 @@ public class ProductDao {
                 "LEFT JOIN brands br on br.id = pr.brand_id\n" +
                 "GROUP BY pr.id;";
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
+        query.setFirstResult(firstResult);
+        query.setMaxResults(pageSize);
         List<Object[]> results = query.getResultList();
         System.out.println("result:" + results.size());
         List<ProductMobile> products = new ArrayList<>();
@@ -308,7 +311,8 @@ public class ProductDao {
         return products;
     }
 
-    public List<ProductMobile> getProductsByCategoryorBrand(Integer category_id,Integer brand_id){
+    public List<ProductMobile> getProductsByCategoryorBrand(Integer category_id,Integer brand_id,int page, int pageSize){
+        int firstResult = (page - 1) * pageSize;
         String sql="WITH AnhSanPham AS (\n" +
                 "    SELECT pr.*,GROUP_CONCAT(pi.url) AS Link_anh\n" +
                 "    FROM products pr\n" +
@@ -322,22 +326,30 @@ public class ProductDao {
                 "LEFT JOIN AnhSanPham asp ON asp.id = pr.id\n" +
                 "LEFT JOIN categories ct on ct.id = pr.category_id\n" +
                 "LEFT JOIN brands br on br.id = pr.brand_id\n";
-        if(category_id != 0){
+        if(category_id != 0 && brand_id == 0){
             sql+="where ct.id= ?\n" +
                     "GROUP BY pr.id;";
 
 
         }
-        else if(brand_id != 0){
+        else if(brand_id != 0 && category_id == 0){
             sql+="where br.id= ?\n" +
+                    "GROUP BY pr.id;";
+        } else if (brand_id != 0 && category_id!=0) {
+            sql+= "where br.id=? and ct.id=?\n" +
                     "GROUP BY pr.id;";
         }
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
-        if(brand_id !=0){
+        query.setMaxResults(pageSize);
+        query.setFirstResult(firstResult);
+        if(brand_id !=0 && category_id == 0){
             query.setParameter(1,brand_id);
         }
-        if(category_id != 0){
+        else if(category_id != 0 && brand_id ==0){
             query.setParameter(1,category_id);
+        } else if (category_id !=0 && brand_id !=0) {
+            query.setParameter(1,brand_id);
+            query.setParameter(2,category_id);
         }
 
         System.out.println("sql:"+sql);
