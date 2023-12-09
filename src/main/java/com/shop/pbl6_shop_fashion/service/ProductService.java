@@ -8,8 +8,11 @@ import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.*;
 import com.shop.pbl6_shop_fashion.enums.SizeType;
+import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import jakarta.persistence.EntityManager;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -106,14 +109,24 @@ public class ProductService {
         product.setCreateAt(LocalDateTime.now());
         product.setUpdateAt(null);
 
-        List<String> imageUrls = ImgBBUtils.uploadImages(images);
-        List<ProductImage> productImages = new ArrayList<>();
-        imageUrls.forEach(imageUrl -> {
-            productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
-        });
-        product.setImages(productImages);
 
         Product savedProduct = productRepository.save(product);
+
+        Session session = ConnectionProvider.openSession();
+        String sql = "insert into product_images (product_id, url)\n" +
+                "values ";
+        List<String> imageUrls = ImgBBUtils.uploadImages(images);
+        if (imageUrls.size() > 0) {
+            for (String imageUrl : imageUrls) {
+                sql = sql + "(" + product.getId() + ", \"" + imageUrl + "\"),";
+            }
+            sql = sql.substring(0, sql.length() - 1);
+            System.out.println(sql);
+        }
+        Transaction transaction = session.beginTransaction();
+        session.createNativeQuery(sql).executeUpdate();
+        transaction.commit();
+        session.close();
         return;
     }
 
@@ -180,6 +193,4 @@ public class ProductService {
     public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category) {
         return  productDao.searchProductsMobile(keyword, minprice, maxprice, category);
     }
-
-
 }
