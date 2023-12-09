@@ -13,8 +13,8 @@ import com.shop.pbl6_shop_fashion.exception.RoleException;
 import com.shop.pbl6_shop_fashion.exception.UniqueConstraintViolationException;
 import com.shop.pbl6_shop_fashion.exception.UserNotFoundException;
 import com.shop.pbl6_shop_fashion.service.UserService;
-import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
 import com.shop.pbl6_shop_fashion.util.ImageChecker;
+import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Không tìm thấy người dùng: " + userId));
 
-        String imageUrl = GoogleDriveUtils.uploadImage(multipartFile);
+        String imageUrl = ImgBBUtils.uploadImage(multipartFile);
         user.setUrlImage(imageUrl);
         userRepository.save(user);
     }
