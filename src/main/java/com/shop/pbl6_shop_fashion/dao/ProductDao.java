@@ -364,6 +364,8 @@ public class ProductDao {
             product.setPrice((Long) result[2]);
             product.setQuantity((Long) result[3]);
             product.setQuantity_sold((Long) result[4]);
+            product.setDiscount_value((String) result[5]);
+            product.setDiscount_type((String) result[6]);
             product.setCategory_id((Integer) result[8]);
             product.setCategory_id((Integer) result[8]);
             product.setCategory_name((String) result[9]);

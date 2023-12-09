@@ -21,6 +21,8 @@ public class ProductMobile {
         private String brand_name;
         private String img_category;
         private String img_brand;
+        private String discount_value;
+        private String discount_type;
 
 
 
