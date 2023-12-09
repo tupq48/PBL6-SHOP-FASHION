@@ -49,8 +49,8 @@ public class UserAddressServiceImpl implements UserAddressService {
     public UserAddress updateUserAddress(int id,UserAddress updateUserAddress) {
         UserAddress userAddress = userAddressRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(("Not found " + id)));
 
-        userAddress.setAddress(userAddress.getAddress());
-        userAddress.setPhoneNumber(userAddress.getPhoneNumber());
+        userAddress.setAddress(updateUserAddress.getAddress());
+        userAddress.setPhoneNumber(updateUserAddress.getPhoneNumber());
 
         return userAddressRepository.save(userAddress);
     }

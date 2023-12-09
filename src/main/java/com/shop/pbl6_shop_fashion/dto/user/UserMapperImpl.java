@@ -20,6 +20,7 @@ public class UserMapperImpl implements UserMapper {
                 .urlImage(user.getUrlImage())
                 .address(user.getAddress())
                 .gender(user.getGender())
+                .birthday(user.getBirthday())
                 .phoneNumber(user.getPhoneNumber())
                 .gmail(user.getGmail())
                 .role(user.getRole())
@@ -42,6 +43,9 @@ public class UserMapperImpl implements UserMapper {
 
         if (userResponse.getAddress() != null) {
             user.setAddress(userResponse.getAddress());
+        }
+        if (userResponse.getBirthday() != null) {
+            user.setBirthday(userResponse.getBirthday());
         }
 
         if (userResponse.getGender() != null) {

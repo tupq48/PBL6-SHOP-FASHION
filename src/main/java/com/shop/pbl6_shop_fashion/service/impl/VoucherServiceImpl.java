@@ -130,12 +130,11 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public double getValueDiscount(int idVoucher, double valueOrder) {
-        Voucher voucher = voucherRepository.findById(idVoucher).orElseThrow(() -> new VoucherBaseException("Voucher not found", HttpStatus.NOT_FOUND));
+        Voucher voucher = voucherRepository.findById(idVoucher)
+                .orElseThrow(() -> new VoucherBaseException("Voucher not found", HttpStatus.NOT_FOUND));
 
         if (isVoucherApplicable(valueOrder, voucher)) {
-
             double discountValue = 0;
-
             switch (voucher.getDiscountType()) {
                 case PERCENTAGE -> {
                     discountValue = valueOrder * voucher.getDiscountValue() / 100;

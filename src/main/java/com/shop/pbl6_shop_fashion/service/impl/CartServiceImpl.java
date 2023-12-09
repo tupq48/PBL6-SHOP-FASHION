@@ -21,10 +21,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CartItemImpl implements CartService {
+public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
-
     private final ProductRepository productRepository;
     private final CartMapper cartMapper;
 
@@ -38,44 +37,44 @@ public class CartItemImpl implements CartService {
 
     @Transactional
     @Override
-    public boolean removeItems(int userId, List<Integer> ids) {
+    public void removeItems(int userId, List<Integer> ids) {
         // Deleting items from cartRepository based on extracted IDs
         cartRepository.deleteCartItemsByIdInAndUserId(ids, userId);
-        return true; // Assuming successful deletion
     }
 
     @Override
-    public boolean editCartItem(int userId, CartItemDto cartItemDto) {
-        CartItem existingCartItem = cartRepository.findById(cartItemDto.getId()).orElse(null);
-        Product product = productRepository.findById(cartItemDto.getProductId()).orElseThrow(() -> new ProductException("Product not found with id : " + cartItemDto.getProductId()));
-
-        if (existingCartItem != null) {
-            // Step 2: Update quantity and size for the existing cart item
-            existingCartItem.setQuantity(cartItemDto.getQuantity());
-            existingCartItem.setSize(cartItemDto.getSize());
-            cartRepository.save(existingCartItem);
-            // Step 3: Check if there are other items with the same size, and merge them
-            mergeItemsWithSameSize(existingCartItem);
+    public CartItemDto editCartItem(int userId, int idCartItem, CartItemDto cartItemDto) {
+        CartItem existingCartItem = cartRepository.findById(idCartItem)
+                .orElseThrow(() -> new RuntimeException("Not Found"));
 
 
-            return true;
-        }
-        return false;
+        // Step 2: Update quantity and size for the existing cart item
+        existingCartItem.setQuantity(cartItemDto.getQuantity());
+        existingCartItem.setSize(cartItemDto.getSize());
+        CartItem cartItemSave = cartRepository.save(existingCartItem);
+        // Step 3: Check if there are other items with the same size, and merge them
+        mergeItemsWithSameSize(existingCartItem);
+
+        return cartMapper.mapperFrom(cartItemSave);
 
 
     }
 
     @Transactional
     @Override
-    public boolean clearCart(int userId) {
+    public void clearCart(int userId) {
         cartRepository.deleteAllByUserId(userId);
-        return true;
     }
 
     @Override
-    public boolean addCartItem(int userId, CartItemDto cartItemDto) {
+    public CartItemDto addCartItem(int userId, CartItemDto cartItemDto) {
+
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
         Product product = productRepository.findById(cartItemDto.getProductId()).orElseThrow(() -> new ProductException("Product not found with id: " + cartItemDto.getProductId()));
+        if (cartItemDto.getQuantity() < 1) {
+            cartItemDto.setQuantity(1);
+        }
+
         List<CartItem> existingCartItems = cartRepository.findByUserIdAndProductId(userId, cartItemDto.getProductId());
 
         CartItem cartItem = findCartItem(existingCartItems, cartItemDto.getSize());
@@ -88,14 +87,20 @@ public class CartItemImpl implements CartService {
             int newQuantity = cartItem.getQuantity() + cartItemDto.getQuantity();
             cartItem.setQuantity(newQuantity);
         }
-
-        cartRepository.save(cartItem);
-        return true;
+        return cartMapper.mapperFrom(cartRepository.save(cartItem));
     }
 
     private CartItem findCartItem(List<CartItem> existingCartItems, SizeType size) {
         return existingCartItems.stream()
-                .filter(item -> size.equals(item.getSize()))
+                .filter(item -> {
+                    if (size == null && item.getSize() == null) {
+                        return true;  // Giữ lại các phần tử null khi size là null
+                    }
+                    if (size == null || item.getSize() == null) {
+                        return false;
+                    }
+                    return size.equals(item.getSize());
+                })
                 .findFirst()
                 .orElse(null);
     }
@@ -104,7 +109,6 @@ public class CartItemImpl implements CartService {
         CartItem cartItem = new CartItem();
         cartItem.setQuantity(cartItemDto.getQuantity());
         cartItem.setSize(cartItemDto.getSize());
-        cartItem.setUnitPrice(product.getPrice());
         cartItem.setProduct(product);
         cartItem.setUser(user);
         return cartItem;

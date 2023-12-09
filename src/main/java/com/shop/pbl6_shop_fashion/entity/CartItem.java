@@ -20,7 +20,6 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private int quantity;
-    private double unitPrice;
     private LocalDateTime createAt;
     @Enumerated(EnumType.STRING)
     private SizeType size;

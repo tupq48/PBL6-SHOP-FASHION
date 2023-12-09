@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 public class UserDto {
@@ -21,9 +23,9 @@ public class UserDto {
     private String address;
     @NotEmpty
     private Gender gender;
+    private LocalDate birthday;
 
     @Pattern(regexp = "^[0-9]{10}$")
-    @NotEmpty
     private String phoneNumber;
     @Email
     @NotEmpty

@@ -20,5 +20,8 @@ public class UserAddress {
     private User user;
     private String phoneNumber;
     private String address;
+    private String name;
+    private String street;
+    private boolean isDefault;
 
 }

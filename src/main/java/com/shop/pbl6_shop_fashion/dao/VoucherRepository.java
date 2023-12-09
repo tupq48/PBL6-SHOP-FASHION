@@ -1,6 +1,7 @@
 package com.shop.pbl6_shop_fashion.dao;
 
 import com.shop.pbl6_shop_fashion.entity.Voucher;
+import com.shop.pbl6_shop_fashion.enums.DiscountType;
 import com.shop.pbl6_shop_fashion.enums.VoucherType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -20,10 +21,10 @@ public interface VoucherRepository extends JpaRepository<Voucher,Integer> {
     Slice<Voucher> findAllByActive(boolean isActive, Pageable pageable);
 
     @Modifying
-    @Query("UPDATE Voucher v SET v.isActive = :isActive WHERE v.id IN :ids")
+    @Query("UPDATE Voucher v SET v.active = :isActive WHERE v.id IN :ids")
     void toggleActivation(@Param("ids") List<Integer> ids, @Param("isActive") boolean isActive);
 
-    @Query("SELECT v FROM Voucher v WHERE v.isActive=true " +
+    @Query("SELECT v FROM Voucher v WHERE v.active=true " +
             "AND v.minimumPurchaseAmount <= :orderAmount " +
             "AND v.voucherType = :voucherType " +
             "ORDER BY CASE v.discountType " +
@@ -32,6 +33,7 @@ public interface VoucherRepository extends JpaRepository<Voucher,Integer> {
     List<Voucher> findTopPurchaseVouchers(@Param("orderAmount") double orderAmount,
                                           @Param("voucherType") VoucherType voucherType,
                                           Pageable pageable);
+    List<Voucher> findTop10ByDiscountTypeAndActiveIs(DiscountType discountType, boolean active);
 
-//    List<Voucher> findTopByVoucherTypeAndActiveOrderByDiscountValue(VoucherType voucherType, boolean active);
+    List<Voucher> findTop10ByActiveAndVoucherType(boolean active, VoucherType voucherType);
 }

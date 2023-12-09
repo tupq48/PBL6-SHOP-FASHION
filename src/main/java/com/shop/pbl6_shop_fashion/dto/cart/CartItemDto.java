@@ -14,9 +14,7 @@ import java.time.LocalDateTime;
 public class CartItemDto {
     private int id;
     private int quantity;
-    private double unitPrice;
     private LocalDateTime createdAt;
     private int productId;
-    private int userId;
     private SizeType size;
 }

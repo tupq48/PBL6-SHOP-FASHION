@@ -23,7 +23,7 @@ public class VoucherMapper implements TypeMapper<Voucher, VoucherDto> {
                 .discountValue(source.getDiscountValue())
                 .usageLimit(source.getUsageLimit())
                 .usageCount(source.getUsageCount())
-                .isActive(source.isActive())
+                .active(source.isActive())
                 .build();
         return voucher;
     }
@@ -44,7 +44,7 @@ public class VoucherMapper implements TypeMapper<Voucher, VoucherDto> {
                 .maxDiscountValue(source.getMaxDiscountValue())
                 .usageLimit(source.getUsageLimit())
                 .usageCount(source.getUsageCount())
-                .isActive(source.isActive())
+                .active(source.isActive())
                 .description(source.getDescription())
                 .discountValue(source.getDiscountValue())
                 .build();

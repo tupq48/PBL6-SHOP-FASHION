@@ -34,7 +34,7 @@ public class Voucher {
     private double minimumPurchaseAmount;
     private int usageLimit;
     private int usageCount;
-    private boolean isActive;
+    private boolean active;
 
     public Voucher() {
         this.createAt = LocalDateTime.now();
@@ -42,12 +42,12 @@ public class Voucher {
         this.minimumPurchaseAmount = 0.0;
         this.usageLimit = 1000;
         this.usageCount = 0;
-        this.isActive = true;
+        this.active = true;
     }
     @PostUpdate
     private void checkAndUpdate() {
         if (usageCount == usageLimit) {
-            isActive = false;
+            active = false;
         }
     }
 
