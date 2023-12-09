@@ -58,13 +58,13 @@ public class ProductService {
         System.out.println("product service: " + product);
         return  product;
     }
-    public List<ProductMobile> getAllProducts(){
+    public List<ProductMobile> getAllProducts(int page, int pageSize){
 
-        return productDao.getAllProducts();
+        return productDao.getAllProducts(page,pageSize);
     }
-    public List<ProductMobile> getProductsByCategoryorBrand(Integer category_id,Integer brand_id){
+    public List<ProductMobile> getProductsByCategoryorBrand(Integer category_id,Integer brand_id,int page, int pageSize){
 
-        return productDao.getProductsByCategoryorBrand(category_id,brand_id);
+        return productDao.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
     }
 
 

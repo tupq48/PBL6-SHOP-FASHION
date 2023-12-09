@@ -104,16 +104,21 @@ public class ProductController {
         return pr;
     }
     @GetMapping("/product/getAll")
-    public List<ProductMobile> getProductsMobile(){
-        return productService.getAllProducts();
+    public List<ProductMobile> getProductsMobile(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
+    ){
+        return productService.getAllProducts(page, pageSize);
     }
     @GetMapping("/product/getByCategory")
     public List<ProductMobile> getProductsByCategoryorBrand(
             @RequestParam(name="category_id", defaultValue = "0") Integer category_id,
-            @RequestParam(name="brand_id", defaultValue = "0") Integer brand_id
+            @RequestParam(name="brand_id", defaultValue = "0") Integer brand_id,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
 
             ){
-        return productService.getProductsByCategoryorBrand(category_id,brand_id);
+        return productService.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
     }
     @GetMapping("/product/searchAll")
     public List<ProductMobile> searchProductsMobile(
