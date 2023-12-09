@@ -1,10 +1,10 @@
 package com.shop.pbl6_shop_fashion.api;
 
-import com.shop.pbl6_shop_fashion.dto.BrandDto;
 import com.shop.pbl6_shop_fashion.entity.Brand;
 import com.shop.pbl6_shop_fashion.service.BrandService;
-import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,19 +24,29 @@ public class BrandController {
     }
 
     @PostMapping("/add")
-    public Brand createBrand(@RequestParam("image") MultipartFile image,
-                             @RequestParam("name") String name,
-                             @RequestParam("desc") String desc) {
+    public ResponseEntity<?> createBrand(@RequestParam("image") MultipartFile image,
+                                      @RequestParam("name") String name,
+                                      @RequestParam("desc") String desc) {
 
-        return brandService.createBrand(name, desc, image);
+        try {
+            Brand brand = brandService.createBrand(name, desc, image);
+            return ResponseEntity.ok().body(brand);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatusCode.valueOf(404)).body(e.getMessage());
+        }
     }
 
     @PatchMapping("/update/{id}")
-    public Brand patchBrand(@PathVariable(value = "id") Integer brandId,
+    public ResponseEntity<?> patchBrand(@PathVariable(value = "id") Integer brandId,
                             @RequestParam(value = "image", required = false) MultipartFile image,
                             @RequestParam(value = "name", required = false) String name,
                             @RequestParam(value = "desc", required = false) String desc) {
-        return brandService.patchBrand(brandId, name, desc, image);
+        try {
+            Brand brand = brandService.patchBrand(brandId, name, desc, image);
+            return ResponseEntity.ok().body(brand);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatusCode.valueOf(404)).body(e.getMessage());
+        }
     }
 
 

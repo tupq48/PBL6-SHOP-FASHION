@@ -53,7 +53,6 @@ class AuthServiceImplTest {
         Mockito.when(roleRepository.findByName(RoleType.USER)).thenReturn(java.util.Optional.of(role));
         Mockito.when(userRepository.save(Mockito.any())).thenReturn(user);
         Mockito.when(jwtService.generateToken(Mockito.any())).thenReturn("access-token");
-        Mockito.when(jwtService.generateRefreshToken(Mockito.any())).thenReturn("refresh-token");
 
         // Act
         AuthResponse response = authService.register(registerRequest);
@@ -79,7 +78,6 @@ class AuthServiceImplTest {
         Mockito.when(authRequest.getUsername()).thenReturn("testUser");
         Mockito.when(authRequest.getPassword()).thenReturn("testPassword");
         Mockito.when(jwtService.generateToken(Mockito.any())).thenReturn("access-token");
-        Mockito.when(jwtService.generateRefreshToken(Mockito.any())).thenReturn("refresh-token");
 
         // Act
         AuthResponse response = authService.authenticate(authRequest);
@@ -95,7 +93,6 @@ class AuthServiceImplTest {
         Mockito.when(authRequest.getUsername()).thenReturn("testUser");
         Mockito.when(authRequest.getPassword()).thenReturn("invalidPassword");
         Mockito.when(jwtService.generateToken(Mockito.any())).thenReturn("access-token");
-        Mockito.when(jwtService.generateRefreshToken(Mockito.any())).thenReturn("refresh-token");
 
         // Act and Assert
         assertThrows(UsernameNotFoundException.class, () -> authService.authenticate(authRequest));

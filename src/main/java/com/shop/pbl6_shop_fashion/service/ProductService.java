@@ -8,19 +8,15 @@ import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.*;
 import com.shop.pbl6_shop_fashion.enums.SizeType;
-import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
-import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
+import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import jakarta.persistence.EntityManager;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -71,7 +67,7 @@ public class ProductService {
     public void updateImages(Integer id, List<MultipartFile> files) {
         List<String> imageUrls = new ArrayList<>();
         files.forEach(file -> {
-            String imageurl = GoogleDriveUtils.uploadImage(file);
+            String imageurl = ImgBBUtils.uploadImage(file);
             imageUrls.add(imageurl);
         });
         productRepository.updateProductImages(id, imageUrls);
@@ -96,16 +92,6 @@ public class ProductService {
 
         Promotion promotion = entityManager.find(Promotion.class, promotionId);
 
-        System.out.println("upload anh : " + LocalDateTime.now());
-
-        List<String> imageUrls = GoogleDriveUtils.uploadImages(images);
-        List<ProductImage> productImages = new ArrayList<>();
-        imageUrls.forEach(imageUrl -> {
-            productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
-        });
-
-        System.out.println("save product : " + LocalDateTime.now());
-
         product.setName(name);
         product.setDescription(desc);
         product.setStatus(null);
@@ -116,14 +102,19 @@ public class ProductService {
         product.setCategory(category);
         product.setProductSizes(sizes);
         product.setComments(null);
-        product.setImages(productImages);
         product.setPromotion(promotion);
         product.setCreateAt(LocalDateTime.now());
         product.setUpdateAt(null);
 
-        productRepository.save(product);
+        List<String> imageUrls = ImgBBUtils.uploadImages(images);
+        List<ProductImage> productImages = new ArrayList<>();
+        imageUrls.forEach(imageUrl -> {
+            productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
+        });
+        product.setImages(productImages);
 
-        System.out.println("done :" + LocalDateTime.now());
+        Product savedProduct = productRepository.save(product);
+        return;
     }
 
     public void updateProduct(Integer productId, String name, String desc, Integer price, String unit, Integer brandId,
@@ -157,20 +148,18 @@ public class ProductService {
             product.setQuantity(quantity);
         }
         if (promotionId != null) product.setPromotion(entityManager.find(Promotion.class, promotionId));
-        if (images != null) {
-            System.out.println("upload image!");
-            List<String> imageUrls = GoogleDriveUtils.uploadImages(images);
-            List<ProductImage> productImages = new ArrayList<>();
-            imageUrls.forEach(imageUrl -> {
-                productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
-            });
-            product.setImages(productImages);
-            System.out.println("done!");
-        }
+
         product.setUpdateAt(LocalDateTime.now());
 
+        List<String> imageUrls = ImgBBUtils.uploadImages(images);
+        List<ProductImage> productImages = new ArrayList<>();
+        imageUrls.forEach(imageUrl -> {
+            productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
+        });
+        product.setImages(productImages);
 
-        productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+        return;
     }
 
     List<ProductSize> convertProductSizes(List<String> productSizes, Product product) {
