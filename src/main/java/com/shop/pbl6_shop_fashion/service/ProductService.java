@@ -2,6 +2,7 @@ package com.shop.pbl6_shop_fashion.service;
 
 
 import com.shop.pbl6_shop_fashion.dao.*;
+import com.shop.pbl6_shop_fashion.dto.PaginationResponse;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDetailDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
@@ -61,7 +62,7 @@ public class ProductService {
 
         return productDao.getAllProducts(page,pageSize);
     }
-    public List<ProductMobile> getProductsByCategoryorBrand(Integer category_id,Integer brand_id,int page, int pageSize){
+    public PaginationResponse<ProductMobile> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
 
         return productDao.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
     }
