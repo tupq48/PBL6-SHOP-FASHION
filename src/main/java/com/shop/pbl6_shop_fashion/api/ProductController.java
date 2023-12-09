@@ -72,7 +72,7 @@ public class ProductController {
                            @RequestParam("categoryId") Integer categoryId,
                            @RequestParam("productSizes") List<String> productSizes, // size:quantity
                            @RequestParam("images") List<MultipartFile> images,
-                           @RequestParam("promotionId") Integer promotionId
+                           @RequestParam(name = "promotionId", required = false) Integer promotionId
                            ) {
         productService.addProduct(name,desc,price,unit,brandId,categoryId,productSizes,images,promotionId);
     }
