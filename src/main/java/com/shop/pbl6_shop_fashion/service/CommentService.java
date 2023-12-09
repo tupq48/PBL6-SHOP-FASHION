@@ -2,15 +2,11 @@ package com.shop.pbl6_shop_fashion.service;
 
 import com.shop.pbl6_shop_fashion.dao.CommentRepository;
 import com.shop.pbl6_shop_fashion.entity.*;
-import com.shop.pbl6_shop_fashion.util.GoogleDriveUtils;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class CommentService {

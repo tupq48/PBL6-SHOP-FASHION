@@ -41,7 +41,7 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product")
     private List<ProductImage> images;
 
     @ManyToOne(fetch = FetchType.LAZY)
