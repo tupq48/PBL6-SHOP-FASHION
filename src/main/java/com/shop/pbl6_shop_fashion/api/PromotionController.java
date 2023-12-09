@@ -48,4 +48,9 @@ public class PromotionController {
         promotionService.save(promotionDto);
         return ResponseEntity.ok("success save");
     }
+
+    @GetMapping("/detail/{promotionId}")
+    public ResponseEntity<?> getAllProductByPromotion(@PathVariable Integer promotionId) {
+        return ResponseEntity.ok(promotionService.getProductByPromotion(promotionId));
+    }
 }
