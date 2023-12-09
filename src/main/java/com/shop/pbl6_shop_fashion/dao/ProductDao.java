@@ -320,12 +320,13 @@ public class ProductDao {
                 "    GROUP BY pr.id\n" +
                 ")\n" +
                 "SELECT pr.id,pr.name,pr.price,pr.quantity,pr.quantity_sold,\tGROUP_CONCAT(ps.discount_value) AS discount_values,GROUP_CONCAT(ps.discount_type) AS discount_types,link_anh,\n" +
-                "    pr.category_id as Loai,ct.name as Ten_loai,pr.brand_id as Thuong_hieu,br.name as Ten_thuong_hieu\n" +
+                "    pr.category_id as Loai,ct.name as Ten_loai,pr.brand_id as Thuong_hieu,br.name as Ten_thuong_hieu, br.image_url as Anh_thuong_hieu, ct.image_url as Anh_Loai_sp\n" +
                 "FROM products pr\n" +
                 "LEFT JOIN promotions ps ON pr.promotion_id = ps.id\n" +
                 "LEFT JOIN AnhSanPham asp ON asp.id = pr.id\n" +
                 "LEFT JOIN categories ct on ct.id = pr.category_id\n" +
                 "LEFT JOIN brands br on br.id = pr.brand_id\n";
+
         if(category_id != 0 && brand_id == 0){
             sql+="where ct.id= ?\n" +
                     "GROUP BY pr.id;";
@@ -368,6 +369,8 @@ public class ProductDao {
             product.setCategory_name((String) result[9]);
             product.setBrand_id((Integer) result[10]);
             product.setBrand_name((String) result[11]);
+            product.setImg_brand((String) result[12]);
+            product.setImg_category((String) result[13]);
 
             List<String> discountValueList = new ArrayList<>();
             String discountValue = (String) result[5];
