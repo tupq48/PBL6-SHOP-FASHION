@@ -19,6 +19,8 @@ public class ProductMobile {
         private String category_name;
         private Integer brand_id;
         private String brand_name;
+        private String img_category;
+        private String img_brand;
 
 
 
