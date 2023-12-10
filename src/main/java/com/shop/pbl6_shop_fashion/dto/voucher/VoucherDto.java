@@ -34,8 +34,8 @@ public class VoucherDto {
     private double discountValue;
     private double maxDiscountValue;
     private double minimumPurchaseAmount;
-    private int usageLimit;
-    private int usageCount;
-    private boolean active ;
+    private int usageLimit=1000;
+    private int usageCount=0;
+    private boolean active=true ;
 
 }

@@ -23,16 +23,16 @@ public class UserAddressController {
     @GetMapping
     public ResponseEntity<List<UserAddressDto>> getAllUserAddressByUserId(@PathVariable int userId) {
         List<UserAddress> userAddresses = userAddressService.getAllUserAddressId(userId);
-        List<UserAddressDto> userAddressDtos = userAddresses.stream()
+        List<UserAddressDto> userAddressDtoList = userAddresses.stream()
                 .map(userAddressMapper::mapperTo)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(userAddressDtos);
+        return ResponseEntity.ok(userAddressDtoList);
     }
 
     @GetMapping("{id}")
     public ResponseEntity<UserAddressDto> getAllUserAddressById(@PathVariable int userId, @PathVariable int id) {
-        UserAddress userAddresses = userAddressService.getUserAddressById(userId);
+        UserAddress userAddresses = userAddressService.getUserAddressById(id);
         return ResponseEntity.ok(userAddressMapper.mapperTo(userAddresses));
     }
 
@@ -52,6 +52,7 @@ public class UserAddressController {
     @PutMapping("/{id}")
     public ResponseEntity<UserAddressDto> updateUserAddress(@RequestBody @Valid UserAddressDto userAddressDto, @PathVariable int id, @PathVariable String userId) {
         UserAddress userAddress = userAddressMapper.mapperFrom(userAddressDto);
+
         userAddress = userAddressService.updateUserAddress(id, userAddress);
 
         return ResponseEntity.ok(userAddressMapper.mapperTo(userAddress));

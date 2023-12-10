@@ -66,6 +66,7 @@ public class UserController {
         return ResponseEntity.ok(userService.updatePermissionUser(id, roleType));
     }
 
+    @PreAuthorize("#id == authentication.principal.id")
     @PostMapping("{id}/change-password")
     public ResponseEntity<?> changePassword(@PathVariable int id, @RequestBody PasswordChangeRequest newPassword, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {

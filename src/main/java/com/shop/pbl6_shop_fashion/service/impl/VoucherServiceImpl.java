@@ -66,19 +66,9 @@ public class VoucherServiceImpl implements VoucherService {
         return voucherMapper.mapperTo(voucherUpdate);
     }
 
-    private void getInfoUpdate(VoucherDto voucherDto, Voucher existingVoucher) {
-        existingVoucher.setDiscountType(voucherDto.getDiscountType());
-        existingVoucher.setDiscountValue(voucherDto.getDiscountValue());
-        existingVoucher.setUsageLimit(voucherDto.getUsageLimit());
-        existingVoucher.setDescription(voucherDto.getDescription());
-        existingVoucher.setExpiryDate(voucherDto.getExpiryDate());
-        existingVoucher.setMinimumPurchaseAmount(voucherDto.getMinimumPurchaseAmount());
-        existingVoucher.setMaxDiscountValue(voucherDto.getMaxDiscountValue());
-    }
-
     @Override
     public Slice<VoucherDto> getAllVouchers(Pageable pageable) {
-        Pageable defaultPageable = pageable != null ? pageable : PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "expiryDate","discountType"));
+        Pageable defaultPageable = pageable != null ? pageable : PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "expiryDate", "discountType"));
 
         Slice<Voucher> voucherSlice = voucherRepository.findAll(defaultPageable);
 
@@ -87,15 +77,13 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public Slice<VoucherDto> getVouchersByStatus(boolean active, Pageable pageable) {
+    public Slice<VoucherDto> getVouchersByStatusAndVoucherType(boolean active, VoucherType voucherType, Pageable pageable) {
         Pageable defaultPageable = pageable != null ? pageable : PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "expiryDate"));
 
-        Slice<Voucher> voucherSlice = voucherRepository.findAllByActive(active, defaultPageable);
+        Slice<Voucher> voucherSlice = voucherRepository.findAllByActiveAndVoucherType(active, voucherType, defaultPageable);
 
-        Slice<VoucherDto> voucherDtoList = voucherSlice
+        return voucherSlice
                 .map(voucherMapper::mapperTo);
-
-        return voucherDtoList;
     }
 
 
@@ -208,4 +196,15 @@ public class VoucherServiceImpl implements VoucherService {
         }
         return code.length() > 5 && code.length() < 20;
     }
+
+    private void getInfoUpdate(VoucherDto voucherDto, Voucher existingVoucher) {
+        existingVoucher.setDiscountType(voucherDto.getDiscountType());
+        existingVoucher.setDiscountValue(voucherDto.getDiscountValue());
+        existingVoucher.setUsageLimit(voucherDto.getUsageLimit());
+        existingVoucher.setDescription(voucherDto.getDescription());
+        existingVoucher.setExpiryDate(voucherDto.getExpiryDate());
+        existingVoucher.setMinimumPurchaseAmount(voucherDto.getMinimumPurchaseAmount());
+        existingVoucher.setMaxDiscountValue(voucherDto.getMaxDiscountValue());
+    }
+
 }

@@ -31,6 +31,9 @@ public class UserAddressServiceImpl implements UserAddressService {
             userRepository.save(user);
         }
         userAddress.setUser(user);
+        if (userAddress.isDefault()) {
+            userAddressRepository.clearAllDefaultAddresses(userAddress.getUser().getId());
+        }
         return userAddressRepository.save(userAddress);
     }
 
@@ -49,9 +52,17 @@ public class UserAddressServiceImpl implements UserAddressService {
     public UserAddress updateUserAddress(int id,UserAddress updateUserAddress) {
         UserAddress userAddress = userAddressRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(("Not found " + id)));
 
+        boolean isDefaultBeforeSave = userAddress.isDefault();
+
         userAddress.setAddress(updateUserAddress.getAddress());
         userAddress.setPhoneNumber(updateUserAddress.getPhoneNumber());
+        userAddress = userAddressRepository.save(userAddress);
 
-        return userAddressRepository.save(userAddress);
+        if (userAddress.isDefault() && !isDefaultBeforeSave) {
+            userAddressRepository.clearAllDefaultAddresses(userAddress.getUser().getId());
+            userAddressRepository.saveUserAddressDefault(id);
+        }
+
+        return userAddress;
     }
 }

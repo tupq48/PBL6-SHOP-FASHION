@@ -15,7 +15,7 @@ public interface VoucherService {
 
     Slice<VoucherDto> getAllVouchers(Pageable pageable);
 
-    Slice<VoucherDto> getVouchersByStatus(boolean active, Pageable pageable);
+    Slice<VoucherDto> getVouchersByStatusAndVoucherType(boolean active, VoucherType voucherType, Pageable pageable);
 
     VoucherDto getVoucherById(int id);
 

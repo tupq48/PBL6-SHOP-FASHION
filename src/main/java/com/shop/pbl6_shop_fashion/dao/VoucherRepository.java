@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface VoucherRepository extends JpaRepository<Voucher,Integer> {
     boolean existsByCode(String code);
     Optional<Voucher> findByCode(String code);
-    Slice<Voucher> findAllByActive(boolean isActive, Pageable pageable);
+    Slice<Voucher> findAllByActiveAndVoucherType(boolean active, VoucherType voucherType,Pageable pageable);
 
     @Modifying
     @Query("UPDATE Voucher v SET v.active = :isActive WHERE v.id IN :ids")
