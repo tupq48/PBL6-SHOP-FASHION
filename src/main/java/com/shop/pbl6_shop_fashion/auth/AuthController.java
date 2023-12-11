@@ -44,29 +44,38 @@ public class AuthController {
 
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(String username) throws MessagingException {
+    public ResponseEntity<?> forgotPassword(String username) throws MessagingException {
         String email = passwordService.sendOTPEmail(username);
-        return ResponseEntity.ok(email);
+        return ResponseEntity.ok(new Object() {
+            final String message = "Reset password is successful";
+        });
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody @Valid ResetPasswordRequest request) {
+    public ResponseEntity<?> forgotPassword(@RequestBody @Valid ResetPasswordRequest request) {
         boolean status = passwordService.resetPassword(request.getToken(), request.getNewPassword());
         if (status) {
-            return ResponseEntity.ok("Reset password is successful");
+            return ResponseEntity.ok(new Object() {
+                final String message = "Reset password is successful";
+            });
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to reset password. Please check the provided token.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Object() {
+                final String message = "Failed to reset password. Please check the provided token.";
+            });
         }
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(String username, String otp) {
-        String token = passwordService.verifyOTP(username, otp);
-        return ResponseEntity.ok(token);
+        String tokenResetPassword = passwordService.verifyOTP(username, otp);
+        return ResponseEntity.ok(new Object() {
+             final String mes = "OTP verification successful";
+             final String token = tokenResetPassword;
+        });
     }
 
-    @PostMapping("/verify")
-    public void verify(@RequestParam("token") String token) throws GeneralSecurityException, IOException {
+    @PostMapping("/verify-gg")
+    public void verify(@RequestParam("token") String token) throws IOException {
         googleVerify.verifyGoogleSignIn(token);
     }
 

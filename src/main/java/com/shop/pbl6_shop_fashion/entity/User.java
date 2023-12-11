@@ -13,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +41,7 @@ public class User implements UserDetails {
     private Gender gender;
     private String phoneNumber;
     private String gmail;
+    private LocalDate birthday;
     private boolean isEnabled = true;
     private boolean isLocked = false;
 

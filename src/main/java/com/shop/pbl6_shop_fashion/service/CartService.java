@@ -1,20 +1,17 @@
 package com.shop.pbl6_shop_fashion.service;
 
-import com.shop.pbl6_shop_fashion.dto.CartItemDto;
-import org.springframework.stereotype.Service;
+import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
 
 import java.util.List;
 
 public interface CartService {
     List<CartItemDto> getCartItemsByUserId(int userId);
 
-    boolean addCartItem(int userId, CartItemDto cartItemDto);
+    CartItemDto addCartItem(int userId, CartItemDto cartItemDto);
 
-    boolean removeItems(int userId, List<Integer> cartItemDtoList);
+    void removeItems(int userId, List<Integer> cartItemDtoList);
 
-    boolean editCartItem(int userId, CartItemDto cartItemDto);
+    CartItemDto editCartItem(int userId, int idCartItem, CartItemDto cartItemDto);
 
-    boolean checkoutCart(int userId, List<CartItemDto> cartItemDtoList);
-
-    boolean clearCart(int userId);
+    void clearCart(int userId);
 }

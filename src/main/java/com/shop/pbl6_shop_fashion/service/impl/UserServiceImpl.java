@@ -2,9 +2,9 @@ package com.shop.pbl6_shop_fashion.service.impl;
 
 import com.shop.pbl6_shop_fashion.dao.RoleRepository;
 import com.shop.pbl6_shop_fashion.dao.UserRepository;
-import com.shop.pbl6_shop_fashion.dto.UserDto;
-import com.shop.pbl6_shop_fashion.dto.mapper.UserMapper;
-import com.shop.pbl6_shop_fashion.dto.mapper.impl.UserMapperImpl;
+import com.shop.pbl6_shop_fashion.dto.user.UserDto;
+import com.shop.pbl6_shop_fashion.dto.user.UserMapper;
+import com.shop.pbl6_shop_fashion.dto.user.UserMapperImpl;
 import com.shop.pbl6_shop_fashion.entity.Role;
 import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
@@ -95,16 +95,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateAvatar(int userId, MultipartFile multipartFile) {
-        long MAX_FILE_SIZE = 1024 * 1024; // 1 MB as an example
-        if (multipartFile.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("Invalid File: File size exceeds the limit");
-        }
         if(!imageChecker.isImageFile(multipartFile)){
             throw new IllegalArgumentException("Invalid File ");
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("Không tìm thấy người dùng: " + userId));
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
 
         String imageUrl = ImgBBUtils.uploadImage(multipartFile);
         user.setUrlImage(imageUrl);
@@ -169,11 +165,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserDto> searchUsers(String keyword, Pageable pageable) {
         if (keyword == null || keyword.isEmpty()) {
-            throw new IllegalArgumentException("Keyword cannot be");
+            throw new IllegalArgumentException("Keyword cannot be null");
         }
 
         keyword = removeAccents(keyword).toLowerCase();
-        System.out.println("keto: " + keyword);
         Page<User> users = userRepository.searchUsersByKeyword(keyword, pageable);
         Page<UserDto> userResponses = users.map(user -> userMapper.userToUserDTO(user));
         return userResponses;

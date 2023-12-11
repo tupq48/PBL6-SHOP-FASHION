@@ -1,4 +1,4 @@
-package com.shop.pbl6_shop_fashion.dto;
+package com.shop.pbl6_shop_fashion.dto.cart;
 
 import com.shop.pbl6_shop_fashion.enums.SizeType;
 import lombok.Builder;
@@ -14,9 +14,7 @@ import java.time.LocalDateTime;
 public class CartItemDto {
     private int id;
     private int quantity;
-    private double unitPrice;
     private LocalDateTime createdAt;
     private int productId;
-    private int userId;
     private SizeType size;
 }

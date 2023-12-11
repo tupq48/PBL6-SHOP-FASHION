@@ -107,6 +107,7 @@ public class PasswordServiceImpl implements PasswordService {
                 .orElseThrow(() -> new UserNotFoundException("Username is not found : " + username));
 
         OTPSetPassword passwordReset = otpResetPasswordRepository.findByUser(user);
+
         if (passwordReset != null) {
             boolean checkOtpValue = passwordReset.getOtpValue().equals(otp)
                     && passwordReset.getExpirationTime().isAfter(LocalDateTime.now())
@@ -142,6 +143,7 @@ public class PasswordServiceImpl implements PasswordService {
     @Override
     public boolean resetPassword(String token, String newPassword) {
         TokenRefresh tokenRefresh = tokenRefreshRepository.findByToken(token);
+
         if (tokenRefresh != null && tokenRefresh.isResetRequired()) {
             User user = tokenRefresh.getUser();
             user.setPassword(passwordEncoder.encode(newPassword));

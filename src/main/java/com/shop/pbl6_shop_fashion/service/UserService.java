@@ -1,6 +1,6 @@
 package com.shop.pbl6_shop_fashion.service;
 
-import com.shop.pbl6_shop_fashion.dto.UserDto;
+import com.shop.pbl6_shop_fashion.dto.user.UserDto;
 import com.shop.pbl6_shop_fashion.entity.Role;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
 import org.springframework.data.domain.Page;

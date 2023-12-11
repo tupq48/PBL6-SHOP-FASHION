@@ -1,8 +1,8 @@
-package com.shop.pbl6_shop_fashion.dto.mapper.impl;
+package com.shop.pbl6_shop_fashion.dto.user;
 
-import com.shop.pbl6_shop_fashion.dto.UserAddressDto;
-import com.shop.pbl6_shop_fashion.dto.mapper.TypeMapper;
+import com.shop.pbl6_shop_fashion.dto.TypeMapper;
 import com.shop.pbl6_shop_fashion.entity.UserAddress;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,8 +16,22 @@ public class UserAddressMapper implements TypeMapper<UserAddress, UserAddressDto
 
         UserAddress userAddress = new UserAddress();
 
-        userAddress.setPhoneNumber(source.getPhoneNumber());
-        userAddress.setAddress(source.getAddress());
+        if (StringUtils.isNotBlank(source.getPhoneNumber())) {
+            userAddress.setPhoneNumber(source.getPhoneNumber());
+        }
+
+        if (StringUtils.isNotBlank(source.getAddress())) {
+            userAddress.setAddress(source.getAddress());
+        }
+
+        if (StringUtils.isNotBlank(source.getName())) {
+            userAddress.setName(source.getName());
+        }
+
+        if (StringUtils.isNotBlank(source.getStreet())) {
+            userAddress.setStreet(source.getStreet());
+        }
+        userAddress.setDefault(source.isDefault());
 
         // Bạn cần thêm logic để set các trường khác tùy theo yêu cầu
 
@@ -31,9 +45,13 @@ public class UserAddressMapper implements TypeMapper<UserAddress, UserAddressDto
         }
 
         UserAddressDto userAddressDto = new UserAddressDto();
+
         userAddressDto.setId(target.getId());
         userAddressDto.setPhoneNumber(target.getPhoneNumber());
         userAddressDto.setAddress(target.getAddress());
+        userAddressDto.setName(target.getName());
+        userAddressDto.setStreet(target.getStreet());
+        userAddressDto.setDefault(target.isDefault());
 
         // Bạn cần thêm logic để set các trường khác tùy theo yêu cầu
 
