@@ -1,7 +1,5 @@
 package com.shop.pbl6_shop_fashion.entity;
 
-import com.shop.pbl6_shop_fashion.enums.OrderStatus;
-import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,11 +22,9 @@ public class Order {
     private LocalDateTime orderDate;
     private double totalAmount;
     private double discountAmount;
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private String status;
     private String shippingAddress;
-    @Enumerated(EnumType.STRING)
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
     private String phoneNumber;
     private String note;
     @ManyToOne
