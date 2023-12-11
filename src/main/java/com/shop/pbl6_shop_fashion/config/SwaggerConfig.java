@@ -15,7 +15,7 @@ public class SwaggerConfig {
     public SecurityScheme createAPIKeyScheme() {
         return new SecurityScheme().type(SecurityScheme.Type.HTTP)
                 .bearerFormat("JWT")
-                .scheme("bearer");
+                .scheme("Bearer");
     }
     @Bean
     public OpenAPI openAPI() {
