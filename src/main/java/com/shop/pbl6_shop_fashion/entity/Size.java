@@ -2,10 +2,7 @@ package com.shop.pbl6_shop_fashion.entity;
 
 import com.shop.pbl6_shop_fashion.enums.SizeType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "sizes")
@@ -13,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 public class Size {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

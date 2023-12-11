@@ -1,17 +1,14 @@
 package com.shop.pbl6_shop_fashion.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "brands")
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
-@Getter
+@Builder
 public class Brand {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,4 +16,6 @@ public class Brand {
     @Column(unique = true)
     private String name;
     private String description;
+    private String imageUrl;
+
 }
