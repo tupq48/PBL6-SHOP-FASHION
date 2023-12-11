@@ -5,6 +5,7 @@ import com.shop.pbl6_shop_fashion.security.oauth2.OAuth2AuthenticationFailureHan
 import com.shop.pbl6_shop_fashion.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.shop.pbl6_shop_fashion.security.oauth2.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
