@@ -48,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
     private long refreshExpirationDay;
 
     @Transactional
+    @Override
     public AuthResponse register(RegisterRequest request) {
 
         User newUser = new User();
@@ -60,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
             throw new DuplicateUsernameException("Username already exists: " + request.getUsername());
         }
 
-        Role role = roleRepository.findByName(RoleType.USER).get();
+        Role role = roleRepository.findByName(RoleType.USER).orElseThrow(()-> new IllegalArgumentException("Error with role"));
         if (newUser.getRoles() == null) {
             newUser.setRoles(new ArrayList<>());
         }
@@ -89,6 +90,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    @Override
     public AuthResponse authenticate(AuthRequest request) {
         Authentication authentication;
 
@@ -127,6 +129,7 @@ public class AuthServiceImpl implements AuthService {
      * @throws UsernameNotFoundException    Nếu không tìm thấy tên người dùng trong hệ thống.
      * @throws LockedOrDisableUserException Nếu người dùng bị khóa bởi quản trị viên hoặc bị vô hiệu hóa.
      */
+    @Override
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
