@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 public class UserAddressDto {
