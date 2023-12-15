@@ -183,4 +183,7 @@ public class ProductService {
     }
 
 
+    public List<ProductMobile> getBestSellingProducts(Integer limit) {
+        return productDao.getBestSellingProducts(limit);
+    }
 }

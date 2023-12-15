@@ -505,4 +505,86 @@ public class ProductDao {
 
         return integerList;
     }
+
+    public List<ProductMobile> getBestSellingProducts(Integer limit) {
+        String sql="WITH AnhSanPham AS (\n" +
+                "    SELECT pr.*, GROUP_CONCAT(pi.url) AS Link_anh\n" +
+                "    FROM products pr\n" +
+                "    JOIN product_images pi ON pi.product_id = pr.id\n" +
+                "    GROUP BY pr.id\n" +
+                ")\n" +
+                "\n" +
+                "SELECT \n" +
+                "    pr.id,\n" +
+                "    pr.name,\n" +
+                "    pr.price,\n" +
+                "    pr.quantity,\n" +
+                "    pr.quantity_sold,\n" +
+                "    GROUP_CONCAT(ps.discount_value) AS discount_values,\n" +
+                "    GROUP_CONCAT(ps.discount_type) AS discount_types,\n" +
+                "    link_anh,\n" +
+                "    pr.category_id AS Loai,\n" +
+                "    ct.name AS Ten_loai,\n" +
+                "    pr.brand_id AS Thuong_hieu,\n" +
+                "    br.name AS Ten_thuong_hieu\n" +
+                "FROM\n" +
+                "    products pr\n" +
+                "    LEFT JOIN promotions ps ON pr.promotion_id = ps.id\n" +
+                "    LEFT JOIN AnhSanPham asp ON asp.id = pr.id\n" +
+                "    LEFT JOIN categories ct ON ct.id = pr.category_id\n" +
+                "    LEFT JOIN brands br ON br.id = pr.brand_id\n" +
+                "GROUP BY pr.id\n" +
+                "    order by pr.quantity_sold desc\n" +
+                "    limit ?\n" +
+                ";\n";
+
+        Query query = ConnectionProvider.openSession().createNativeQuery(sql);
+        query.setParameter(1,limit);
+        List<Object[]> results = query.getResultList();
+        List<ProductMobile> products = new ArrayList<>();
+        for (Object[] result:results){
+            ProductMobile product = new ProductMobile();
+            product.setProduct_name((String) result[1]);
+            product.setProduct_id((Integer) result[0]);
+            product.setPrice((Long) result[2]);
+            product.setQuantity((Long) result[3]);
+            product.setQuantity_sold((Long) result[4]);
+            product.setCategory_id((Integer) result[8]);
+            product.setCategory_id((Integer) result[8]);
+            product.setCategory_name((String) result[9]);
+            product.setBrand_id((Integer) result[10]);
+            product.setBrand_name((String) result[11]);
+
+            List<String> discountValueList = new ArrayList<>();
+            String discountValue = (String) result[5];
+            if( discountValue != null) {
+                discountValueList = List.of(discountValue.split(","));
+            }
+            String discount_type = (String) result[6];
+            List<String> discountTypeList = new ArrayList<>();
+
+            if( discount_type != null) {
+                discountTypeList = List.of(discount_type.split(","));
+            }
+            Long proce_pro = (Long) result[2];
+            for (int i =0; i <discountTypeList.size(); i++){
+                if (discountTypeList.get(i).equals("AMOUNT")) {
+                    proce_pro = proce_pro - Long.parseLong(discountValueList.get(i));
+                }
+                if (discountTypeList.get(i).equals("PERCENTAGE")) {
+                    proce_pro = proce_pro - (proce_pro * Long.parseLong(discountValueList.get(i))/100);
+
+                }
+            }
+            product.setPrice_promote(proce_pro);
+            String images = (String) result[7];
+            List<String> imagesList = new ArrayList<>();
+            if(images != null){
+                imagesList = List.of(images.split(","));
+            }
+            product.setProduct_image(imagesList);
+            products.add(product);
+        }
+        return products;
+    }
 }

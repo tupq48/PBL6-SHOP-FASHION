@@ -111,6 +111,13 @@ public class ProductController {
     ){
         return productService.getAllProducts(page, pageSize);
     }
+    @GetMapping("/product/bestSellingProducts")
+    public List<ProductMobile> getBestSellingProducts(
+            @RequestParam(name="limit", defaultValue = "10") Integer limit
+
+    ){
+        return productService.getBestSellingProducts(limit);
+    }
     @GetMapping("/product/getByCategory")
     public PaginationResponse<ProductMobile> getProductsByCategoryorBrand(
             @RequestParam(name="category_id", defaultValue = "0") Integer category_id,
