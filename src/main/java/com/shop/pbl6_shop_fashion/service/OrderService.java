@@ -1,22 +1,17 @@
 package com.shop.pbl6_shop_fashion.service;
 
-import com.shop.pbl6_shop_fashion.dao.OrderRepository;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
-import com.shop.pbl6_shop_fashion.dto.order.OrderItemDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public class OrderService {
+public interface OrderService {
+    OrderDto createOrder(OrderDto orderDto);
 
-    @Autowired
-    private OrderRepository orderRepository;
+    OrderDto getOrderById(int orderId);
 
+    List<OrderDto> getAllOrders();
 
-    public List<OrderDto> getAllOrderByUserId(Integer userId) {
-         return orderRepository.findAllOrderByUserId(userId);
-    }
+    void updateOrder(OrderDto orderDto, int orderId);
 
+    void deleteOrder(int orderId);
 }

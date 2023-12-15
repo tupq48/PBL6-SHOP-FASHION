@@ -15,6 +15,7 @@ import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,6 +59,8 @@ public class ProductService {
         System.out.println("product service: " + product);
         return  product;
     }
+
+    @Cacheable("products")
     public List<ProductMobile> getAllProducts(int page, int pageSize){
 
         return productDao.getAllProducts(page,pageSize);

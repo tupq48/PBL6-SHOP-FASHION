@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -73,7 +72,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         tokenRefresh.setExpirationDate(LocalDateTime.now().plusDays(refreshExpirationDay));
         tokenRefreshRepository.save(tokenRefresh);
         String accessToken = jwtService.generateToken(userDetails);
-        targetUrl = UriComponentsBuilder.fromUriString(targetUrl).queryParam("accessToken", accessToken).queryParam("refreshToken", tokenRefresh.getToken()).build().toUriString();
+        targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", tokenRefresh.getToken())
+                .queryParam("id", userDetails.getId())
+                .build().toUriString();
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

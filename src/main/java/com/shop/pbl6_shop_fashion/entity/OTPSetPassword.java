@@ -21,6 +21,7 @@ public class OTPSetPassword {
     private String otpValue;
     private LocalDateTime expirationTime;
     private boolean used = false;
+    private int numberOfAttempts;
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
