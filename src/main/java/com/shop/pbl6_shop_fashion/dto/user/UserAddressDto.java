@@ -22,5 +22,6 @@ public class UserAddressDto {
     private String name;
     @Length(min = 1, max = 256)
     private String street;
+    @JsonProperty("isDefault")
     private boolean isDefault;
 }
