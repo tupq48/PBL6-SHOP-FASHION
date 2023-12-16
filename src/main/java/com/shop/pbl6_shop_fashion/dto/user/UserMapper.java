@@ -1,6 +1,6 @@
-package com.shop.pbl6_shop_fashion.dto.mapper;
+package com.shop.pbl6_shop_fashion.dto.user;
 
-import com.shop.pbl6_shop_fashion.dto.UserDto;
+import com.shop.pbl6_shop_fashion.dto.user.UserDto;
 import com.shop.pbl6_shop_fashion.entity.User;
 
 public interface UserMapper {

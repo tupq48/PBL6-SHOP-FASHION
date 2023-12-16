@@ -1,8 +1,8 @@
-package com.shop.pbl6_shop_fashion.dto.mapper.impl;
+package com.shop.pbl6_shop_fashion.dto.user;
 
-import com.shop.pbl6_shop_fashion.dto.UserDto;
-import com.shop.pbl6_shop_fashion.dto.mapper.UserMapper;
+
 import com.shop.pbl6_shop_fashion.entity.User;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,6 +20,7 @@ public class UserMapperImpl implements UserMapper {
                 .urlImage(user.getUrlImage())
                 .address(user.getAddress())
                 .gender(user.getGender())
+                .birthday(user.getBirthday())
                 .phoneNumber(user.getPhoneNumber())
                 .gmail(user.getGmail())
                 .role(user.getRole())
@@ -40,12 +41,11 @@ public class UserMapperImpl implements UserMapper {
             user.setFullName(userResponse.getName());
         }
 
-        if (userResponse.getUrlImage() != null) {
-            user.setUrlImage(userResponse.getUrlImage());
-        }
-
-        if (userResponse.getAddress() != null) {
+        if (userResponse.getAddress() != null && StringUtils.isNotBlank(userResponse.getAddress())) {
             user.setAddress(userResponse.getAddress());
+        }
+        if (userResponse.getBirthday() != null) {
+            user.setBirthday(userResponse.getBirthday());
         }
 
         if (userResponse.getGender() != null) {

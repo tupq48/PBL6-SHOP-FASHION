@@ -1,13 +1,13 @@
 package com.shop.pbl6_shop_fashion.api;
 
-import com.shop.pbl6_shop_fashion.dto.UserAddressDto;
-import com.shop.pbl6_shop_fashion.dto.UserDto;
-import com.shop.pbl6_shop_fashion.dto.mapper.impl.UserAddressMapper;
+import com.shop.pbl6_shop_fashion.dto.user.UserAddressDto;
+import com.shop.pbl6_shop_fashion.dto.user.UserAddressMapper;
 import com.shop.pbl6_shop_fashion.entity.UserAddress;
 import com.shop.pbl6_shop_fashion.service.UserAddressService;
-import com.shop.pbl6_shop_fashion.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,33 +21,40 @@ public class UserAddressController {
     private final UserAddressMapper userAddressMapper;
 
     @GetMapping
-    public List<UserAddressDto> getAllUserAddressByUserId(@PathVariable int userId) {
+    public ResponseEntity<List<UserAddressDto>> getAllUserAddressByUserId(@PathVariable int userId) {
         List<UserAddress> userAddresses = userAddressService.getAllUserAddressId(userId);
-        List<UserAddressDto> userAddressDtos = userAddresses.stream()
+        List<UserAddressDto> userAddressDtoList = userAddresses.stream()
                 .map(userAddressMapper::mapperTo)
                 .collect(Collectors.toList());
 
-        return userAddressDtos;
+        return ResponseEntity.ok(userAddressDtoList);
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<UserAddressDto> getAllUserAddressById(@PathVariable int userId, @PathVariable int id) {
+        UserAddress userAddresses = userAddressService.getUserAddressById(id);
+        return ResponseEntity.ok(userAddressMapper.mapperTo(userAddresses));
     }
 
     @PostMapping()
-    public UserAddressDto insertUserAddress(@PathVariable int userId, @RequestBody @Valid UserAddressDto userAddressDto) {
+    public ResponseEntity<UserAddressDto> insertUserAddress(@PathVariable int userId, @RequestBody @Valid UserAddressDto userAddressDto) {
         UserAddress userAddress = userAddressMapper.mapperFrom(userAddressDto);
         userAddress = userAddressService.insertUserAddress(userId, userAddress);
-
-        return userAddressMapper.mapperTo(userAddress);
+        return ResponseEntity.ok(userAddressMapper.mapperTo(userAddress));
     }
 
     @DeleteMapping("{id}")
-    public void deleteUserAddress(@PathVariable int id, @PathVariable String userId) {
+    public ResponseEntity<Void> deleteUserAddress(@PathVariable int id, @PathVariable String userId) {
         userAddressService.deleteAddress(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PutMapping("/{id}")
-    public UserAddressDto updateUserAddress(@RequestBody @Valid UserAddressDto userAddressDto, @PathVariable int id, @PathVariable String userId) {
+    public ResponseEntity<UserAddressDto> updateUserAddress(@RequestBody @Valid UserAddressDto userAddressDto, @PathVariable int id, @PathVariable String userId) {
         UserAddress userAddress = userAddressMapper.mapperFrom(userAddressDto);
+
         userAddress = userAddressService.updateUserAddress(id, userAddress);
 
-        return userAddressMapper.mapperTo(userAddress);
+        return ResponseEntity.ok(userAddressMapper.mapperTo(userAddress));
     }
 }

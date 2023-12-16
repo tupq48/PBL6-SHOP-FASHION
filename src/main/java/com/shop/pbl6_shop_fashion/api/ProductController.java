@@ -73,7 +73,7 @@ public class ProductController {
                            @RequestParam("categoryId") Integer categoryId,
                            @RequestParam("productSizes") List<String> productSizes, // size:quantity
                            @RequestParam("images") List<MultipartFile> images,
-                           @RequestParam("promotionId") Integer promotionId
+                           @RequestParam(name = "promotionId", required = false) Integer promotionId
                            ) {
         productService.addProduct(name,desc,price,unit,brandId,categoryId,productSizes,images,promotionId);
     }
@@ -124,7 +124,6 @@ public class ProductController {
             @RequestParam(name="brand_id", defaultValue = "0") Integer brand_id,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
-
             ){
         return productService.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
     }

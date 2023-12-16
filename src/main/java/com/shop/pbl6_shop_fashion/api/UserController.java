@@ -1,7 +1,7 @@
 package com.shop.pbl6_shop_fashion.api;
 
 
-import com.shop.pbl6_shop_fashion.dto.UserDto;
+import com.shop.pbl6_shop_fashion.dto.user.UserDto;
 import com.shop.pbl6_shop_fashion.dto.password.PasswordChangeRequest;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
 import com.shop.pbl6_shop_fashion.service.PasswordService;
@@ -66,6 +66,7 @@ public class UserController {
         return ResponseEntity.ok(userService.updatePermissionUser(id, roleType));
     }
 
+    @PreAuthorize("#id == authentication.principal.id")
     @PostMapping("{id}/change-password")
     public ResponseEntity<?> changePassword(@PathVariable int id, @RequestBody PasswordChangeRequest newPassword, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {

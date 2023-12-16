@@ -9,9 +9,13 @@ import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.*;
 import com.shop.pbl6_shop_fashion.enums.SizeType;
+import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import jakarta.persistence.EntityManager;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,6 +59,8 @@ public class ProductService {
         System.out.println("product service: " + product);
         return  product;
     }
+
+    @Cacheable("products")
     public List<ProductMobile> getAllProducts(int page, int pageSize){
 
         return productDao.getAllProducts(page,pageSize);
@@ -91,7 +97,8 @@ public class ProductService {
 
         System.out.println("get promo : " + LocalDateTime.now());
 
-        Promotion promotion = entityManager.find(Promotion.class, promotionId);
+        Promotion promotion = null;
+        if (promotionId != null) promotion = entityManager.find(Promotion.class, promotionId);
 
         product.setName(name);
         product.setDescription(desc);
@@ -102,19 +109,39 @@ public class ProductService {
         product.setBrand(brand);
         product.setCategory(category);
         product.setProductSizes(sizes);
+        product.setUnit(unit);
         product.setComments(null);
         product.setPromotion(promotion);
         product.setCreateAt(LocalDateTime.now());
         product.setUpdateAt(null);
 
-        List<String> imageUrls = ImgBBUtils.uploadImages(images);
-        List<ProductImage> productImages = new ArrayList<>();
-        imageUrls.forEach(imageUrl -> {
-            productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
-        });
-        product.setImages(productImages);
 
         Product savedProduct = productRepository.save(product);
+
+
+        Session session = ConnectionProvider.openSession();
+        String sql = "insert into product_images (product_id, url)\n" +
+                "values ";
+        List<String> imageUrls = ImgBBUtils.uploadImages(images);
+        if (imageUrls.size() > 0) {
+            for (String imageUrl : imageUrls) {
+                sql = sql + "(" + product.getId() + ", \"" + imageUrl + "\"),";
+            }
+            sql = sql.substring(0, sql.length() - 1);
+        }
+        Transaction transaction = session.beginTransaction();
+        session.createNativeQuery(sql).executeUpdate();
+        transaction.commit();
+
+        sql = "insert into product_size(product_id, quantity, quantity_sold, size_id) values ";
+        for (ProductSize size : sizes) {
+            sql += "(" + product.getId() + ", " + size.getQuantity() + ", 0, " + size.getSize().getId() + "),";
+        }
+        sql = sql.substring(0,sql.length()-1);
+        transaction.begin();
+        session.createNativeQuery(sql).executeUpdate();
+        transaction.commit();
+        session.close();
         return;
     }
 
@@ -181,8 +208,6 @@ public class ProductService {
     public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category) {
         return  productDao.searchProductsMobile(keyword, minprice, maxprice, category);
     }
-
-
     public List<ProductMobile> getBestSellingProducts(Integer limit) {
         return productDao.getBestSellingProducts(limit);
     }

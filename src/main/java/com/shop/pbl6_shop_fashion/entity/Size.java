@@ -4,8 +4,6 @@ import com.shop.pbl6_shop_fashion.enums.SizeType;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Entity
 @Table(name = "sizes")
 @AllArgsConstructor
@@ -21,7 +19,4 @@ public class Size {
     @Enumerated(EnumType.STRING)
     private SizeType name;
     private String description;
-
-    @OneToMany(mappedBy = "size")
-    private List<ProductSize> productSizes;
 }

@@ -32,7 +32,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
             "select  pd.id, pd.name, pd.price, pr.name as promotionName,            \n" +
                     "        pr.discount_type, pr.discount_value, pi.url imageUrls          \n" +
                     "from products pd                                                       \n" +
-                    "join promotions pr on pd.promotion_id = pr.id                          \n" +
+                    "left join promotions pr on pd.promotion_id = pr.id                          \n" +
                     "JOIN (                                                                 \n" +
                     "  SELECT product_id, GROUP_CONCAT(url) AS url                          \n" +
                     "  FROM product_images                                                  \n" +
@@ -220,6 +220,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     private Double getDiscountValue(Integer price, DiscountType discountType, Double discountValue) {
+        if (discountType == null) return null;
         switch (discountType) {
             case PERCENTAGE:
                 return price * discountValue / 100;

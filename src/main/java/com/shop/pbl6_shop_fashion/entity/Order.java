@@ -22,22 +22,22 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private LocalDateTime orderDate;
-    private double totalAmount;
-    private double discountAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
-    private String shippingAddress;
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
+    private String name;
+    private String shippingAddress;
     private String phoneNumber;
     private String note;
+    private double totalAmount;
+    private double discountAmount;
     @ManyToOne
     @JoinColumn(name = "voucher_id")
     private Voucher voucher;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-
 }
