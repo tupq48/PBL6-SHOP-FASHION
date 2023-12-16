@@ -208,4 +208,7 @@ public class ProductService {
     public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category) {
         return  productDao.searchProductsMobile(keyword, minprice, maxprice, category);
     }
+    public List<ProductMobile> getBestSellingProducts(Integer limit) {
+        return productDao.getBestSellingProducts(limit);
+    }
 }
