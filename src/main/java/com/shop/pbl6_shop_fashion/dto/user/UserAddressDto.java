@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 public class UserAddressDto {
@@ -22,5 +23,6 @@ public class UserAddressDto {
     private String name;
     @Length(min = 1, max = 256)
     private String street;
+    @JsonProperty("isDefault")
     private boolean isDefault;
 }
