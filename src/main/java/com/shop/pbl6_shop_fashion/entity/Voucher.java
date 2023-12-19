@@ -35,6 +35,8 @@ public class Voucher {
     private int usageLimit;
     private int usageCount;
     private boolean active;
+    @Version
+    private Long version;
 
     public Voucher() {
         this.createAt = LocalDateTime.now();
@@ -44,11 +46,17 @@ public class Voucher {
         this.usageCount = 0;
         this.active = true;
     }
+
     @PostUpdate
     private void checkAndUpdate() {
         if (usageCount == usageLimit) {
             active = false;
         }
+    }
+
+    @PrePersist
+    private void timeNow() {
+        this.createAt = LocalDateTime.now();
     }
 
 }
