@@ -24,7 +24,7 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         Server devServer = new Server();
-        devServer.setUrl("http://localhost");
+        devServer.setUrl("http://localhost:8080");
         devServer.setDescription("Server URL in Development environment");
 
         Server prodServer = new Server();

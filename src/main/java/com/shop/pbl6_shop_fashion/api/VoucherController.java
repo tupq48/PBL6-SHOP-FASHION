@@ -3,6 +3,7 @@ package com.shop.pbl6_shop_fashion.api;
 import com.shop.pbl6_shop_fashion.dto.voucher.VoucherDto;
 import com.shop.pbl6_shop_fashion.enums.VoucherType;
 import com.shop.pbl6_shop_fashion.service.VoucherService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -21,6 +23,12 @@ import java.util.List;
 public class VoucherController {
 
     private final VoucherService voucherService;
+
+    @GetMapping("/test/{id}")
+    public void test(@PathVariable int id) {
+        System.out.println("THOI GIAN NHAN REQ: " + LocalDateTime.now());
+        System.out.println(voucherService.reduceVoucher(id));
+    }
 
     // CREATE
     @PostMapping
@@ -33,14 +41,14 @@ public class VoucherController {
     // READ All
     @GetMapping
     public ResponseEntity<Slice<VoucherDto>> getAllVouchersDto(@PageableDefault(size = 20, sort = "expiryDate", direction = Sort.Direction.ASC) Pageable pageable,
-                                                               @RequestParam(defaultValue = "-1") int active,
+                                                               @RequestParam(required = false) Boolean active,
                                                                @RequestParam(required = false) VoucherType voucherType) {
-        Slice<VoucherDto> vouchers = switch (active) {
-            case 0 -> voucherService.getVouchersByStatusAndVoucherType(false, voucherType, pageable);
-            case 1 -> voucherService.getVouchersByStatusAndVoucherType(true, voucherType, pageable);
-            default -> voucherService.getAllVouchers(pageable);
-        };
-        return new ResponseEntity<>(vouchers, HttpStatus.OK);
+
+        if (voucherType != null && active != null) {
+            return ResponseEntity.ok(voucherService.getVouchersByStatusAndVoucherType(active, voucherType, pageable));
+        }
+        return ResponseEntity.ok(voucherService.getAllVouchers(pageable, active));
+
     }
 
     // READ One By Code

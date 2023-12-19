@@ -3,8 +3,6 @@ package com.shop.pbl6_shop_fashion.security.jwt;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shop.pbl6_shop_fashion.advice.ErrorResponse;
 import com.shop.pbl6_shop_fashion.entity.User;
-import com.shop.pbl6_shop_fashion.exception.JwtException;
-import com.shop.pbl6_shop_fashion.exception.UserNotFoundException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -21,7 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -29,7 +26,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +55,7 @@ public class JwtFilter extends OncePerRequestFilter {
         final String accessToken = authHeader.substring(tokenType.length());
 
         try {
-            if (accessToken != null && jwtService.validateToken(accessToken)) {
+            if (jwtService.validateToken(accessToken)) {
                 Map<String, Object> map = jwtService.extractInfoToken(accessToken);
                 User user = new User();
                 user.setId((Integer) map.get("id"));
@@ -77,7 +73,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-
             filterChain.doFilter(request, response);
         } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException |
                  IllegalArgumentException ex) {
