@@ -26,14 +26,17 @@ public class UserAddressServiceImpl implements UserAddressService {
     public UserAddress insertUserAddress(int userId, UserAddress userAddress) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id : " + userId));
+
         if (user.getAddress() == null || user.getAddress().isEmpty()) {
             user.setAddress(userAddress.getAddress());
             userRepository.save(user);
         }
+
         userAddress.setUser(user);
         if (userAddress.isDefault()) {
             userAddressRepository.clearAllDefaultAddresses(userAddress.getUser().getId());
         }
+
         return userAddressRepository.save(userAddress);
     }
 
@@ -44,13 +47,15 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     @Override
     public UserAddress getUserAddressById(int id) {
-        return userAddressRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(("Not found " + id)));
+        return userAddressRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(("UserAddress Not Found " + id)));
     }
 
 
     @Override
     public UserAddress updateUserAddress(int id,UserAddress updateUserAddress) {
-        UserAddress userAddress = userAddressRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(("Not found " + id)));
+        UserAddress userAddress = userAddressRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(("UserAddress Not Found " + id)));
 
         boolean isDefaultBeforeSave = userAddress.isDefault();
 

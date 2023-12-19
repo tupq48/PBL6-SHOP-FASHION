@@ -23,7 +23,7 @@ public class Order {
     private int id;
     private LocalDateTime orderDate;
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OrderStatus orderStatus;
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
     private String name;

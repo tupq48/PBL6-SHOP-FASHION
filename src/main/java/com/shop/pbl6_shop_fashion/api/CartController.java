@@ -19,6 +19,10 @@ public class CartController {
     public ResponseEntity<?> getCartItemsByIdUser(@PathVariable int userId) {
         return ResponseEntity.ok(cartService.getCartItemsByUserId(userId));
     }
+    @GetMapping("count")
+    public ResponseEntity<?> countCartItemsByIdUser(@PathVariable int userId) {
+        return ResponseEntity.ok(cartService.countCartItemsByIdUser(userId));
+    }
 
     @PostMapping()
     public ResponseEntity<?> addCartItem(@PathVariable int userId, @RequestBody CartItemDto itemDto) {
@@ -31,8 +35,8 @@ public class CartController {
     }
 
     @DeleteMapping()
-    public ResponseEntity<?> deleteCart(@PathVariable int userId, @RequestBody List<Integer> ids) {
-        cartService.removeItems(userId,ids);
+    public ResponseEntity<?> deleteCart(@PathVariable int userId, @RequestBody List<Integer> idCartItems) {
+        cartService.removeItems(userId,idCartItems);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

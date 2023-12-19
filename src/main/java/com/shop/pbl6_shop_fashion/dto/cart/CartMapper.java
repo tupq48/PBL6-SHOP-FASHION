@@ -6,8 +6,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CartMapper implements TypeMapper<CartItemDto, CartItem> {
-
-
     @Override
     public CartItemDto mapperFrom(CartItem source) {
         return CartItemDto.builder()

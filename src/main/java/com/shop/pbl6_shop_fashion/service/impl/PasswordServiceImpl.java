@@ -68,6 +68,7 @@ public class PasswordServiceImpl implements PasswordService {
 
         if (user.getAccountProvider().name().equals(AccountProvider.LOCAL.name())
                 && user.getGmail() != null) {
+
             String otp = OtpGenerator.generateOTP();
             OTPSetPassword passwordReset = otpResetPasswordRepository.findByUser(user);
             if (passwordReset == null) {
@@ -75,18 +76,18 @@ public class PasswordServiceImpl implements PasswordService {
                 passwordReset.setUser(user);
             }
             final int expirationTime = 5; //5 minutes
+            final int attemptDefault = 0;
             passwordReset.setOtpValue(otp);
             passwordReset.setExpirationTime(LocalDateTime.now().plusMinutes(expirationTime));
             passwordReset.setUsed(false);
+            passwordReset.setNumberOfAttempts(attemptDefault);
 
             otpResetPasswordRepository.save(passwordReset);
 
-//             Gửi OTP qua email
             MailTemplate emailTemplate = MailTemplateFactory.createEmailTemplate(EmailTemplateType.OTP, otp);
             emailService.send(user.getGmail(), emailTemplate.getSubject(), emailTemplate.generateEmailBody());
 
             return emailMasking.maskEmail(user.getGmail());
-
         }
         throw new UserNotFoundException("Gmail is not found with : " + username);
     }
@@ -107,50 +108,30 @@ public class PasswordServiceImpl implements PasswordService {
 
         OTPSetPassword passwordReset = otpResetPasswordRepository.findByUser(user);
 
-        if (passwordReset != null) {
-            final int maxAttempts=6;
-            boolean checkOtpValue = isCheckOtpValue(otp, passwordReset,maxAttempts);
-            if (checkOtpValue) {
-                TokenRefresh tokenRefresh = tokenRefreshRepository.getTokenRefreshByUser(user);
-                final int ExpirationToken = 5;// 5minus
-                tokenRefresh.setToken(UUID.randomUUID().toString());
-                tokenRefresh.setResetRequired(true);
-                tokenRefresh.setUser(user);
-                tokenRefresh.setExpirationDate(LocalDateTime.now().plusMinutes(ExpirationToken));
-                tokenRefreshRepository.save(tokenRefresh);
-
-                passwordReset.setUsed(false);
-                otpResetPasswordRepository.save(passwordReset);
-                return tokenRefresh.getToken();
-            }
-            throw new OTPSetPasswordException("The provided OTP is incorrect or expired");
-        }
-        throw new OTPSetPasswordException("The provided OTP does not exist with user");
-
-    }
-
-    private boolean isCheckOtpValue(String otp, OTPSetPassword passwordReset, int maxAttempts) {
-        if (passwordReset.getExpirationTime().isBefore(LocalDateTime.now())) {
-            throw new OTPSetPasswordException("The provided OTP is expired");
-        }
-
-        if (passwordReset.isUsed()) {
+        if (passwordReset == null) {
             throw new OTPSetPasswordException("The provided OTP does not exist with user");
         }
 
-        if (passwordReset.getNumberOfAttempts()<maxAttempts) {
-            throw new OTPSetPasswordException("The provided OTP has reached the maximum number of attempts");
-        }
+        final int maxAttempts = 6;
+        boolean checkOtpValue = isCheckOtpValue(otp, passwordReset, maxAttempts);
+        if (checkOtpValue) {
+            TokenRefresh tokenRefresh = tokenRefreshRepository.getTokenRefreshByUser(user);
+            final int ExpirationToken = 5;// 5minus
+            tokenRefresh.setToken(UUID.randomUUID().toString());
+            tokenRefresh.setResetRequired(true);
+            tokenRefresh.setUser(user);
+            tokenRefresh.setExpirationDate(LocalDateTime.now().plusMinutes(ExpirationToken));
+            tokenRefreshRepository.save(tokenRefresh);
 
-        if (!otp.equals(passwordReset.getOtpValue())) {
-            int numberOfAttempts = passwordReset.getNumberOfAttempts()+1;
-            passwordReset.setNumberOfAttempts(numberOfAttempts);
+            passwordReset.setUsed(false);
             otpResetPasswordRepository.save(passwordReset);
-            throw new OTPSetPasswordException("The provided OTP is incorrect");
-        }
 
-        return true;
+            return tokenRefresh.getToken();
+        }
+        throw new OTPSetPasswordException("The provided OTP is incorrect or expired");
+
     }
+
 
 
     /**
@@ -174,5 +155,28 @@ public class PasswordServiceImpl implements PasswordService {
             return true;
         }
         return false;
+    }
+
+    private boolean isCheckOtpValue(String otp, OTPSetPassword passwordReset, int maxAttempts) {
+        if (passwordReset.getExpirationTime().isBefore(LocalDateTime.now())) {
+            throw new OTPSetPasswordException("The provided OTP is expired");
+        }
+
+        if (passwordReset.isUsed()) {
+            throw new OTPSetPasswordException("The provided OTP does not exist with user");
+        }
+
+        if (passwordReset.getNumberOfAttempts() < maxAttempts) {
+            throw new OTPSetPasswordException("The provided OTP has reached the maximum number of attempts");
+        }
+
+        if (!otp.equals(passwordReset.getOtpValue())) {
+            int numberOfAttempts = passwordReset.getNumberOfAttempts() + 1;
+            passwordReset.setNumberOfAttempts(numberOfAttempts);
+            otpResetPasswordRepository.save(passwordReset);
+            throw new OTPSetPasswordException("The provided OTP is incorrect");
+        }
+
+        return true;
     }
 }

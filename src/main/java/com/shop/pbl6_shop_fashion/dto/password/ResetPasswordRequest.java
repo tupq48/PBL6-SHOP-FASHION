@@ -6,7 +6,8 @@ import org.hibernate.validator.constraints.Length;
 
 @Data
 public class ResetPasswordRequest {
-    @NotBlank
+    @NotBlank()
+    @Length(min = 1, max = 255)
     String token;
     @NotBlank
     @Length(min = 6, max = 100)
