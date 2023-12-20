@@ -171,8 +171,6 @@ public class VoucherServiceImpl implements VoucherService {
 
         voucher.setUsageCount(voucher.getUsageCount() + 1);
         voucherRepository.save(voucher);
-        System.out.println("count:" + voucher.getUsageCount());
-        System.out.println("limit:" + voucher.getUsageLimit());
         return true;
     }
 
