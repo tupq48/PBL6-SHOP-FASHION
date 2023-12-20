@@ -21,6 +21,7 @@ import org.hibernate.Hibernate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -95,7 +96,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateAvatar(int userId, MultipartFile multipartFile) {
-        if(!imageChecker.isImageFile(multipartFile)){
+        if (!imageChecker.isImageFile(multipartFile)) {
             throw new IllegalArgumentException("Invalid File ");
         }
 
@@ -106,7 +107,6 @@ public class UserServiceImpl implements UserService {
         user.setUrlImage(imageUrl);
         userRepository.save(user);
     }
-
 
 
     /**
@@ -142,36 +142,33 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public List<Role> updatePermissionUser(int id, RoleType roleType) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User is not found : " + id));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User is not found : " + id));
         Hibernate.initialize(user.getRoles());
 
-        // Kiểm tra xem quyền đã tồn tại cho người dùng hay chưa
-        boolean roleExists = user.getRoles().stream()
+        boolean roleExists = user.getRoles()
+                .stream()
                 .anyMatch(role -> role.getName() == roleType);
 
         if (roleExists) {
             throw new RoleException("Role already exists for the user: " + roleType.name());
-        } else {
-            Optional<Role> role = roleRepository.findByName(roleType);
-            if (role.isPresent()) {
-                user.getRoles().add(role.get());
-                return user.getRoles();
-            } else {
-                throw new RoleException("Role is not found: " + roleType.name());
-            }
         }
+
+        Role role = roleRepository.findByName(roleType)
+                .orElseThrow(() -> new RoleException("Role is not found: " + roleType.name()));
+        user.getRoles().add(role);
+        return user.getRoles();
     }
 
     @Override
-    public Page<UserDto> searchUsers(String keyword, Pageable pageable) {
+    public Slice<UserDto> searchUsers(String keyword, Pageable pageable) {
         if (keyword == null || keyword.isEmpty()) {
             throw new IllegalArgumentException("Keyword cannot be null");
         }
 
         keyword = removeAccents(keyword).toLowerCase();
-        Page<User> users = userRepository.searchUsersByKeyword(keyword, pageable);
-        Page<UserDto> userResponses = users.map(user -> userMapper.userToUserDTO(user));
-        return userResponses;
+        Slice<User> users = userRepository.searchUsersByKeyword(keyword, pageable);
+        return users.map(user -> userMapper.userToUserDTO(user));
     }
 
 

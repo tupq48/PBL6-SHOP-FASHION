@@ -16,12 +16,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class UserAddressDto {
     private int id;
     @Pattern(regexp = "^[0-9]{10}$")
+    @NotBlank
     private String phoneNumber;
     @Length(min = 1, max = 256)
+    @NotBlank
     private String address;
     @Length(min = 1, max = 256)
+    @NotBlank
     private String name;
     @Length(min = 1, max = 256)
+    @NotBlank
     private String street;
     @JsonProperty("isDefault")
     private boolean isDefault;

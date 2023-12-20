@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +28,10 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public List<CartItemDto> getCartItemsByUserId(int userId) {
-        List<CartItem> cartItems = cartRepository.findByUserId(userId);
+        List<CartItem> cartItems = cartRepository.findByUserIdOrderByCreateAtDesc(userId);
         return cartItems.stream()
                 .map(cartMapper::mapperFrom)  // Map each CartItem entity to CartItemDto
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
@@ -52,6 +51,7 @@ public class CartServiceImpl implements CartService {
         existingCartItem.setQuantity(cartItemDto.getQuantity());
         existingCartItem.setSize(cartItemDto.getSize());
         CartItem cartItemSave = cartRepository.save(existingCartItem);
+
         // Step 3: Check if there are other items with the same size, and merge them
         mergeItemsWithSameSize(existingCartItem);
 
@@ -67,10 +67,17 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartItemDto addCartItem(int userId, CartItemDto cartItemDto) {
+    public int countCartItemsByIdUser(int userId) {
+        return cartRepository.countAllByUserId(userId);
+    }
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-        Product product = productRepository.findById(cartItemDto.getProductId()).orElseThrow(() -> new ProductException("Product not found with id: " + cartItemDto.getProductId()));
+    @Override
+    public CartItemDto addCartItem(int userId, CartItemDto cartItemDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        Product product = productRepository.findById(cartItemDto.getProductId())
+                .orElseThrow(() -> new ProductException("Product not found with id: " + cartItemDto.getProductId()));
+
         if (cartItemDto.getQuantity() < 1) {
             cartItemDto.setQuantity(1);
         }
@@ -80,7 +87,6 @@ public class CartServiceImpl implements CartService {
         CartItem cartItem = findCartItem(existingCartItems, cartItemDto.getSize());
 
         if (cartItem == null) {
-            // No matching cart item found, create a new CartItem
             cartItem = createCartItem(cartItemDto, product, user);
         } else {
             // Product is already in the cart and size matches, update quantity
@@ -101,8 +107,7 @@ public class CartServiceImpl implements CartService {
                     }
                     return size.equals(item.getSize());
                 })
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
     }
 
     private CartItem createCartItem(CartItemDto cartItemDto, Product product, User user) {

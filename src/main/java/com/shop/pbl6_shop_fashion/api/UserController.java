@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,32 +28,32 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
-    public ResponseEntity<?> getAllUsers(@PageableDefault(size = 25) Pageable pageable) {
+    public ResponseEntity<?> getAllUsers(@PageableDefault(size = 20) Pageable pageable) {
         Page<UserDto> users = userService.getAllUsers(pageable);
         return ResponseEntity.ok(users);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable int id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+    @PreAuthorize("hasRole('ADMIN') or #idUser == authentication.principal.id")
+    @GetMapping("/{idUser}")
+    public ResponseEntity<?> getUserById(@PathVariable int idUser) {
+        return ResponseEntity.ok(userService.getUserById(idUser));
     }
 
-    @PutMapping("/lock-user/{id}")
-    public ResponseEntity<?> lockUserById(@PathVariable int id) {
-        return ResponseEntity.ok(userService.lockUser(id));
+    @PutMapping("/lock-user/{idUser}")
+    public ResponseEntity<?> lockUserById(@PathVariable int idUser) {
+        return ResponseEntity.ok(userService.lockUser(idUser));
     }
 
-    @PutMapping({"/{id}"})
-    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody @Valid UserDto updateUser) {
+    @PutMapping({"/{idUser}"})
+    public ResponseEntity<?> updateUser(@PathVariable int idUser, @RequestBody @Valid UserDto updateUser) {
 
-        return ResponseEntity.ok(userService.updateInfoUser(id, updateUser));
+        return ResponseEntity.ok(userService.updateInfoUser(idUser, updateUser));
     }
 
-    @PutMapping({"/avatar/{id}"})
-    public ResponseEntity<String> updateAvatarUser(@PathVariable int id, @RequestParam(value = "avatar") MultipartFile imageAvatar) {
+    @PutMapping({"/avatar/{idUser}"})
+    public ResponseEntity<String> updateAvatarUser(@PathVariable int idUser, @RequestParam(value = "avatar") MultipartFile imageAvatar) {
         try {
-            userService.updateAvatar(id, imageAvatar);
+            userService.updateAvatar(idUser, imageAvatar);
             return ResponseEntity.ok("Avatar updated successfully");
         } catch (Exception e) {
             e.printStackTrace();
@@ -61,14 +62,14 @@ public class UserController {
 
     }
 
-    @PostMapping("role/{id}")
-    public ResponseEntity<?> updateRole(@PathVariable int id, @RequestBody RoleType roleType) {
-        return ResponseEntity.ok(userService.updatePermissionUser(id, roleType));
+    @PostMapping("{idUser}/roles")
+    public ResponseEntity<?> updateRole(@PathVariable int idUser, @RequestParam RoleType roleType) {
+        return ResponseEntity.ok(userService.updatePermissionUser(idUser, roleType));
     }
 
-    @PreAuthorize("#id == authentication.principal.id")
-    @PostMapping("{id}/change-password")
-    public ResponseEntity<?> changePassword(@PathVariable int id, @RequestBody PasswordChangeRequest newPassword, Authentication authentication) {
+    @PreAuthorize("#idUser == authentication.principal.id")
+    @PostMapping("{idUser}/change-password")
+    public ResponseEntity<?> changePassword(@PathVariable int idUser, @RequestBody PasswordChangeRequest newPassword, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
@@ -77,7 +78,7 @@ public class UserController {
 
     @GetMapping("search")
     public ResponseEntity<?> searchUsers(@RequestParam(value = "k") String keyword, @PageableDefault(size = 20) Pageable pageable) {
-        Page<UserDto> userResponses = userService.searchUsers(keyword, pageable);
+        Slice<UserDto> userResponses = userService.searchUsers(keyword, pageable);
         return ResponseEntity.ok(userResponses);
     }
 

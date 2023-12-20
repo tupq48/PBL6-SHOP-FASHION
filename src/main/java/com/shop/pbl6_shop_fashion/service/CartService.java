@@ -14,4 +14,6 @@ public interface CartService {
     CartItemDto editCartItem(int userId, int idCartItem, CartItemDto cartItemDto);
 
     void clearCart(int userId);
+
+    int countCartItemsByIdUser(int userId);
 }

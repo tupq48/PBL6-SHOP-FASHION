@@ -13,9 +13,10 @@ import java.util.Optional;
 
 @Repository
 public interface CartRepository  extends JpaRepository<CartItem,Integer> {
-    List<CartItem> findByUserId(int idUser);
+    List<CartItem> findByUserIdOrderByCreateAtDesc(int idUser);
 
     List<CartItem> findByUserIdAndProductId(int userId, int productId);
+    int countAllByUserId(int userId);
     @Modifying
     @Query("DELETE FROM CartItem c WHERE c.user.id = :userId")
     void deleteAllByUserId(@Param("userId") int userId);

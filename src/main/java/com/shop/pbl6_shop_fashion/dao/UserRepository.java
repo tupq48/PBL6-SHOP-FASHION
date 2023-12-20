@@ -4,6 +4,7 @@ import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.enums.AccountProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,5 +25,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("SELECT u FROM User u WHERE " +
             "LOWER(CONCAT(u.fullName, ' ', u.username, ' ', u.phoneNumber, ' ', u.gmail)) LIKE %:keyword%")
-    Page<User> searchUsersByKeyword(@Param("keyword") String keyword, Pageable pageable);
+    Slice<User> searchUsersByKeyword(@Param("keyword") String keyword, Pageable pageable);
 }

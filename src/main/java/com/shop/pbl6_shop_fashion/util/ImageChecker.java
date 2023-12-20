@@ -16,11 +16,7 @@ public class ImageChecker {
         }
 
         // Kiểm tra định dạng đầu
-        if (isJPEG(fileBytes) || isPNG(fileBytes) || isGIF(fileBytes)) {
-            return true;
-        }
-
-        return false;
+        return isJPEG(fileBytes) || isPNG(fileBytes) || isGIF(fileBytes);
     }
 
     // Hàm kiểm tra định dạng đầu của JPEG

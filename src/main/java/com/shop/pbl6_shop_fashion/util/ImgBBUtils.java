@@ -12,20 +12,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
 public class ImgBBUtils {
 
     public static String uploadImage(MultipartFile image) {
         String imageUrl = null;
         try {
-            String apiUrl = "https://api.imgbb.com/1/upload";
-            String apiKey = "e40f7c96227b1eb79c06061374424f3f";
-            String expiration = "600";
+            final String apiUrl = "https://api.imgbb.com/1/upload";
+            final String apiKey = "e40f7c96227b1eb79c06061374424f3f";
+            final String expiration = "600";
             byte[] imageBytes = image.getBytes(); // Đọc dữ liệu của hình ảnh từ nguồn nào đó (ví dụ: file)
 
             // Tạo RestTemplate
@@ -73,9 +67,7 @@ public class ImgBBUtils {
 
     public static List<String> uploadImages(List<MultipartFile> images) {
         List<String> imageUrls = new ArrayList<>();
-        images.forEach(image -> {
-            imageUrls.add(uploadImage(image));
-        });
+        images.forEach(image -> imageUrls.add(uploadImage(image)));
         return imageUrls;
     }
 
@@ -88,9 +80,8 @@ public class ImgBBUtils {
             JsonObject imageObject = json.getAsJsonObject("data").getAsJsonObject("image");
 
             // Lấy giá trị của trường "url" từ đối tượng "image"
-            String imageUrl = imageObject.get("url").getAsString();
 
-            return imageUrl;
+            return imageObject.get("url").getAsString();
         } catch (Exception e) {
             e.printStackTrace();
             return e.getMessage();

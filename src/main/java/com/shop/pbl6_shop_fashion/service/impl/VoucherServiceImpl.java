@@ -9,13 +9,22 @@ import com.shop.pbl6_shop_fashion.enums.VoucherType;
 import com.shop.pbl6_shop_fashion.exception.VoucherBaseException;
 import com.shop.pbl6_shop_fashion.service.VoucherService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.hibernate.StaleObjectStateException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -26,12 +35,8 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public VoucherDto createVoucher(VoucherDto voucherDto) {
+        validateDiscountTypeAndValue(voucherDto.getDiscountType(), voucherDto.getDiscountValue());
         Voucher voucher = voucherMapper.mapperFrom(voucherDto);
-        try {
-            validateDiscountTypeAndValue(voucherDto.getDiscountType(), voucherDto.getDiscountValue());
-        } catch (VoucherBaseException e) {
-            throw new VoucherBaseException(e.getMessage());
-        }
 
         if (checkCodeCustom(voucher.getCode())) {
             voucher.setCode(voucherDto.getCode().toUpperCase().trim());
@@ -49,36 +54,41 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public VoucherDto updateVoucher(int id, VoucherDto voucherDto) {
-        try {
-            validateDiscountTypeAndValue(voucherDto.getDiscountType(), voucherDto.getDiscountValue());
-        } catch (VoucherBaseException e) {
-            throw new VoucherBaseException(e.getMessage());
-        }
+        validateDiscountTypeAndValue(voucherDto.getDiscountType(), voucherDto.getDiscountValue());
 
         Voucher existingVoucher = voucherRepository.findById(id)
                 .orElseThrow(() -> new VoucherBaseException("Voucher not found", HttpStatus.NOT_FOUND));
 
         // Update Information
         getInfoUpdate(voucherDto, existingVoucher);
-
         Voucher voucherUpdate = voucherRepository.save(existingVoucher);
-
         return voucherMapper.mapperTo(voucherUpdate);
     }
 
     @Override
-    public Slice<VoucherDto> getAllVouchers(Pageable pageable) {
-        Pageable defaultPageable = pageable != null ? pageable : PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "expiryDate", "discountType"));
+    public Slice<VoucherDto> getAllVouchers(Pageable pageable, Boolean active) {
+        Pageable defaultPageable = getPageable(pageable);
 
-        Slice<Voucher> voucherSlice = voucherRepository.findAll(defaultPageable);
+        if (null == active) {
+            return voucherRepository.findAll(defaultPageable)
+                    .map(voucherMapper::mapperTo);
+        }
+
+        Slice<Voucher> voucherSlice = voucherRepository.findAllByActive(active, defaultPageable);
 
         return voucherSlice
                 .map(voucherMapper::mapperTo);
     }
 
+    private Pageable getPageable(Pageable pageable) {
+        return pageable != null ?
+                pageable :
+                PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "expiryDate", "discountType"));
+    }
+
     @Override
     public Slice<VoucherDto> getVouchersByStatusAndVoucherType(boolean active, VoucherType voucherType, Pageable pageable) {
-        Pageable defaultPageable = pageable != null ? pageable : PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "expiryDate"));
+        Pageable defaultPageable = getPageable(pageable);
 
         Slice<Voucher> voucherSlice = voucherRepository.findAllByActiveAndVoucherType(active, voucherType, defaultPageable);
 
@@ -102,6 +112,11 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public void deleteVoucher(int id) {
         voucherRepository.deleteById(id);
+    }
+
+    @Override
+    public VoucherDto userVoucher(int id) {
+        return null;
     }
 
     @Override
@@ -140,6 +155,27 @@ public class VoucherServiceImpl implements VoucherService {
         return null;
     }
 
+    @Override
+    @Retryable(
+            retryFor = {StaleObjectStateException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(value = 100))
+    @Transactional
+    public boolean reduceVoucher(int voucherId) {
+        Voucher voucher = voucherRepository.findById(voucherId)
+                .orElseThrow(() -> new VoucherBaseException("Voucher Not Found", HttpStatus.NOT_FOUND));
+
+        if (voucher.getUsageCount() >= voucher.getUsageLimit()) {
+            throw new VoucherBaseException("Voucher limit exceeded", HttpStatus.BAD_REQUEST);
+        }
+
+        voucher.setUsageCount(voucher.getUsageCount() + 1);
+        voucherRepository.save(voucher);
+        System.out.println("count:" + voucher.getUsageCount());
+        System.out.println("limit:" + voucher.getUsageLimit());
+        return true;
+    }
+
 
     private boolean isVoucherApplicable(double valueOrder, Voucher voucher) {
         if (!voucher.isActive()) {
@@ -160,7 +196,7 @@ public class VoucherServiceImpl implements VoucherService {
         return true;
     }
 
-    private void validateDiscountTypeAndValue(DiscountType discountType, double discountValue) {
+    private boolean validateDiscountTypeAndValue(DiscountType discountType, double discountValue) {
         switch (discountType) {
             case PERCENTAGE -> {
                 if (discountValue <= 0 || discountValue >= 100)
@@ -168,12 +204,13 @@ public class VoucherServiceImpl implements VoucherService {
 
             }
             case AMOUNT -> {
-                if (0 >= discountValue) {
+                if (discountValue <= 0) {
                     throw new VoucherBaseException("Invalid discount value for amount type : discountValue = " + discountValue);
                 }
             }
             default -> throw new VoucherBaseException("Unsupported discount type");
         }
+        return true;
     }
 
     private String generateCode() {
@@ -191,9 +228,16 @@ public class VoucherServiceImpl implements VoucherService {
             return false;
         }
         code = code.toUpperCase().trim();
+
+        Pattern pattern = Pattern.compile("^[a-zA-Z0-9]+$");
+        Matcher matcher = pattern.matcher(code);
+        if (!matcher.matches()) {
+            return false;
+        }
         if (voucherRepository.existsByCode(code)) {
             throw new VoucherBaseException("Coupon code already exists");
         }
+
         return code.length() > 5 && code.length() < 20;
     }
 

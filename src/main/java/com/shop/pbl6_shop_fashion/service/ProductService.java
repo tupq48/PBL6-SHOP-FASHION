@@ -15,6 +15,8 @@ import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,21 +55,25 @@ public class ProductService {
 
         return productRepository.getProductByCategoryAndPage(categoryId, page, limit);
     }
+
     public com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto searchProductDetail(Integer id) {
         com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto product = productDao.searchDetailProducts(id);
         System.out.println("product service: " + product);
-        return  product;
-    }
-    public List<ProductMobile> getAllProducts(int page, int pageSize){
-
-        return productDao.getAllProducts(page,pageSize);
-    }
-    public PaginationResponse<ProductMobile> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
-
-        return productDao.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
+        return product;
     }
 
+    @Cacheable("products")
+    public List<ProductMobile> getAllProducts(int page, int pageSize) {
 
+        return productDao.getAllProducts(page, pageSize);
+    }
+
+    public PaginationResponse<ProductMobile> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize) {
+
+        return productDao.getProductsByCategoryorBrand(category_id, brand_id, page, pageSize);
+    }
+
+    @CacheEvict("products")
     public void updateImages(Integer id, List<MultipartFile> files) {
         List<String> imageUrls = new ArrayList<>();
         files.forEach(file -> {
@@ -76,7 +82,7 @@ public class ProductService {
         });
         productRepository.updateProductImages(id, imageUrls);
     }
-
+    @CacheEvict("products")
     public void addProduct(String name, String desc, Integer price, String unit, Integer brandId, Integer categoryId, List<String> productSizes, List<MultipartFile> images, Integer promotionId) {
 
         System.out.println("get brand cate : " + LocalDateTime.now());
@@ -134,7 +140,7 @@ public class ProductService {
         for (ProductSize size : sizes) {
             sql += "(" + product.getId() + ", " + size.getQuantity() + ", 0, " + size.getSize().getId() + "),";
         }
-        sql = sql.substring(0,sql.length()-1);
+        sql = sql.substring(0, sql.length() - 1);
         transaction.begin();
         session.createNativeQuery(sql).executeUpdate();
         transaction.commit();
@@ -142,6 +148,7 @@ public class ProductService {
         return;
     }
 
+    @CacheEvict("products")
     public void updateProduct(Integer productId, String name, String desc, Integer price, String unit, Integer brandId,
                               Integer categoryId, List<String> productSizes, List<MultipartFile> images, Integer promotionId) {
         Product product = entityManager.find(Product.class, productId);
@@ -189,7 +196,7 @@ public class ProductService {
 
     List<ProductSize> convertProductSizes(List<String> productSizes, Product product) {
         List<ProductSize> sizes = new ArrayList<>();
-        for ( String str : productSizes) {
+        for (String str : productSizes) {
             SizeType sizeType = SizeType.valueOf(str.split(":")[0].trim());
             Integer quant = Integer.parseInt(str.split(":")[1]);
             ProductSize productSize = ProductSize.builder()
@@ -202,7 +209,11 @@ public class ProductService {
         }
         return sizes;
     }
+
     public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category) {
-        return  productDao.searchProductsMobile(keyword, minprice, maxprice, category);
+        return productDao.searchProductsMobile(keyword, minprice, maxprice, category);
+    }
+    public List<ProductMobile> getBestSellingProducts(Integer limit) {
+        return productDao.getBestSellingProducts(limit);
     }
 }

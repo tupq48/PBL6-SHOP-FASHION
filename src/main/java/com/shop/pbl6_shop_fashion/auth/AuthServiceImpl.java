@@ -61,39 +61,24 @@ public class AuthServiceImpl implements AuthService {
             throw new DuplicateUsernameException("Username already exists: " + request.getUsername());
         }
 
-        Role role = roleRepository.findByName(RoleType.USER).orElseThrow(()-> new IllegalArgumentException("Error with role"));
+        Role role = roleRepository.findByName(RoleType.USER)
+                .orElseThrow(() -> new IllegalArgumentException("Error with role"));
         if (newUser.getRoles() == null) {
             newUser.setRoles(new ArrayList<>());
         }
         newUser.getRoles().add(role);
-
         newUser = userRepository.save(newUser);
 
         TokenRefresh tokenRefresh = new TokenRefresh();
         tokenRefresh.setUser(newUser);
+
         return getAuthResponse(newUser, tokenRefresh);
     }
 
-    private AuthResponse getAuthResponse(User user, TokenRefresh tokenRefresh) {
-        tokenRefresh.setToken(UUID.randomUUID().toString());
-        tokenRefresh.setExpirationDate(LocalDateTime.now().plusDays(refreshExpirationDay));
-        tokenRefreshRepository.save(tokenRefresh);
-
-        String accessToken = jwtService.generateToken(user);
-        String refreshToken = tokenRefresh.getToken();
-        return  AuthResponse.builder()
-                .id(user.getId())
-                .fullName(user.getFullName())
-                .username(user.getUsername())
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
-    }
 
     @Override
     public AuthResponse authenticate(AuthRequest request) {
         Authentication authentication;
-
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -110,7 +95,6 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = (User) authentication.getPrincipal();
-
         TokenRefresh tokenRefresh = tokenRefreshRepository.getTokenRefreshByUser(user);
         if (tokenRefresh == null) {
             tokenRefresh = new TokenRefresh();
@@ -131,32 +115,33 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid refresh token");
             return;
         }
         final String refreshToken = authHeader.substring(7);
-
         User user = getUserByToken(refreshToken);
 
-        if (user != null) {
-            if (user.isLocked()) {
-                throw new LockedOrDisableUserException("User is locked by admin : " + user.getUsername());
-            }
-            String accessToken = jwtService.generateToken(user);
-            AuthResponse authResponse = AuthResponse.builder()
-                    .id(user.getId())
-                    .fullName(user.getFullName())
-                    .username(user.getUsername())
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .build();
-            new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-        } else {
-            // Refresh token không hợp lệ, có thể trả về lỗi hoặc thông báo khác
+        if (user == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid refresh token");
+            return;
         }
+
+        if (user.isLocked()) {
+            throw new LockedOrDisableUserException("User is locked by admin : " + user.getUsername());
+        }
+
+        String accessToken = jwtService.generateToken(user);
+        AuthResponse authResponse = AuthResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+        new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
     }
 
 
@@ -169,5 +154,21 @@ public class AuthServiceImpl implements AuthService {
             return tokenRefresh.getUser();
         }
         return null;
+    }
+
+    private AuthResponse getAuthResponse(User user, TokenRefresh tokenRefresh) {
+        tokenRefresh.setToken(UUID.randomUUID().toString());
+        tokenRefresh.setExpirationDate(LocalDateTime.now().plusDays(refreshExpirationDay));
+        tokenRefreshRepository.save(tokenRefresh);
+
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = tokenRefresh.getToken();
+        return AuthResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 }

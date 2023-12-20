@@ -20,6 +20,7 @@ public class RegisterRequest {
     @Email
     @NotBlank(message = "Email is not null or empty")
     private String email;
+    @NotBlank
     @Pattern(regexp = "^[a-zA-Z0-9_.-]{5,50}$", message = "Invalid username format")
     private String username;
     @NotBlank(message = "Password is not null or empty")
