@@ -37,6 +37,7 @@ public class OrderDto {
     private String note;
     private double totalAmount;
     private double discountAmount;
+    private boolean isRate;
     private int voucherId; // ID của voucher
     @NotNull
     private List<CartItemDto> orderItems;

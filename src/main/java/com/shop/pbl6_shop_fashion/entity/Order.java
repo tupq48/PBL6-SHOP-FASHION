@@ -32,6 +32,7 @@ public class Order {
     private String note;
     private double totalAmount;
     private double discountAmount;
+    private boolean isRate = false;
     @ManyToOne
     @JoinColumn(name = "voucher_id")
     private Voucher voucher;
