@@ -1,14 +1,20 @@
-package com.shop.pbl6_shop_fashion.payment;
+package com.shop.pbl6_shop_fashion.api;
 
+import com.shop.pbl6_shop_fashion.payment.PaymentService;
+import com.shop.pbl6_shop_fashion.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
 @RestController
-@RequestMapping("api/payment")
+@RequestMapping("api/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 

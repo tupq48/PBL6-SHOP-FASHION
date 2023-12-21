@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -32,7 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
 
     @Override
-    public OrderDto createOrder(OrderDto orderDto) {
+    public OrderDto createOrder(OrderDto orderDto, PaymentMethod paymentMethod) {
 
         // Map OrderDto to Order
 //        Order order = mapToOrder(orderDto);
@@ -63,17 +64,31 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDto getOrderDetails(int orderId) {
+    public OrderDto getOrderDetailsById(int orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
         return OrderMapper.toOrderDto(order);
     }
 
     @Override
-    public Slice<OrderDto> getAllOrders(Pageable pageable) {
-        Pageable defaultPageable = getPageableDefault(pageable);
+    public Slice<OrderDto> getAllOrders(Pageable pageable, OrderStatus newStatus, String startDate, String endDate) {
 
-        Slice<Order> orders = orderRepository.findAll(defaultPageable);
+        Pageable defaultPageable = getPageableDefault(pageable);
+        Slice<Order> orders;
+
+        if (newStatus != null && startDate != null && endDate != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yyyy");
+            LocalDateTime startDateTime = parseDate(startDate, formatter, LocalDateTime.now().minus(7, ChronoUnit.DAYS));
+            LocalDateTime endDateTime = parseDate(endDate, formatter, LocalDateTime.now());
+            orders = orderRepository.findAllByOrderStatusAndOrderDateBetween(newStatus, startDateTime, endDateTime, defaultPageable);
+        } else if (newStatus != null) {
+            orders = orderRepository.findAllByOrderStatus(newStatus, defaultPageable);
+        } else if (startDate != null && endDate != null) {
+            return getOrdersByDateRange(startDate, endDate, defaultPageable);
+        } else {
+            orders = orderRepository.findAll(defaultPageable);
+        }
+
         return orders.map(OrderMapper::toOrderDto);
     }
 
@@ -86,8 +101,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderDto updateAdminOrderStatus(int orderId, OrderStatus newStatus) {
-        return updateOrderStatus(orderId, newStatus, true);
+    public OrderDto updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus) {
+        for (int orderId : orderIds) {
+            updateOrderStatus(orderId, newStatus, true);
+        }
+        return new OrderDto();
     }
 
     @Override
@@ -117,9 +135,10 @@ public class OrderServiceImpl implements OrderService {
         LocalDateTime endDateTime = parseDate(endDate, formatter, LocalDateTime.now());
 
         Pageable defaultPageable = getPageableDefault(pageable);
-        Slice<Order> orders = orderRepository.findPageOrdersByDateRange(startDateTime, endDateTime, defaultPageable);
+        Slice<Order> orders = orderRepository.findAllByOrderDateBetween(startDateTime, endDateTime, defaultPageable);
         return orders.map(OrderMapper::toOrderDto);
     }
+
     private LocalDateTime parseDate(String date, DateTimeFormatter formatter, LocalDateTime defaultValue) {
         try {
             return Optional.ofNullable(date)
