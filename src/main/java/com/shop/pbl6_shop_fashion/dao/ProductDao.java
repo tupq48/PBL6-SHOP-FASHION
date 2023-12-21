@@ -146,7 +146,6 @@ public class ProductDao {
             if( dateString != null) {
                 createDate = List.of(dateString.split(","));
             }
-            System.out.println("ngay tao;" + createDate);
             List<Date> createDateList = new ArrayList<>();
 
             for (String dateString1 : createDate) {
@@ -235,8 +234,9 @@ public class ProductDao {
             for(int i=0; i< rateListInteger.size();i++){
                 avgRate+=rateListInteger.get(i);
             }
-            avgRate= avgRate/rateListInteger.size();
-            System.out.println("avRate:" + avgRate);
+            if(rateListInteger.size()> 0){
+                avgRate= avgRate/rateListInteger.size();
+            }
             product.setAvgRate(avgRate);
             product.setPrice_promote(price_pro);
 
