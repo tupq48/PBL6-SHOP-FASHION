@@ -10,6 +10,7 @@ public class OrderMapper {
     public static OrderDto toOrderDto(Order order) {
         OrderDto orderDto = new OrderDto();
         orderDto.setId(order.getId());
+        order.setRate(order.isRate());
         orderDto.setOrderDate(order.getOrderDate());
         orderDto.setOrderStatus(order.getOrderStatus());
         orderDto.setPaymentMethod(order.getPaymentMethod());
@@ -31,6 +32,7 @@ public class OrderMapper {
 
         order.setId(orderDto.getId());
         order.setOrderDate(orderDto.getOrderDate());
+        order.setRate(orderDto.isRate());
         order.setOrderStatus(orderDto.getOrderStatus());
         order.setPaymentMethod(orderDto.getPaymentMethod());
         order.setName(orderDto.getName());

@@ -19,11 +19,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     Slice<Order> findAllByOrderStatus(OrderStatus orderStatus, Pageable pageable);
 
-    @Query("SELECT o FROM Order o WHERE o.orderDate >= :startDate AND o.orderDate <= :endDate")
-    Slice<Order> findPageOrdersByDateRange(
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate,
-            Pageable pageable
-    );
+    Slice<Order> findAllByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+
+    Slice<Order> findAllByOrderStatusAndOrderDateBetween(OrderStatus orderStatus, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 }
 

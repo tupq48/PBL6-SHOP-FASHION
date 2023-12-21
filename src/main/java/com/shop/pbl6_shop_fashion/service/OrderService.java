@@ -7,38 +7,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface OrderService {
 
-    // Tạo mới một đơn hàng
-    OrderDto createOrder(OrderDto orderDto);
+    OrderDto createOrder(OrderDto orderDto, PaymentMethod paymentMethod);
 
-    // Lấy thông tin chi tiết về một đơn hàng
-    OrderDto getOrderDetails(int orderId);
+    OrderDto getOrderDetailsById(int orderId);
 
-    // Lấy danh sách tất cả các đơn hàng
-    Slice<OrderDto> getAllOrders(Pageable pageable);
+    Slice<OrderDto> getAllOrders(Pageable pageable,OrderStatus newStatus,String startDate, String endDate);
 
-    // Cập nhật trạng thái của một đơn hàng
 
     @Transactional
     OrderDto updateUserOrderStatus(int orderId, OrderStatus newStatus);
 
     @Transactional
-    OrderDto updateAdminOrderStatus(int orderId, OrderStatus newStatus);
+    OrderDto updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus);
 
-
-    // Xác nhận thanh toán cho một đơn hàng
     OrderDto confirmPayment(int orderId, PaymentMethod paymentMethod);
 
-    // Lấy danh sách đơn hàng theo trạng thái
-    Slice<OrderDto> getOrdersByStatus(OrderStatus status,Pageable pageable);
+    Slice<OrderDto> getOrdersByStatus(OrderStatus status, Pageable pageable);
 
-    // Lấy danh sách đơn hàng của một khách hàng
-    Slice<OrderDto> getOrdersByCustomer(int customerId,Pageable pageable);
+    Slice<OrderDto> getOrdersByCustomer(int customerId, Pageable pageable);
 
-    // Lấy danh sách đơn hàng trong một khoảng thời gian
     Slice<OrderDto> getOrdersByDateRange(String startDate, String endDate, Pageable pageable);
 }
