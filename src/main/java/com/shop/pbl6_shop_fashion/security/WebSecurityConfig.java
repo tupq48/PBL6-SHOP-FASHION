@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -24,11 +25,12 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class WebSecurityConfig {
-    private static final String[] WHITE_LIST_URL = {"/api/product/**","/api/category/**","/api/brand/**",
+    private static final String[] WHITE_LIST_URL = {"/api/product/**", "/api/category/**", "/api/brand/**",
             "/public/**", "/api/auth/**", "/oauth2/**",
             "/", "/error", "/csrf",
             "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**",
-            "/api/promotion/**","/api/payment/**","api/vouchers/**",
+            "/api/promotion/**", "/api/payment/**", "api/vouchers/**"
+            ,
     };
     private final AuthenticationProvider authenticationProvider;
     private final JwtFilter jwtFilter;
@@ -46,6 +48,7 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(WHITE_LIST_URL).permitAll()
+                        .requestMatchers(HttpMethod.GET, "api/advertisements/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
