@@ -171,6 +171,11 @@ public class UserServiceImpl implements UserService {
         return users.map(user -> userMapper.userToUserDTO(user));
     }
 
+    @Override
+    public User findById(Integer userId) {
+        return userRepository.findById(userId).get();
+    }
+
 
     private String removeAccents(String input) {
         return Normalizer.normalize(input, Normalizer.Form.NFD)
