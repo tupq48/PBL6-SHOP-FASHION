@@ -81,6 +81,11 @@ public class OrderServiceImpl implements OrderService {
 
 
 //         Process order items with ProductService to calculate totalAmount and discountAmount
+        double totalAmount = orderItems.stream()
+                        .map(orderItem -> orderItem.getQuantity()*orderItem.getUnitPrice() - productService.getPromotionAmount(orderItem.getProduct().getId()))
+                        .reduce(0d, Double::sum);
+        order.setTotalAmount(totalAmount);
+        order.setDiscountAmount(orderDto.getDiscountAmount());
 
         // Process voucher
         // TODO: Implement voucher processing logic and update order accordingly

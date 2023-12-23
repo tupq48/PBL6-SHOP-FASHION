@@ -19,19 +19,9 @@ public class ProductSizeServiceImpl implements ProductSizeService {
     @Override
     public boolean increaseSoldOut(Product product, Size size, Integer amountSoldOut) {
         ProductSize productSize = productSizeRepository.findByProductAndSize(product, size).get();
-        if (productSize.getQuantity() < amountSoldOut)
+        if (productSize.getQuantity() - productSize.getQuantitySold() < amountSoldOut)
             throw new RuntimeException("Number Product not enough to sell");
         productSize.setQuantitySold(productSize.getQuantitySold() + amountSoldOut);
-        productSize.setQuantity(productSize.getQuantity() - amountSoldOut);
-        productSizeRepository.save(productSize);
-        return true;
-    }
-
-    @Override
-    public boolean rollbackSoldOut(Product product, Size size, Integer amountSoldOut) {
-        ProductSize productSize = productSizeRepository.findByProductAndSize(product, size).get();
-        productSize.setQuantity(productSize.getQuantity() + amountSoldOut);
-        productSize.setQuantitySold(productSize.getQuantitySold() - amountSoldOut);
         productSizeRepository.save(productSize);
         return true;
     }
