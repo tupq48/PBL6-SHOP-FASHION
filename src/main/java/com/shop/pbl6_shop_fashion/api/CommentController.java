@@ -1,5 +1,6 @@
 package com.shop.pbl6_shop_fashion.api;
 
+import com.shop.pbl6_shop_fashion.dto.comment.CommentDto;
 import com.shop.pbl6_shop_fashion.service.CommentService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,16 @@ public class CommentController {
     ) {
         commentService.addComment(productId,rate,userId,content);
     }
-    @PatchMapping("/{commnetId}")
+    @PutMapping("/{commnetId}")
     public void updateProduct(@RequestParam(value = "commentId") Integer commentId,
                               @RequestParam("rate") Integer rate,
                               @RequestParam("content") String content
     ) {
         commentService.updateComment(commentId,rate,content);
+    }
+
+    @GetMapping()
+    public List<CommentDto> getAllComment() {
+        return commentService.getAllComment();
     }
 }
