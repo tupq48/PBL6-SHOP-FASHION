@@ -4,7 +4,6 @@ import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import com.shop.pbl6_shop_fashion.service.OrderService;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +41,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody OrderDto orderDto,
                                          @RequestParam PaymentMethod paymentMethod) {
+        System.out.println("cart item :" + orderDto.getOrderItems() + " , total: " + orderDto.getOrderItems().size());
         return ResponseEntity.ok(orderService.createOrder(orderDto, paymentMethod));
     }
 

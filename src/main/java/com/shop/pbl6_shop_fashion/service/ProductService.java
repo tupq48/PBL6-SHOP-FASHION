@@ -8,6 +8,7 @@ import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.entity.*;
+import com.shop.pbl6_shop_fashion.enums.DiscountType;
 import com.shop.pbl6_shop_fashion.enums.SizeType;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
@@ -215,5 +216,27 @@ public class ProductService {
     }
     public List<ProductMobile> getBestSellingProducts(Integer limit) {
         return productDao.getBestSellingProducts(limit);
+    }
+
+    public Product findById(Integer id) {
+        return productRepository.findById(id).get();
+    }
+
+    public Double getPromotionAmount(Integer productId) {
+        Product product =  findById(productId);
+        Promotion promotion =product.getPromotion();
+        product.getPrice();
+        if (promotion == null)
+            return 0d;
+        DiscountType discountType = promotion.getDiscountType();
+        switch (discountType){
+            case AMOUNT -> {
+                return promotion.getDiscountValue();
+            }
+            case PERCENTAGE -> {
+                return product.getPrice()*promotion.getDiscountValue()/100;
+            }
+        }
+        return 0d;
     }
 }

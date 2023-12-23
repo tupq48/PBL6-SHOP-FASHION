@@ -1,14 +1,17 @@
 package com.shop.pbl6_shop_fashion.service.impl;
 
 import com.shop.pbl6_shop_fashion.dao.OrderRepository;
+import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderMapper;
-import com.shop.pbl6_shop_fashion.entity.Order;
+import com.shop.pbl6_shop_fashion.dto.user.UserDto;
+import com.shop.pbl6_shop_fashion.dto.user.UserMapper;
+import com.shop.pbl6_shop_fashion.dto.user.UserMapperImpl;
+import com.shop.pbl6_shop_fashion.entity.*;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import com.shop.pbl6_shop_fashion.exception.OrderException;
-import com.shop.pbl6_shop_fashion.service.OrderService;
-import com.shop.pbl6_shop_fashion.service.ProductService;
+import com.shop.pbl6_shop_fashion.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,8 +25,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,32 +36,74 @@ public class OrderServiceImpl implements OrderService {
 
     private final ProductService productService;
     private final OrderRepository orderRepository;
+    private final UserService userService;
+    private final VoucherService voucherService;
+    private final ProductSizeService productSizeService;
+    private final SizeService sizeService;
 
     @Override
+    @Transactional
     public OrderDto createOrder(OrderDto orderDto, PaymentMethod paymentMethod) {
+        Order order = Order.builder().orderDate(LocalDateTime.now())
+                .orderStatus(OrderStatus.UNCONFIRMED)
+                .paymentMethod(paymentMethod)
+                .name(orderDto.getName())
+                .shippingAddress(orderDto.getShippingAddress())
+                .phoneNumber(orderDto.getPhoneNumber())
+                .note(orderDto.getNote())
+                .build();
 
-        // Map OrderDto to Order
-//        Order order = mapToOrder(orderDto);
 
-        // Map list of OrderItemDto to list of OrderItem
-//        List<OrderItem> orderItems = mapToOrderItemList(orderDto.getOrderItems());
-//        order.setOrderItems(orderItems);
+        // chuyển list cart order item sang oder item
+        List<CartItemDto> cartItems = orderDto.getOrderItems();
+        List<OrderItem> orderItems = new ArrayList<>();
 
-        // Set order status to UNCONFIRMED
-//        order.setStatus(OrderStatus.UNCONFIRMED);
+        for (CartItemDto cartItemDto : cartItems) {
+            Product product = productService.findById(cartItemDto.getProductId());
+            OrderItem orderItem = OrderItem.builder()
+                    .order(order)
+                    .product(product)
+                    .quantity(cartItemDto.getQuantity())
+                    .unitPrice(product.getPrice())
+                    .size(cartItemDto.getSize())
+                    .build();
+            System.out.println(orderItem);
+            orderItems.add(orderItem);
 
-        // Process order items with ProductService to calculate totalAmount and discountAmount
-//        double totalAmount = productService.processOrderItems(orderItems);
-//        order.setTotalAmount(totalAmount);
+            productSizeService.increaseSoldOut(product,
+                                    sizeService.findByName(orderItem.getSize()),
+                                    orderItem.getQuantity());
+        }
+
+        order.setOrderItems(orderItems);
+        User user = userService.findById(orderDto.getUserId());
+        order.setUser(user);
+
+
+//         Process order items with ProductService to calculate totalAmount and discountAmount
+        double totalAmount = orderItems.stream()
+                        .map(orderItem -> orderItem.getQuantity()*orderItem.getUnitPrice() - productService.getPromotionAmount(orderItem.getProduct().getId()))
+                        .reduce(0d, Double::sum);
+        order.setTotalAmount(totalAmount);
+        order.setDiscountAmount(orderDto.getDiscountAmount());
 
         // Process voucher
         // TODO: Implement voucher processing logic and update order accordingly
+        System.out.println("voucher id: " + orderDto.getVoucherId());
+        if(orderDto.getVoucherId() > 0)
+            voucherService.reduceVoucher(orderDto.getVoucherId());
 
         // Process shipping cost
         // TODO: Implement shipping cost processing logic and update order accordingly
 
-        // Save the order to the database
-//        Order savedOrder = orderRepository.save(order);
+//         Save the order and order item to the database
+        Order savedOrder = orderRepository.save(order);
+
+        // Process delete cart item
+        // TODO: ...
+
+
+
 
         // Map the saved Order back to OrderDto
 //        return mapToOrderDto(savedOrder);
