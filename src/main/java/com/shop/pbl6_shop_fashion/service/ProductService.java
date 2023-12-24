@@ -226,8 +226,8 @@ public class ProductService {
     }
 
     public Product findById(Integer id) {
-
-        return productRepository.findById(id).orElseThrow(()-> new ProductException("Product not found"));
+        return productRepository.findById(id)
+                .orElseThrow(()-> new ProductException("Product not found"));
     }
 
     public Double getPromotionAmount(Product product) {
@@ -249,10 +249,10 @@ public class ProductService {
     public List<OrderItem> calculateOrderItemAndProcessProduct(List<OrderItemDto> orderItemDtos) {
         List<OrderItem> orderItems = new ArrayList<>();
         for (OrderItemDto orderItemDto : orderItemDtos) {
-            Integer productId = orderItemDto.getProductId();
+            int productId = orderItemDto.getProductId();
 
             Product product = findById(productId);
-            orderItemDto.setUnitPrice(orderItemDto.getUnitPrice() - getPromotionAmount(product));
+            orderItemDto.setUnitPrice(product.getPrice() - getPromotionAmount(product));
             Size size = sizeService.findByName(orderItemDto.getSizeType());
 
             OrderItem orderItem = OrderItem.builder()

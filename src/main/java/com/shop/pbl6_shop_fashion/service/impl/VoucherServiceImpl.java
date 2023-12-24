@@ -169,7 +169,24 @@ public class VoucherServiceImpl implements VoucherService {
         voucherRepository.save(voucher);
         return true;
     }
+    @Override
+    @Retryable(
+            retryFor = {StaleObjectStateException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(value = 100))
+    @Transactional
+    public long getValueDiscountAndReduce(int idVoucher, long totalAmount) {
+        Voucher voucher = voucherRepository.findById(idVoucher)
+                .orElseThrow(() -> new VoucherBaseException("Voucher is not found", HttpStatus.NOT_FOUND));
 
+        long amountDiscount = getValueDiscount(voucher, totalAmount);
+        if (voucher.getUsageCount() >= voucher.getUsageLimit()) {
+            throw new VoucherBaseException("Voucher limit exceeded", HttpStatus.BAD_REQUEST);
+        }
+        voucher.setUsageCount(voucher.getUsageCount() + 1);
+        voucherRepository.save(voucher);
+        return amountDiscount;
+    }
 
     private boolean isVoucherApplicable(double valueOrder, Voucher voucher) {
         if (voucher == null) {
@@ -194,7 +211,7 @@ public class VoucherServiceImpl implements VoucherService {
         return true;
     }
 
-    private boolean validateDiscountTypeAndValue(DiscountType discountType, double discountValue) {
+    private void validateDiscountTypeAndValue(DiscountType discountType, double discountValue) {
         switch (discountType) {
             case PERCENTAGE -> {
                 if (discountValue <= 0 || discountValue >= 100)
@@ -208,7 +225,6 @@ public class VoucherServiceImpl implements VoucherService {
             }
             default -> throw new VoucherBaseException("Unsupported discount type");
         }
-        return true;
     }
 
     private String generateCode() {

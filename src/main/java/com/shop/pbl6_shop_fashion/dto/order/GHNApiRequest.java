@@ -1,13 +1,13 @@
 package com.shop.pbl6_shop_fashion.dto.order;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class GHNApiRequest {
     @JsonProperty("from_district_id")
     private int fromDistrictId;
@@ -18,7 +18,7 @@ public class GHNApiRequest {
     @JsonProperty("service_type_id")
     private Integer serviceTypeId;
     @JsonProperty("to_district_id")
-    private int toDistrictId;
+    private long toDistrictId;
     @JsonProperty("to_ward_code")
     private String toWardCode;
     private int height;

@@ -1,6 +1,7 @@
 package com.shop.pbl6_shop_fashion.service;
 
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
+import com.shop.pbl6_shop_fashion.dto.order.OrderResponse;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import org.springframework.data.domain.Pageable;
@@ -11,24 +12,24 @@ import java.util.List;
 
 public interface OrderService {
 
-    OrderDto createOrder(OrderDto orderDto, PaymentMethod paymentMethod);
+    OrderResponse createOrder(OrderDto orderDto, PaymentMethod paymentMethod);
 
-    OrderDto getOrderDetailsById(int orderId);
+    OrderResponse getOrderDetailsById(int orderId);
 
-    Slice<OrderDto> getAllOrders(Pageable pageable,OrderStatus newStatus,String startDate, String endDate);
+    Slice<OrderResponse> getAllOrders(Pageable pageable,OrderStatus newStatus,String startDate, String endDate);
 
-
-    @Transactional
-    OrderDto updateUserOrderStatus(int orderId, OrderStatus newStatus);
 
     @Transactional
-    OrderDto updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus);
+    OrderResponse updateUserOrderStatus(int orderId, OrderStatus newStatus);
 
-    OrderDto confirmPayment(int orderId, PaymentMethod paymentMethod);
+    @Transactional
+    OrderResponse updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus);
 
-    Slice<OrderDto> getOrdersByStatus(OrderStatus status, Pageable pageable);
+    OrderResponse confirmPayment(int orderId, PaymentMethod paymentMethod);
 
-    Slice<OrderDto> getOrdersByCustomer(int customerId, Pageable pageable);
+    Slice<OrderResponse> getOrdersByStatus(OrderStatus status, Pageable pageable);
 
-    Slice<OrderDto> getOrdersByDateRange(String startDate, String endDate, Pageable pageable);
+    Slice<OrderResponse> getOrdersByCustomer(int customerId, Pageable pageable);
+
+    Slice<OrderResponse> getOrdersByDateRange(String startDate, String endDate, Pageable pageable);
 }
