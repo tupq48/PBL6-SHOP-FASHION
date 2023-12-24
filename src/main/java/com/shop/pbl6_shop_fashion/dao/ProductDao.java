@@ -1,26 +1,16 @@
 package com.shop.pbl6_shop_fashion.dao;
 
-import com.shop.pbl6_shop_fashion.config.DatabaseConfig;
 import com.shop.pbl6_shop_fashion.dto.PaginationResponse;
 import com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto;
-import com.shop.pbl6_shop_fashion.dto.ProductMobile;
+import com.shop.pbl6_shop_fashion.dto.ProductDetail;
 import com.shop.pbl6_shop_fashion.entity.Product;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
-import com.sun.jdi.IntegerType;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
-import org.hibernate.transform.Transformers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import javax.xml.transform.Transformer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -244,7 +234,7 @@ public class ProductDao {
 
         return product;
     }
-    public List<ProductMobile> getAllProducts(int page, int pageSize){
+    public List<ProductDetail> getAllProducts(int page, int pageSize){
         int firstResult = (page - 1) * pageSize;
         String sql="WITH AnhSanPham AS (\n" +
                 "    SELECT pr.*,GROUP_CONCAT(pi.url) AS Link_anh\n" +
@@ -265,9 +255,9 @@ public class ProductDao {
         query.setMaxResults(pageSize);
         List<Object[]> results = query.getResultList();
         System.out.println("result:" + results.size());
-        List<ProductMobile> products = new ArrayList<>();
+        List<ProductDetail> products = new ArrayList<>();
         for (Object[] result:results){
-            ProductMobile product = new ProductMobile();
+            ProductDetail product = new ProductDetail();
             product.setProduct_name((String) result[1]);
             product.setProduct_id((Integer) result[0]);
             product.setPrice((Long) result[2]);
@@ -312,7 +302,7 @@ public class ProductDao {
         return products;
     }
 
-    public PaginationResponse<ProductMobile> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
+    public PaginationResponse<ProductDetail> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
         int firstResult = (page - 1) * pageSize;
         String sql="WITH AnhSanPham AS (\n" +
                 "    SELECT pr.*,GROUP_CONCAT(pi.url) AS Link_anh\n" +
@@ -356,14 +346,12 @@ public class ProductDao {
         int totalItems = results.size();
 
         Double totalPage = Math.ceil(results.size()/(double)pageSize);
-        System.out.println("total:" + totalPage);
         query.setMaxResults(pageSize);
         query.setFirstResult(firstResult);
         results = query.getResultList();
-        System.out.println("result:" + results.size());
-        List<ProductMobile> products = new ArrayList<>();
+        List<ProductDetail> products = new ArrayList<>();
         for (Object[] result:results){
-            ProductMobile product = new ProductMobile();
+            ProductDetail product = new ProductDetail();
             product.setProduct_name((String) result[1]);
             product.setProduct_id((Integer) result[0]);
             product.setPrice((Long) result[2]);
@@ -413,7 +401,7 @@ public class ProductDao {
             product.setProduct_image(imagesList);
             products.add(product);
         }
-        PaginationResponse<ProductMobile> response = new PaginationResponse<>();
+        PaginationResponse<ProductDetail> response = new PaginationResponse<>();
         response.setItems(products);
         response.setTotalItems(totalItems);
         response.setCurrentPage(page);
@@ -424,7 +412,8 @@ public class ProductDao {
         return response;
     }
 
-    public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice,Integer maxprice, String category){
+    public PaginationResponse<ProductDetail> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category, int page, int pageSize){
+        int firstResult = (page - 1) * pageSize;
         String sql="with AnhSanPham AS (\n" +
                 "        select pr.*,group_concat(pi.url) as Link_anh \n" +
                 "               from products pr \n" +
@@ -443,14 +432,15 @@ public class ProductDao {
         query.setParameter("minprice", minprice);
         query.setParameter("maxprice", maxprice);
 
-
-
-
         List<Object[]> results = query.getResultList();
-        System.out.println("result:" + results.size());
-        List<ProductMobile> products = new ArrayList<>();
+        int totalItems = results.size();
+        Double totalPage = Math.ceil(results.size()/(double)pageSize);
+        query.setMaxResults(pageSize);
+        query.setFirstResult(firstResult);
+        results = query.getResultList();
+        List<ProductDetail> products = new ArrayList<>();
         for (Object[] result:results){
-            ProductMobile product = new ProductMobile();
+            ProductDetail product = new ProductDetail();
             product.setProduct_name((String) result[1]);
             product.setProduct_id((Integer) result[0]);
             product.setPrice((Long) result[2]);
@@ -486,7 +476,13 @@ public class ProductDao {
             product.setProduct_image(imagesList);
             products.add(product);
         }
-        return products;
+        PaginationResponse<ProductDetail> response = new PaginationResponse<>();
+        response.setItems(products);
+        response.setTotalItems(totalItems);
+        response.setCurrentPage(page);
+        response.setTotalPages(totalPage);
+        response.setPageSize(pageSize);
+        return response;
     }
     private static List<Integer> convertStringListToIntegerList(List<String> stringList) {
         List<Integer> integerList = new ArrayList<>();
@@ -506,7 +502,7 @@ public class ProductDao {
         return integerList;
     }
 
-    public List<ProductMobile> getBestSellingProducts(Integer limit) {
+    public List<ProductDetail> getBestSellingProducts(Integer limit) {
         String sql="WITH AnhSanPham AS (\n" +
                 "    SELECT pr.*, GROUP_CONCAT(pi.url) AS Link_anh\n" +
                 "    FROM products pr\n" +
@@ -541,9 +537,9 @@ public class ProductDao {
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
         query.setParameter(1,limit);
         List<Object[]> results = query.getResultList();
-        List<ProductMobile> products = new ArrayList<>();
+        List<ProductDetail> products = new ArrayList<>();
         for (Object[] result:results){
-            ProductMobile product = new ProductMobile();
+            ProductDetail product = new ProductDetail();
             product.setProduct_name((String) result[1]);
             product.setProduct_id((Integer) result[0]);
             product.setPrice((Long) result[2]);

@@ -6,8 +6,8 @@ import com.shop.pbl6_shop_fashion.dto.PaginationResponse;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDetailDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
-import com.shop.pbl6_shop_fashion.dto.ProductMobile;
 import com.shop.pbl6_shop_fashion.dto.order.OrderItemDto;
+import com.shop.pbl6_shop_fashion.dto.ProductDetail;
 import com.shop.pbl6_shop_fashion.entity.*;
 import com.shop.pbl6_shop_fashion.enums.DiscountType;
 import com.shop.pbl6_shop_fashion.enums.SizeType;
@@ -71,15 +71,13 @@ public class ProductService {
     }
 
     @Cacheable("products")
-    public List<ProductMobile> getAllProducts(int page, int pageSize) {
+    public List<ProductDetail> getAllProducts(int page, int pageSize){
 
-        return productDao.getAllProducts(page, pageSize);
+        return productDao.getAllProducts(page,pageSize);
     }
+    public PaginationResponse<ProductDetail> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
+        return productDao.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
 
-    public PaginationResponse<ProductMobile> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize) {
-
-        return productDao.getProductsByCategoryorBrand(category_id, brand_id, page, pageSize);
-    }
 
     @CacheEvict("products")
     public void updateImages(Integer id, List<MultipartFile> files) {
@@ -218,10 +216,10 @@ public class ProductService {
         return sizes;
     }
 
-    public List<ProductMobile> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category) {
-        return productDao.searchProductsMobile(keyword, minprice, maxprice, category);
+    public PaginationResponse<ProductDetail> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category, int page, int pageSize) {
+        return  productDao.searchProductsMobile(keyword, minprice, maxprice, category,page,pageSize);
     }
-    public List<ProductMobile> getBestSellingProducts(Integer limit) {
+    public List<ProductDetail> getBestSellingProducts(Integer limit) {
         return productDao.getBestSellingProducts(limit);
     }
 
