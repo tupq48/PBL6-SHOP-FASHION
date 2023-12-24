@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface BrandRepository extends JpaRepository<Brand, Integer>, BrandRepositoryCustom{
-
+    List<Brand> findAllByIsDeleted(Boolean isDeleted);
 }

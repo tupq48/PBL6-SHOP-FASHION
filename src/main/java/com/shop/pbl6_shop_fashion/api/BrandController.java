@@ -1,5 +1,6 @@
 package com.shop.pbl6_shop_fashion.api;
 
+import com.shop.pbl6_shop_fashion.dto.util.ResponseObject;
 import com.shop.pbl6_shop_fashion.entity.Brand;
 import com.shop.pbl6_shop_fashion.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,19 +37,22 @@ public class BrandController {
         }
     }
 
-    @PatchMapping("/update/{id}")
-    public ResponseEntity<?> patchBrand(@PathVariable(value = "id") Integer brandId,
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateBrand(@PathVariable(value = "id") Integer brandId,
                             @RequestParam(value = "image", required = false) MultipartFile image,
                             @RequestParam(value = "name", required = false) String name,
                             @RequestParam(value = "desc", required = false) String desc) {
         try {
-            Brand brand = brandService.patchBrand(brandId, name, desc, image);
+            Brand brand = brandService.updateBrand(brandId, name, desc, image);
             return ResponseEntity.ok().body(brand);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatusCode.valueOf(404)).body(e.getMessage());
         }
     }
 
-
-    //===================================== Chia ra mỗi người viết một cho cho de merge =============
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteBrand(@PathVariable(value = "id") Integer brandId) {
+        brandService.deleteBrand(brandId);
+        return ResponseEntity.ok("Deleted success brand with Id: " + brandId);
+    }
 }

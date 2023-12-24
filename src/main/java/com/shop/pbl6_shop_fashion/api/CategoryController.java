@@ -38,11 +38,17 @@ public class CategoryController {
         return categoryService.createCategory(name, desc, image);
     }
 
-    @PatchMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     public Category updateCategory(@PathVariable(value = "id") Integer categoryId,
                                     @RequestParam(value = "image", required = false) MultipartFile image,
                                     @RequestParam(value = "name", required = false) String name,
                                     @RequestParam(value = "desc", required = false) String desc) {
         return categoryService.updateCategory(categoryId, name, desc, image);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCategory(@PathVariable(value = "id") Integer categoryId) {
+        categoryService.deleteCategory(categoryId);
+        return ResponseEntity.ok("Delete success category with Id: " + categoryId);
     }
 }
