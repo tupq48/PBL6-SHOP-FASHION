@@ -3,21 +3,24 @@ package com.shop.pbl6_shop_fashion.service.impl;
 import com.shop.pbl6_shop_fashion.dao.OrderRepository;
 import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
+import com.shop.pbl6_shop_fashion.dto.order.OrderItemDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderMapper;
-import com.shop.pbl6_shop_fashion.dto.user.UserDto;
-import com.shop.pbl6_shop_fashion.dto.user.UserMapper;
-import com.shop.pbl6_shop_fashion.dto.user.UserMapperImpl;
+import com.shop.pbl6_shop_fashion.dto.voucher.VoucherMapper;
 import com.shop.pbl6_shop_fashion.entity.*;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
+import com.shop.pbl6_shop_fashion.enums.VoucherType;
 import com.shop.pbl6_shop_fashion.exception.OrderException;
 import com.shop.pbl6_shop_fashion.service.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +31,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,71 +40,67 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final UserService userService;
     private final VoucherService voucherService;
-    private final ProductSizeService productSizeService;
-    private final SizeService sizeService;
+    private final CartService cartService;
+    @Value("${application.ghn.token}")
+    private String tokenGHN;
+    @Value("${application.ghn.shop-id}")
+    private String shopIdGHN;
+
 
     @Override
     @Transactional
     public OrderDto createOrder(OrderDto orderDto, PaymentMethod paymentMethod) {
-        Order order = Order.builder().orderDate(LocalDateTime.now())
-                .orderStatus(OrderStatus.UNCONFIRMED)
-                .paymentMethod(paymentMethod)
-                .name(orderDto.getName())
-                .shippingAddress(orderDto.getShippingAddress())
-                .phoneNumber(orderDto.getPhoneNumber())
-                .note(orderDto.getNote())
-                .build();
+        Order order = OrderMapper.toOrder(orderDto);
+        order.setId(0);
+        order.setOrderStatus(OrderStatus.UNCONFIRMED);
 
+        List<CartItemDto> cartItemDtoList = orderDto.getOrderItems();
+        List<OrderItemDto> orderItemDtoList = cartItemDtoList.stream().map(OrderMapper::toOrderItemDTO).toList();
 
-        // chuyển list cart order item sang oder item
-        List<CartItemDto> cartItems = orderDto.getOrderItems();
-        List<OrderItem> orderItems = new ArrayList<>();
+        List<OrderItem> orderItems = productService.calculateOrderItemAndProcessProduct(orderItemDtoList);
 
-        for (CartItemDto cartItemDto : cartItems) {
-            Product product = productService.findById(cartItemDto.getProductId());
-            OrderItem orderItem = OrderItem.builder()
-                    .order(order)
-                    .product(product)
-                    .quantity(cartItemDto.getQuantity())
-                    .unitPrice(product.getPrice())
-                    .size(cartItemDto.getSize())
-                    .build();
-            System.out.println(orderItem);
-            orderItems.add(orderItem);
-
-            productSizeService.increaseSoldOut(product,
-                                    sizeService.findByName(orderItem.getSize()),
-                                    orderItem.getQuantity());
+        long totalAmount = 0;
+        for (OrderItem orderItem : orderItems) {
+            totalAmount += orderItem.getQuantity() * orderItem.getUnitPrice();
         }
 
+        order.setTotalAmount(totalAmount);
         order.setOrderItems(orderItems);
-        User user = userService.findById(orderDto.getUserId());
-        order.setUser(user);
-
-
-//         Process order items with ProductService to calculate totalAmount and discountAmount
 
         // Process voucher
-        // TODO: Implement voucher processing logic and update order accordingly
-        System.out.println("voucher id: " + orderDto.getVoucherId());
-        if(orderDto.getVoucherId() > 0)
-            voucherService.reduceVoucher(orderDto.getVoucherId());
+        List<Voucher> vouchers = new ArrayList<>();
+        long amountDiscountVoucher = 0;
+        long shipFee = 10000;
 
-        // Process shipping cost
-        // TODO: Implement shipping cost processing logic and update order accordingly
 
-//         Save the order and order item to the database
+        if (orderDto.getIdsVoucher() != null && orderDto.getIdsVoucher().size() < 3) {
+            amountDiscountVoucher += processVouchers(orderDto.getIdsVoucher(), vouchers, order, VoucherType.PURCHASE);
+            shipFee -= processVouchers(orderDto.getIdsVoucher(), vouchers, order, VoucherType.FREE_SHIP);
+            order.setVouchers(vouchers);
+        }
+        order.setFeeShip(shipFee);
+        order.setDiscountAmount(amountDiscountVoucher);
+
+        order.setUser(userService.findById(orderDto.getUserId()));
+
         Order savedOrder = orderRepository.save(order);
 
-        // Process delete cart item
-        // TODO: ...
+        deleteCartItem(orderDto.getUserId(), cartItemDtoList);
 
+        OrderMapper.toOrderDto(savedOrder);
+        return OrderMapper.toOrderDto(savedOrder);
+    }
 
+    @Async
+    void deleteCartItem(int userId, @NotNull List<CartItemDto> cartItems) {
+        List<Integer> itemIdsToDelete = cartItems.stream()
+                .map(CartItemDto::getId)
+                .filter(id -> id > 0)
+                .toList();
 
-
-        // Map the saved Order back to OrderDto
-//        return mapToOrderDto(savedOrder);
-        return null;
+        if (!itemIdsToDelete.isEmpty()) {
+            cartService.removeItems(userId, itemIdsToDelete);
+        }
     }
 
     @Override
@@ -231,4 +229,29 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderException("Invalid status transition", HttpStatus.BAD_REQUEST);
         }
     }
+
+    private long processVouchers(List<Integer> idsVoucher, List<Voucher> vouchers, Order order, VoucherType voucherType) {
+        int countVoucherType = 0;
+        long discountAmount = 0;
+
+        for (int idVoucher : idsVoucher) {
+            Voucher voucher = VoucherMapper.toVoucher(voucherService.getVoucherById(idVoucher));
+
+            if (voucher.getVoucherType() == voucherType && countVoucherType < 1) {
+                if (voucherType == VoucherType.PURCHASE) {
+                    discountAmount = voucherService.getValueDiscount(voucher, order.getTotalAmount());
+                } else if (voucherType == VoucherType.FREE_SHIP) {
+                    discountAmount = voucherService.getValueDiscount(voucher, order.getTotalAmount());
+                }
+
+                countVoucherType++;
+                vouchers.add(voucher);
+                voucherService.reduceVoucher(voucher);
+            }
+        }
+
+        return discountAmount;
+    }
+
+
 }

@@ -31,12 +31,11 @@ import java.util.regex.Pattern;
 public class VoucherServiceImpl implements VoucherService {
 
     private final VoucherRepository voucherRepository;
-    private final VoucherMapper voucherMapper;
 
     @Override
     public VoucherDto createVoucher(VoucherDto voucherDto) {
         validateDiscountTypeAndValue(voucherDto.getDiscountType(), voucherDto.getDiscountValue());
-        Voucher voucher = voucherMapper.mapperFrom(voucherDto);
+        Voucher voucher = VoucherMapper.toVoucher(voucherDto);
 
         if (checkCodeCustom(voucher.getCode())) {
             voucher.setCode(voucherDto.getCode().toUpperCase().trim());
@@ -48,7 +47,7 @@ public class VoucherServiceImpl implements VoucherService {
             throw new VoucherBaseException("Expiration date must be after the current date");
         }
         voucher.setId(0);
-        return voucherMapper.mapperTo(voucherRepository.save(voucher));
+        return VoucherMapper.toVoucherDto(voucherRepository.save(voucher));
     }
 
 
@@ -62,7 +61,7 @@ public class VoucherServiceImpl implements VoucherService {
         // Update Information
         getInfoUpdate(voucherDto, existingVoucher);
         Voucher voucherUpdate = voucherRepository.save(existingVoucher);
-        return voucherMapper.mapperTo(voucherUpdate);
+        return VoucherMapper.toVoucherDto(voucherUpdate);
     }
 
     @Override
@@ -71,13 +70,13 @@ public class VoucherServiceImpl implements VoucherService {
 
         if (null == active) {
             return voucherRepository.findAll(defaultPageable)
-                    .map(voucherMapper::mapperTo);
+                    .map(VoucherMapper::toVoucherDto);
         }
 
         Slice<Voucher> voucherSlice = voucherRepository.findAllByActive(active, defaultPageable);
 
         return voucherSlice
-                .map(voucherMapper::mapperTo);
+                .map(VoucherMapper::toVoucherDto);
     }
 
     private Pageable getPageable(Pageable pageable) {
@@ -93,20 +92,20 @@ public class VoucherServiceImpl implements VoucherService {
         Slice<Voucher> voucherSlice = voucherRepository.findAllByActiveAndVoucherType(active, voucherType, defaultPageable);
 
         return voucherSlice
-                .map(voucherMapper::mapperTo);
+                .map(VoucherMapper::toVoucherDto);
     }
 
 
     @Override
     public VoucherDto getVoucherById(int id) {
         Voucher voucher = voucherRepository.findById(id).orElseThrow(() -> new VoucherBaseException("Voucher not found", HttpStatus.NOT_FOUND));
-        return voucherMapper.mapperTo(voucher);
+        return VoucherMapper.toVoucherDto(voucher);
     }
 
     @Override
     public VoucherDto getVoucherByCode(String code) {
         Voucher voucher = voucherRepository.findByCode(code).orElseThrow(() -> new VoucherBaseException("Voucher not found", HttpStatus.NOT_FOUND));
-        return voucherMapper.mapperTo(voucher);
+        return VoucherMapper.toVoucherDto(voucher);
     }
 
     @Override
@@ -132,20 +131,17 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public double getValueDiscount(int idVoucher, double valueOrder) {
-        Voucher voucher = voucherRepository.findById(idVoucher)
-                .orElseThrow(() -> new VoucherBaseException("Voucher not found", HttpStatus.NOT_FOUND));
-
+    public long getValueDiscount(Voucher voucher, double valueOrder) {
         if (isVoucherApplicable(valueOrder, voucher)) {
             double discountValue = 0;
             switch (voucher.getDiscountType()) {
                 case PERCENTAGE -> {
-                    discountValue = valueOrder * voucher.getDiscountValue() / 100;
+                    discountValue = (valueOrder * voucher.getDiscountValue() / 100);
                     discountValue = Math.min(discountValue, voucher.getMaxDiscountValue());
                 }
                 case AMOUNT -> discountValue = voucher.getDiscountValue();
             }
-            return discountValue;
+            return (long) discountValue;
         }
         return 0;
     }
@@ -161,14 +157,14 @@ public class VoucherServiceImpl implements VoucherService {
             maxAttempts = 3,
             backoff = @Backoff(value = 100))
     @Transactional
-    public boolean reduceVoucher(int voucherId) {
-        Voucher voucher = voucherRepository.findById(voucherId)
-                .orElseThrow(() -> new VoucherBaseException("Voucher Not Found", HttpStatus.NOT_FOUND));
+    public boolean reduceVoucher(Voucher voucher) {
+        if (voucher == null) {
+            throw new VoucherBaseException("Voucher is null", HttpStatus.BAD_REQUEST);
+        }
 
         if (voucher.getUsageCount() >= voucher.getUsageLimit()) {
             throw new VoucherBaseException("Voucher limit exceeded", HttpStatus.BAD_REQUEST);
         }
-
         voucher.setUsageCount(voucher.getUsageCount() + 1);
         voucherRepository.save(voucher);
         return true;
@@ -176,6 +172,10 @@ public class VoucherServiceImpl implements VoucherService {
 
 
     private boolean isVoucherApplicable(double valueOrder, Voucher voucher) {
+        if (voucher == null) {
+            throw new VoucherBaseException("Voucher is null", HttpStatus.BAD_REQUEST);
+        }
+
         if (!voucher.isActive()) {
             throw new VoucherBaseException("Voucher is not active", HttpStatus.BAD_REQUEST);
         }

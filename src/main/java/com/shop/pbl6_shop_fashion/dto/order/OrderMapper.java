@@ -3,14 +3,18 @@ package com.shop.pbl6_shop_fashion.dto.order;
 import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
 import com.shop.pbl6_shop_fashion.entity.Order;
 import com.shop.pbl6_shop_fashion.entity.OrderItem;
+import jakarta.validation.constraints.NotNull;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class OrderMapper {
     public static OrderDto toOrderDto(Order order) {
         OrderDto orderDto = new OrderDto();
         orderDto.setId(order.getId());
-        order.setRate(order.isRate());
         orderDto.setOrderDate(order.getOrderDate());
         orderDto.setOrderStatus(order.getOrderStatus());
         orderDto.setPaymentMethod(order.getPaymentMethod());
@@ -20,9 +24,8 @@ public class OrderMapper {
         orderDto.setNote(order.getNote());
         orderDto.setTotalAmount(order.getTotalAmount());
         orderDto.setDiscountAmount(order.getDiscountAmount());
-        orderDto.setVoucherId(order.getVoucher() != null ? order.getVoucher().getId() : 0);
-        orderDto.setOrderItems(toCartItemDtoList(order.getOrderItems()));
         orderDto.setUserId(order.getUser() != null ? order.getUser().getId() : 0);
+
 
         return orderDto;
     }
@@ -32,7 +35,6 @@ public class OrderMapper {
 
         order.setId(orderDto.getId());
         order.setOrderDate(orderDto.getOrderDate());
-        order.setRate(orderDto.isRate());
         order.setOrderStatus(orderDto.getOrderStatus());
         order.setPaymentMethod(orderDto.getPaymentMethod());
         order.setName(orderDto.getName());
@@ -41,23 +43,34 @@ public class OrderMapper {
         order.setNote(orderDto.getNote());
         order.setTotalAmount(orderDto.getTotalAmount());
         order.setDiscountAmount(orderDto.getDiscountAmount());
-        order.setOrderItems(toOrderItemList(orderDto.getOrderItems()));
 
         return order;
     }
 
-    private static List<CartItemDto> toCartItemDtoList(List<OrderItem> orderItems) {
-        // Thực hiện ánh xạ cho danh sách OrderItem
-        // ...
-
-        return null;
+    public static OrderItemDto toOrderItemDTO(CartItemDto cartItemDTO) {
+        OrderItemDto orderItemDTO = new OrderItemDto();
+        orderItemDTO.setQuantity(cartItemDTO.getQuantity());
+        orderItemDTO.setSizeType(cartItemDTO.getSize());
+        orderItemDTO.setProductId(cartItemDTO.getProductId());
+        return orderItemDTO;
     }
 
-    private static List<OrderItem> toOrderItemList(List<CartItemDto> orderItemDtos) {
-        // Thực hiện ánh xạ cho danh sách CartItemDto
-        // ...
-
-        return null;
+    public static List<CartItemDto> toCartItemDtoList(List<Object> cartItemsDto) {
+        if (cartItemsDto == null) {
+            return null;
+        }
+        return Optional.ofNullable(cartItemsDto)
+                .map(list -> list.stream()
+                        .filter(Objects::nonNull)
+                        .peek(item -> System.out.println("Item class: " + item.getClass().getName())) // Add this line
+                        .filter(CartItemDto.class::isInstance)
+                        .map(CartItemDto.class::cast)
+                        .collect(Collectors.toList()))
+                .orElseGet(() -> {
+                    System.out.println("Input list is null.");
+                    return Collections.emptyList();
+                });
     }
+
 
 }
