@@ -25,7 +25,6 @@ public class ProductSize {
     @ManyToOne
     @JoinColumn(name = "size_id")
     private Size size;
-
     private int quantity;
 
     private int quantitySold;

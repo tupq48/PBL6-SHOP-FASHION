@@ -17,7 +17,7 @@ public class OrderItem {
     private int id;
     private int quantity;
     private double unitPrice;
-    private String note;
+    private boolean isRate;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
