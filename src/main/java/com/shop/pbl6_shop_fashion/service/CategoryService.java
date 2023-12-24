@@ -19,7 +19,7 @@ public class CategoryService {
 
 
     public List<Category> getAllCategory() {
-        return categoryRepository.findAll();
+        return categoryRepository.findAllByIsDeleted(false);
     }
 
 
@@ -28,12 +28,6 @@ public class CategoryService {
 
     }
 
-
-    // ========================== PQT =============================
-
-    public Category addCategory(Category category) {
-        return categoryRepository.save(category);
-    }
 
     public Category createCategory(String name, String desc, MultipartFile image) {
 
@@ -68,5 +62,10 @@ public class CategoryService {
         return savedCategory;
     }
 
-    //======================================== OTHER PEOPLE ========================
+    public void deleteCategory(Integer categoryId) {
+        Category category = categoryRepository.findById(categoryId).get();
+        category.setIsDeleted(true);
+        categoryRepository.save(category);
+    }
+
 }
