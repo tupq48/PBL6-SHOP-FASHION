@@ -21,14 +21,15 @@ public class CommentController {
                            @RequestParam("userId") Integer userId,
                            @RequestParam("content") String content
     ) {
-        commentService.addComment(productId,rate,userId,content);
+        commentService.addComment(productId, rate, userId, content);
     }
+
     @PutMapping("/{commnetId}")
     public void updateProduct(@RequestParam(value = "commentId") Integer commentId,
                               @RequestParam("rate") Integer rate,
                               @RequestParam("content") String content
     ) {
-        commentService.updateComment(commentId,rate,content);
+        commentService.updateComment(commentId, rate, content);
     }
 
     @GetMapping()

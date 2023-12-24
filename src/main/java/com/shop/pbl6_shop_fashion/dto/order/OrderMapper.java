@@ -12,27 +12,33 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class OrderMapper {
-    public static OrderDto toOrderDto(Order order) {
-        OrderDto orderDto = new OrderDto();
-        orderDto.setId(order.getId());
-        orderDto.setOrderDate(order.getOrderDate());
-        orderDto.setOrderStatus(order.getOrderStatus());
-        orderDto.setPaymentMethod(order.getPaymentMethod());
-        orderDto.setName(order.getName());
-        orderDto.setShippingAddress(order.getShippingAddress());
-        orderDto.setPhoneNumber(order.getPhoneNumber());
-        orderDto.setNote(order.getNote());
-        orderDto.setTotalAmount(order.getTotalAmount());
-        orderDto.setDiscountAmount(order.getDiscountAmount());
-        orderDto.setUserId(order.getUser() != null ? order.getUser().getId() : 0);
+    public static OrderResponse toOrderResponse(Order order) {
+        OrderResponse orderResponse = new OrderResponse();
 
+        orderResponse.setId(order.getId());
+        orderResponse.setOrderDate(order.getOrderDate());
+        orderResponse.setOrderStatus(order.getOrderStatus());
+        orderResponse.setPaymentMethod(order.getPaymentMethod());
+        orderResponse.setName(order.getName());
+        orderResponse.setShippingAddress(order.getShippingAddress());
+        orderResponse.setPhoneNumber(order.getPhoneNumber());
+        orderResponse.setNote(order.getNote());
+        orderResponse.setTotalAmount(order.getTotalAmount());
+        orderResponse.setFeeShip(order.getFeeShip());
+        orderResponse.setDiscountAmount(order.getDiscountAmount());
+        if (order.getOrderItems() != null) {
+            orderResponse.setOrderItems(order.getOrderItems().stream().map(OrderMapper::toOrderItemDTO).toList());
+        }
 
-        return orderDto;
+        if (order.getUser() != null) {
+            orderResponse.setUserId(order.getUser().getId());
+        }
+        return orderResponse;
+
     }
 
     public static Order toOrder(OrderDto orderDto) {
         Order order = new Order();
-
         order.setId(orderDto.getId());
         order.setOrderDate(orderDto.getOrderDate());
         order.setOrderStatus(orderDto.getOrderStatus());
@@ -44,8 +50,10 @@ public class OrderMapper {
         order.setTotalAmount(orderDto.getTotalAmount());
         order.setDiscountAmount(orderDto.getDiscountAmount());
 
+
         return order;
     }
+
 
     public static OrderItemDto toOrderItemDTO(CartItemDto cartItemDTO) {
         OrderItemDto orderItemDTO = new OrderItemDto();
@@ -55,22 +63,14 @@ public class OrderMapper {
         return orderItemDTO;
     }
 
-    public static List<CartItemDto> toCartItemDtoList(List<Object> cartItemsDto) {
-        if (cartItemsDto == null) {
-            return null;
-        }
-        return Optional.ofNullable(cartItemsDto)
-                .map(list -> list.stream()
-                        .filter(Objects::nonNull)
-                        .peek(item -> System.out.println("Item class: " + item.getClass().getName())) // Add this line
-                        .filter(CartItemDto.class::isInstance)
-                        .map(CartItemDto.class::cast)
-                        .collect(Collectors.toList()))
-                .orElseGet(() -> {
-                    System.out.println("Input list is null.");
-                    return Collections.emptyList();
-                });
+    public static OrderItemDto toOrderItemDTO(OrderItem orderItem) {
+        OrderItemDto orderItemDTO = new OrderItemDto();
+        orderItemDTO.setQuantity(orderItem.getQuantity());
+        orderItemDTO.setSizeType(orderItem.getSize());
+        orderItemDTO.setProductId(orderItem.getProduct().getId());
+        orderItemDTO.setRate(orderItem.isRate());
+        orderItemDTO.setId(orderItem.getId());
+        orderItemDTO.setUnitPrice(orderItem.getUnitPrice());
+        return orderItemDTO;
     }
-
-
 }

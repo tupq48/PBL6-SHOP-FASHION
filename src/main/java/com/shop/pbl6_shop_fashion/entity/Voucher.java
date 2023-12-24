@@ -39,8 +39,6 @@ public class Voucher {
     private int usageLimit;
     private int usageCount;
     private boolean active;
-    @Version
-    private Long version;
 
     @ManyToMany(mappedBy = "vouchers")
     private List<Order> orders;

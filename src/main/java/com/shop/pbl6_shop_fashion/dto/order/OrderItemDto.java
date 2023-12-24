@@ -18,6 +18,7 @@ public class OrderItemDto {
     @NotNull
     private int quantity;
     private double unitPrice;
+    private boolean isRate = false;
     @Enumerated(EnumType.STRING)
     private SizeType sizeType;
     @NotNull
