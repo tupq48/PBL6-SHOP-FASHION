@@ -5,7 +5,7 @@ import com.shop.pbl6_shop_fashion.dto.PaginationResponse;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDetailDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
-import com.shop.pbl6_shop_fashion.dto.ProductMobile;
+import com.shop.pbl6_shop_fashion.dto.ProductDetail;
 import com.shop.pbl6_shop_fashion.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -105,21 +105,21 @@ public class ProductController {
         return pr;
     }
     @GetMapping("/product/getAll")
-    public List<ProductMobile> getProductsMobile(
+    public List<ProductDetail> getProductsMobile(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
     ){
         return productService.getAllProducts(page, pageSize);
     }
     @GetMapping("/product/bestSellingProducts")
-    public List<ProductMobile> getBestSellingProducts(
+    public List<ProductDetail> getBestSellingProducts(
             @RequestParam(name="limit", defaultValue = "10") Integer limit
 
     ){
         return productService.getBestSellingProducts(limit);
     }
     @GetMapping("/product/getByCategory")
-    public PaginationResponse<ProductMobile> getProductsByCategoryorBrand(
+    public PaginationResponse<ProductDetail> getProductsByCategoryorBrand(
             @RequestParam(name="category_id", defaultValue = "0") Integer category_id,
             @RequestParam(name="brand_id", defaultValue = "0") Integer brand_id,
             @RequestParam(value = "page", defaultValue = "1") int page,
@@ -128,11 +128,13 @@ public class ProductController {
         return productService.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
     }
     @GetMapping("/product/searchAll")
-    public List<ProductMobile> searchProductsMobile(
+    public PaginationResponse<ProductDetail> searchProductsMobile(
             @RequestParam(name="keyword", defaultValue = "") String keyword,
             @RequestParam(name="minprice", defaultValue = "0") Integer minprice,
             @RequestParam(name="maxprice", defaultValue = "100000") Integer maxprice,
-            @RequestParam(name="category", defaultValue = "") String category){
-        return productService.searchProductsMobile(keyword,minprice,maxprice,category);
+            @RequestParam(name="category", defaultValue = "") String category,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize){
+        return productService.searchProductsMobile(keyword,minprice,maxprice,category,page,pageSize);
     }
 }
