@@ -46,6 +46,12 @@ public class AppAdvice {
         String errorMessage = ex.getMessage();
         return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
     }
+    @ExceptionHandler(ProductException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleException(ProductException ex, HttpServletRequest request) {
+        String errorMessage = ex.getMessage();
+        return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
+    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(DuplicateUsernameException.class)

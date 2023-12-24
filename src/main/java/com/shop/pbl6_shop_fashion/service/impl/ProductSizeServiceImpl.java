@@ -4,6 +4,7 @@ import com.shop.pbl6_shop_fashion.dao.ProductSizeRepository;
 import com.shop.pbl6_shop_fashion.entity.Product;
 import com.shop.pbl6_shop_fashion.entity.ProductSize;
 import com.shop.pbl6_shop_fashion.entity.Size;
+import com.shop.pbl6_shop_fashion.exception.ProductException;
 import com.shop.pbl6_shop_fashion.service.ProductSizeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,9 +19,12 @@ public class ProductSizeServiceImpl implements ProductSizeService {
 
     @Override
     public boolean increaseSoldOut(Product product, Size size, Integer amountSoldOut) {
-        ProductSize productSize = productSizeRepository.findByProductAndSize(product, size).get();
-        if (productSize.getQuantity() < amountSoldOut)
-            throw new RuntimeException("Number Product not enough to sell");
+        ProductSize productSize = productSizeRepository.findByProductAndSize(product, size)
+                .orElseThrow(() -> new ProductException("Product not found in the selected size"));
+
+        if (productSize.getQuantity() < amountSoldOut) {
+            throw new ProductException("Number Product not enough to sell");
+        }
         productSize.setQuantitySold(productSize.getQuantitySold() + amountSoldOut);
         productSize.setQuantity(productSize.getQuantity() - amountSoldOut);
         productSizeRepository.save(productSize);
@@ -29,7 +33,8 @@ public class ProductSizeServiceImpl implements ProductSizeService {
 
     @Override
     public boolean rollbackSoldOut(Product product, Size size, Integer amountSoldOut) {
-        ProductSize productSize = productSizeRepository.findByProductAndSize(product, size).get();
+        ProductSize productSize = productSizeRepository.findByProductAndSize(product, size)
+                .orElseThrow(() -> new ProductException("Product not found in the selected size"));
         productSize.setQuantity(productSize.getQuantity() + amountSoldOut);
         productSize.setQuantitySold(productSize.getQuantitySold() - amountSoldOut);
         productSizeRepository.save(productSize);

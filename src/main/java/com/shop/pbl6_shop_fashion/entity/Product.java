@@ -61,5 +61,4 @@ public class Product {
     protected void onUpdate() {
         updateAt = LocalDateTime.now();
     }
-
 }

@@ -24,12 +24,6 @@ public class VoucherController {
 
     private final VoucherService voucherService;
 
-    @GetMapping("/test/{id}")
-    public void test(@PathVariable int id) {
-        System.out.println("THOI GIAN NHAN REQ: " + LocalDateTime.now());
-        System.out.println(voucherService.reduceVoucher(id));
-    }
-
     // CREATE
     @PostMapping
     public ResponseEntity<VoucherDto> createVoucherDto(@RequestBody @Valid VoucherDto voucher) {
