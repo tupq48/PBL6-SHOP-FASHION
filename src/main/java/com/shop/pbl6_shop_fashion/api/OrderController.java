@@ -1,15 +1,20 @@
 package com.shop.pbl6_shop_fashion.api;
 
+import com.shop.pbl6_shop_fashion.auth.RegisterRequest;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
+import com.shop.pbl6_shop_fashion.dto.util.ResponseObject;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
-import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import com.shop.pbl6_shop_fashion.service.OrderService;
+import com.shop.pbl6_shop_fashion.service.impl.GHNApiService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -17,6 +22,15 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final GHNApiService ghnApiService;
+
+    @GetMapping("fee-ship")
+    public ResponseEntity<?> getFeeShip(int districtId, String wardCode) {
+        long feeShip = ghnApiService.getShippingFee(districtId, wardCode);
+        Map<String, Object> data = new HashMap<>();
+        data.put("feeShip", feeShip);
+        return ResponseEntity.ok(new ResponseObject(data));
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllOrders(@RequestParam(required = false) Pageable pageable,
@@ -39,10 +53,8 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody OrderDto orderDto,
-                                         @RequestParam PaymentMethod paymentMethod) {
-        System.out.println("cart item :" + orderDto.getOrderItems() + " , total: " + orderDto.getOrderItems().size());
-        return ResponseEntity.ok(orderService.createOrder(orderDto, paymentMethod));
+    public ResponseEntity<?> createOrder(@RequestBody @Valid OrderDto orderDto) {
+        return ResponseEntity.ok(orderService.createOrder(orderDto, orderDto.getPaymentMethod()));
     }
 
     @PutMapping("{orderId}")

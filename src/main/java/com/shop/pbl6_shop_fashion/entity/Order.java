@@ -4,6 +4,8 @@ import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,14 +31,23 @@ public class Order {
     private String phoneNumber;
     private String note;
     private double totalAmount;
+    private double feeShip;
     private double discountAmount;
-    private boolean isRate = false;
-    @ManyToOne
-    @JoinColumn(name = "voucher_id")
-    private Voucher voucher;
+    @ManyToMany
+    @JoinTable(
+            name = "order_voucher",
+            joinColumns = @JoinColumn(name = "order_id"),
+            inverseJoinColumns = @JoinColumn(name = "voucher_id")
+    )
+    private List<Voucher> vouchers;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @PrePersist
+    protected void onCreate() {
+        orderDate = LocalDateTime.now();
+    }
 }

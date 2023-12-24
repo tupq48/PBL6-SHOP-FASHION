@@ -7,8 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "vouchers")
@@ -35,8 +39,9 @@ public class Voucher {
     private int usageLimit;
     private int usageCount;
     private boolean active;
-    @Version
-    private Long version;
+
+    @ManyToMany(mappedBy = "vouchers")
+    private List<Order> orders;
 
     public Voucher() {
         this.createAt = LocalDateTime.now();
