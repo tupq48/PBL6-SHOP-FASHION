@@ -1,13 +1,9 @@
 package com.shop.pbl6_shop_fashion.dto.voucher;
 
-import com.shop.pbl6_shop_fashion.dto.TypeMapper;
 import com.shop.pbl6_shop_fashion.entity.Voucher;
-import org.springframework.stereotype.Component;
 
-@Component
-public class VoucherMapper implements TypeMapper<Voucher, VoucherDto> {
-    @Override
-    public Voucher mapperFrom(VoucherDto source) {
+public class VoucherMapper {
+    public static Voucher toVoucher(VoucherDto source) {
         if (source == null) {
             return null;
         }
@@ -28,8 +24,7 @@ public class VoucherMapper implements TypeMapper<Voucher, VoucherDto> {
         return voucher;
     }
 
-    @Override
-    public VoucherDto mapperTo(Voucher source) {
+    public static VoucherDto toVoucherDto(Voucher source) {
         if (source == null) {
             return null;
         }

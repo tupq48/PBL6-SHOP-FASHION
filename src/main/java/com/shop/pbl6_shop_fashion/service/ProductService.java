@@ -11,6 +11,7 @@ import com.shop.pbl6_shop_fashion.dto.ProductDetail;
 import com.shop.pbl6_shop_fashion.entity.*;
 import com.shop.pbl6_shop_fashion.enums.DiscountType;
 import com.shop.pbl6_shop_fashion.enums.SizeType;
+import com.shop.pbl6_shop_fashion.exception.ProductException;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import jakarta.persistence.EntityManager;
@@ -71,12 +72,14 @@ public class ProductService {
     }
 
     @Cacheable("products")
-    public List<ProductDetail> getAllProducts(int page, int pageSize){
+    public List<ProductDetail> getAllProducts(int page, int pageSize) {
 
-        return productDao.getAllProducts(page,pageSize);
+        return productDao.getAllProducts(page, pageSize);
     }
-    public PaginationResponse<ProductDetail> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
-        return productDao.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
+
+    public PaginationResponse<ProductDetail> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize) {
+        return productDao.getProductsByCategoryorBrand(category_id, brand_id, page, pageSize);
+    }
 
 
     @CacheEvict("products")
@@ -88,8 +91,10 @@ public class ProductService {
         });
         productRepository.updateProductImages(id, imageUrls);
     }
+
     @CacheEvict("products")
-    public void addProduct(String name, String desc, Integer price, String unit, Integer brandId, Integer categoryId, List<String> productSizes, List<MultipartFile> images, Integer promotionId) {
+    public void addProduct(String name, String desc, Integer price, String unit, Integer brandId, Integer
+            categoryId, List<String> productSizes, List<MultipartFile> images, Integer promotionId) {
 
         System.out.println("get brand cate : " + LocalDateTime.now());
         Product product = new Product();
@@ -155,7 +160,8 @@ public class ProductService {
     }
 
     @CacheEvict("products")
-    public void updateProduct(Integer productId, String name, String desc, Integer price, String unit, Integer brandId,
+    public void updateProduct(Integer productId, String name, String desc, Integer price, String unit, Integer
+            brandId,
                               Integer categoryId, List<String> productSizes, List<MultipartFile> images, Integer promotionId) {
         Product product = entityManager.find(Product.class, productId);
         if (product == null) return;
@@ -216,15 +222,9 @@ public class ProductService {
         return sizes;
     }
 
-    public PaginationResponse<ProductDetail> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category, int page, int pageSize) {
-        return  productDao.searchProductsMobile(keyword, minprice, maxprice, category,page,pageSize);
-    }
-    public List<ProductDetail> getBestSellingProducts(Integer limit) {
-        return productDao.getBestSellingProducts(limit);
-    }
-
     public Product findById(Integer id) {
-        return productRepository.findById(id).get();
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductException("Product not found"));
     }
 
     public Double getPromotionAmount(Product product) {
@@ -232,34 +232,64 @@ public class ProductService {
         if (promotion == null)
             return 0d;
         DiscountType discountType = promotion.getDiscountType();
-        switch (discountType){
+        switch (discountType) {
             case AMOUNT -> {
                 return promotion.getDiscountValue();
             }
             case PERCENTAGE -> {
-                return product.getPrice()*promotion.getDiscountValue()/100;
+                return product.getPrice() * promotion.getDiscountValue() / 100;
             }
         }
         return 0d;
+    }
+
+    public PaginationResponse<ProductDetail> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category, int page, int pageSize) {
+        return productDao.searchProductsMobile(keyword, minprice, maxprice, category, page, pageSize);
+    }
+
+    public List<ProductDetail> getBestSellingProducts(Integer limit) {
+        return productDao.getBestSellingProducts(limit);
+    }
+
+    public List<OrderItem> calculateOrderItemAndProcessProduct(List<OrderItemDto> orderItemDtos) {
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (OrderItemDto orderItemDto : orderItemDtos) {
+            int productId = orderItemDto.getProductId();
+
+            Product product = findById(productId);
+            orderItemDto.setUnitPrice(product.getPrice() - getPromotionAmount(product));
+            Size size = sizeService.findByName(orderItemDto.getSizeType());
+
+            OrderItem orderItem = OrderItem.builder()
+                    .product(product)
+                    .size(size.getName())
+                    .quantity(orderItemDto.getQuantity())
+                    .unitPrice(orderItemDto.getUnitPrice())
+                    .build();
+            orderItems.add(orderItem);
+            productSizeService.increaseSoldOut(product, size, orderItemDto.getQuantity());
+        }
+        return orderItems;
     }
 
     public List<OrderItem> calculateOrderItem(List<OrderItemDto> orderItemDtos) {
         List<OrderItem> orderItems = new ArrayList<>();
         for (OrderItemDto orderItemDto : orderItemDtos) {
             Integer productId = orderItemDto.getProductId();
+
             Product product = findById(productId);
             orderItemDto.setUnitPrice(orderItemDto.getUnitPrice() - getPromotionAmount(product));
             Size size = sizeService.findByName(orderItemDto.getSizeType());
+
             OrderItem orderItem = OrderItem.builder()
-                                    .product(product)
-                                    .size(size.getName())
-                                    .quantity(orderItemDto.getQuantity())
-                                    .unitPrice(orderItemDto.getUnitPrice())
-                                    .build();
+                    .product(product)
+                    .size(size.getName())
+                    .quantity(orderItemDto.getQuantity())
+                    .unitPrice(orderItemDto.getUnitPrice())
+                    .build();
             orderItems.add(orderItem);
-            productSizeService.increaseSoldOut(product, size, orderItemDto.getQuantity());
         }
         return orderItems;
-    };
-
+    }
 }
+

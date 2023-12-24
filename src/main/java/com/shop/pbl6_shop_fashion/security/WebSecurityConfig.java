@@ -29,8 +29,8 @@ public class WebSecurityConfig {
             "/public/**", "/api/auth/**", "/oauth2/**",
             "/", "/error", "/csrf",
             "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**",
-            "/api/promotion/**", "/api/payment/**", "api/vouchers/**"
-            ,"/api/promotion/**","/api/payment/**", "/api/statistical/**"
+            "/api/promotion/**", "/api/payment/**", "api/vouchers/**","api/orders/**",
+            "/api/promotion/**","/api/payment/**", "/api/statistical/**"
     };
     private final AuthenticationProvider authenticationProvider;
     private final JwtFilter jwtFilter;

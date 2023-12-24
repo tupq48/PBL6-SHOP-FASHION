@@ -3,21 +3,25 @@ package com.shop.pbl6_shop_fashion.service.impl;
 import com.shop.pbl6_shop_fashion.dao.OrderRepository;
 import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
+import com.shop.pbl6_shop_fashion.dto.order.OrderItemDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderMapper;
-import com.shop.pbl6_shop_fashion.dto.user.UserDto;
-import com.shop.pbl6_shop_fashion.dto.user.UserMapper;
-import com.shop.pbl6_shop_fashion.dto.user.UserMapperImpl;
+import com.shop.pbl6_shop_fashion.dto.order.OrderResponse;
+import com.shop.pbl6_shop_fashion.dto.voucher.VoucherMapper;
 import com.shop.pbl6_shop_fashion.entity.*;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
+import com.shop.pbl6_shop_fashion.enums.VoucherType;
 import com.shop.pbl6_shop_fashion.exception.OrderException;
+import com.shop.pbl6_shop_fashion.exception.VoucherBaseException;
 import com.shop.pbl6_shop_fashion.service.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,92 +32,84 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
-
     private final ProductService productService;
     private final OrderRepository orderRepository;
     private final UserService userService;
     private final VoucherService voucherService;
-    private final ProductSizeService productSizeService;
-    private final SizeService sizeService;
+    private final CartService cartService;
+    private final GHNApiService ghnApiService;
 
     @Override
     @Transactional
-    public OrderDto createOrder(OrderDto orderDto, PaymentMethod paymentMethod) {
-        Order order = Order.builder().orderDate(LocalDateTime.now())
-                .orderStatus(OrderStatus.UNCONFIRMED)
-                .paymentMethod(paymentMethod)
-                .name(orderDto.getName())
-                .shippingAddress(orderDto.getShippingAddress())
-                .phoneNumber(orderDto.getPhoneNumber())
-                .note(orderDto.getNote())
-                .build();
+    public OrderResponse createOrder(OrderDto orderDto, PaymentMethod paymentMethod) {
+        Order order = OrderMapper.toOrder(orderDto);
 
+        List<OrderItemDto> orderItemDtoList = orderDto.getOrderItems()
+                .stream()
+                .map(OrderMapper::toOrderItemDTO)
+                .toList();
+        List<OrderItem> orderItems = productService.calculateOrderItemAndProcessProduct(orderItemDtoList);
 
-        // chuyển list cart order item sang oder item
-        List<CartItemDto> cartItems = orderDto.getOrderItems();
-        List<OrderItem> orderItems = new ArrayList<>();
-
-        for (CartItemDto cartItemDto : cartItems) {
-            Product product = productService.findById(cartItemDto.getProductId());
-            OrderItem orderItem = OrderItem.builder()
-                    .order(order)
-                    .product(product)
-                    .quantity(cartItemDto.getQuantity())
-                    .unitPrice(product.getPrice())
-                    .size(cartItemDto.getSize())
-                    .build();
-            System.out.println(orderItem);
-            orderItems.add(orderItem);
-
-            productSizeService.increaseSoldOut(product,
-                                    sizeService.findByName(orderItem.getSize()),
-                                    orderItem.getQuantity());
-        }
-
-        order.setOrderItems(orderItems);
-        User user = userService.findById(orderDto.getUserId());
-        order.setUser(user);
-
-
-//         Process order items with ProductService to calculate totalAmount and discountAmount
+        final long feeShip = ghnApiService.getShippingFee(orderDto.getDistrictId(), orderDto.getWardCode());
+        final User user = orderDto.getUserId() == 0 ? null : userService.findById(orderDto.getUserId());
+        long totalAmount = getTotalAmount(orderItems);
+        totalAmount += feeShip;
 
         // Process voucher
-        // TODO: Implement voucher processing logic and update order accordingly
-        System.out.println("voucher id: " + orderDto.getVoucherId());
-        if(orderDto.getVoucherId() > 0)
-            voucherService.reduceVoucher(orderDto.getVoucherId());
+        List<Voucher> vouchers = new ArrayList<>();
+        long amountDiscount = 0;
+        if (orderDto.getIdsVoucher() != null && orderDto.getIdsVoucher().size() < 3) {
+            amountDiscount += applyVouchers(orderDto.getIdsVoucher(), vouchers, totalAmount);
+        }
 
-        // Process shipping cost
-        // TODO: Implement shipping cost processing logic and update order accordingly
-
-//         Save the order and order item to the database
+        order.setId(0);
+        order.setOrderStatus(OrderStatus.UNCONFIRMED);
+        order.setVouchers(vouchers);
+        order.setOrderItems(orderItems);
+        order.setDiscountAmount(amountDiscount);
+        order.setTotalAmount(totalAmount);
+        order.setFeeShip(feeShip);
+        order.setUser(user);
         Order savedOrder = orderRepository.save(order);
 
-        // Process delete cart item
-        // TODO: ...
+        deleteCartItem(orderDto.getUserId(), orderDto.getOrderItems());
+        savedOrder.setOrderItems(orderItems);
+        return OrderMapper.toOrderResponse(savedOrder);
+    }
 
+    private long getTotalAmount(List<OrderItem> orderItems) {
+        long totalAmount = 0;
+        for (OrderItem orderItem : orderItems) {
+            totalAmount += orderItem.getQuantity() * orderItem.getUnitPrice();
+        }
+        return totalAmount;
+    }
 
+    @Async
+    void deleteCartItem(int userId, @NotNull List<CartItemDto> cartItems) {
+        List<Integer> itemIdsToDelete = cartItems.stream()
+                .map(CartItemDto::getId)
+                .filter(id -> id > 0)
+                .toList();
 
-
-        // Map the saved Order back to OrderDto
-//        return mapToOrderDto(savedOrder);
-        return null;
+        if (!itemIdsToDelete.isEmpty()) {
+            cartService.removeItems(userId, itemIdsToDelete);
+        }
     }
 
     @Override
-    public OrderDto getOrderDetailsById(int orderId) {
+    public OrderResponse getOrderDetailsById(int orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
-        return OrderMapper.toOrderDto(order);
+        return OrderMapper.toOrderResponse(order);
     }
 
     @Override
-    public Slice<OrderDto> getAllOrders(Pageable pageable, OrderStatus newStatus, String startDate, String endDate) {
+    public Slice<OrderResponse> getAllOrders(Pageable pageable, OrderStatus newStatus, String startDate, String endDate) {
 
         Pageable defaultPageable = getPageableDefault(pageable);
         Slice<Order> orders;
@@ -130,47 +126,45 @@ public class OrderServiceImpl implements OrderService {
         } else {
             orders = orderRepository.findAll(defaultPageable);
         }
-
-        return orders.map(OrderMapper::toOrderDto);
+        return orders.map(OrderMapper::toOrderResponse);
     }
-
 
     @Override
     @Transactional
-    public OrderDto updateUserOrderStatus(int orderId, OrderStatus newStatus) {
+    public OrderResponse updateUserOrderStatus(int orderId, OrderStatus newStatus) {
         return updateOrderStatus(orderId, newStatus, false);
     }
 
     @Override
     @Transactional
-    public OrderDto updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus) {
+    public OrderResponse updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus) {
         for (int orderId : orderIds) {
             updateOrderStatus(orderId, newStatus, true);
         }
-        return new OrderDto();
+        return new OrderResponse();
     }
 
     @Override
-    public OrderDto confirmPayment(int orderId, PaymentMethod paymentMethod) {
+    public OrderResponse confirmPayment(int orderId, PaymentMethod paymentMethod) {
         return null;
     }
 
     @Override
-    public Slice<OrderDto> getOrdersByStatus(OrderStatus status, Pageable pageable) {
+    public Slice<OrderResponse> getOrdersByStatus(OrderStatus status, Pageable pageable) {
         Pageable defaultPageable = getPageableDefault(pageable);
         Slice<Order> orders = orderRepository.findAllByOrderStatus(status, defaultPageable);
-        return orders.map(OrderMapper::toOrderDto);
+        return orders.map(OrderMapper::toOrderResponse);
     }
 
     @Override
-    public Slice<OrderDto> getOrdersByCustomer(int customerId, Pageable pageable) {
+    public Slice<OrderResponse> getOrdersByCustomer(int customerId, Pageable pageable) {
         Pageable defaultPageable = getPageableDefault(pageable);
         Slice<Order> orders = orderRepository.findAllByUserId(customerId, defaultPageable);
-        return orders.map(OrderMapper::toOrderDto);
+        return orders.map(OrderMapper::toOrderResponse);
     }
 
     @Override
-    public Slice<OrderDto> getOrdersByDateRange(String startDate, String endDate, Pageable pageable) {
+    public Slice<OrderResponse> getOrdersByDateRange(String startDate, String endDate, Pageable pageable) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         LocalDateTime startDateTime = parseDate(startDate, formatter, LocalDateTime.now().minus(7, ChronoUnit.DAYS));
@@ -178,7 +172,7 @@ public class OrderServiceImpl implements OrderService {
 
         Pageable defaultPageable = getPageableDefault(pageable);
         Slice<Order> orders = orderRepository.findAllByOrderDateBetween(startDateTime, endDateTime, defaultPageable);
-        return orders.map(OrderMapper::toOrderDto);
+        return orders.map(OrderMapper::toOrderResponse);
     }
 
     private LocalDateTime parseDate(String date, DateTimeFormatter formatter, LocalDateTime defaultValue) {
@@ -213,7 +207,7 @@ public class OrderServiceImpl implements OrderService {
         };
     }
 
-    private OrderDto updateOrderStatus(int orderId, OrderStatus newStatus, boolean isAdmin) {
+    private OrderResponse updateOrderStatus(int orderId, OrderStatus newStatus, boolean isAdmin) {
         Order orderToUpdate = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
 
@@ -226,9 +220,29 @@ public class OrderServiceImpl implements OrderService {
         if (isValidStatusTransition(currentStatus, newStatus)) {
             orderToUpdate.setOrderStatus(newStatus);
             orderRepository.save(orderToUpdate);
-            return OrderMapper.toOrderDto(orderToUpdate);
+            return OrderMapper.toOrderResponse(orderToUpdate);
         } else {
             throw new OrderException("Invalid status transition", HttpStatus.BAD_REQUEST);
         }
     }
+
+    private long applyVouchers(List<Integer> voucherIds, List<Voucher> vouchers, long totalAmount) {
+        List<VoucherType> appliedVoucherTypes = new ArrayList<>();
+        long amountDiscount = 0;
+
+        for (int idVoucher : voucherIds) {
+            Voucher voucher = VoucherMapper.toVoucher(voucherService.getVoucherById(idVoucher));
+            if (appliedVoucherTypes.contains(voucher.getVoucherType())) {
+                throw new VoucherBaseException("Voucher type " + voucher.getVoucherType() + " has already been applied.");
+            }
+            amountDiscount += voucherService.getValueDiscount(voucher, totalAmount);
+            voucherService.reduceVoucher(voucher);
+            voucher.setId(idVoucher);
+            vouchers.add(voucher);
+            appliedVoucherTypes.add(voucher.getVoucherType());
+        }
+        return amountDiscount;
+    }
+
+
 }
