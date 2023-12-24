@@ -1,12 +1,14 @@
 package com.shop.pbl6_shop_fashion.service;
 
 import com.shop.pbl6_shop_fashion.dao.CommentRepository;
+import com.shop.pbl6_shop_fashion.dto.comment.CommentDto;
 import com.shop.pbl6_shop_fashion.entity.*;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class CommentService {
@@ -40,5 +42,9 @@ public class CommentService {
             comment.setCreateAt(LocalDateTime.now());
         }
         commentRepository.save(comment);
+    }
+
+    public List<CommentDto> getAllComment() {
+        return commentRepository.getAll();
     }
 }

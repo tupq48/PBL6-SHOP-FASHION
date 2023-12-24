@@ -16,28 +16,23 @@ import java.util.concurrent.Executors;
 public class BrandService {
     @Autowired
     private BrandRepository brandRepository;
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
-
 
     public List<Brand> getAllBrand() {
-        return brandRepository.findAll();
+        return brandRepository.findAllByIsDeleted(false);
     }
 
     public Brand createBrand(String name, String desc, MultipartFile image) {
 
-        // Brand brand = Brand.builder().name(name).description(desc).imageUrl(imageUrl).build();
         Brand brand = Brand.builder().name(name).description(desc).build();
-
 
         String imageUrl = ImgBBUtils.uploadImage(image);
         brand.setImageUrl(imageUrl);
 
         Brand savedBrand = brandRepository.save(brand);
-        // ==============
         return savedBrand;
     }
 
-    public Brand patchBrand(Integer brandId, String name, String desc, MultipartFile image) {
+    public Brand updateBrand(Integer brandId, String name, String desc, MultipartFile image) {
         Optional<Brand> opt = brandRepository.findById(brandId);
         Brand brand = null;
         if (opt.isEmpty()) return null;
@@ -50,10 +45,15 @@ public class BrandService {
             brand.setDescription(desc);
         }
 
-
         String imageUrl = ImgBBUtils.uploadImage(image);
         brand.setImageUrl(imageUrl);
         Brand updatedBrand = brandRepository.save(brand);
         return updatedBrand;
+    }
+
+    public void deleteBrand(Integer brandId) {
+        Brand brand = brandRepository.findById(brandId).get();
+        brand.setIsDeleted(true);
+        brandRepository.save(brand);
     }
 }

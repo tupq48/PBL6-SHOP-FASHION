@@ -7,11 +7,14 @@ import com.shop.pbl6_shop_fashion.dto.Product.ProductDetailDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductPromotionDto;
 import com.shop.pbl6_shop_fashion.dto.ProductMobile;
+import com.shop.pbl6_shop_fashion.dto.order.OrderItemDto;
 import com.shop.pbl6_shop_fashion.entity.*;
+import com.shop.pbl6_shop_fashion.enums.DiscountType;
 import com.shop.pbl6_shop_fashion.enums.SizeType;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,7 @@ import java.util.List;
 
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
     @Autowired
     private ProductRepository productRepository;
@@ -38,6 +42,10 @@ public class ProductService {
 
     @Autowired
     EntityManager entityManager;
+
+    private final ProductSizeService productSizeService;
+
+    private final SizeService sizeService;
 
     public ProductDetailDto getProductDetailById(Integer id) {
         return productRepository.getProductDetailById(id);
@@ -216,4 +224,44 @@ public class ProductService {
     public List<ProductMobile> getBestSellingProducts(Integer limit) {
         return productDao.getBestSellingProducts(limit);
     }
+
+    public Product findById(Integer id) {
+        return productRepository.findById(id).get();
+    }
+
+    public Double getPromotionAmount(Product product) {
+        Promotion promotion = product.getPromotion();
+        if (promotion == null)
+            return 0d;
+        DiscountType discountType = promotion.getDiscountType();
+        switch (discountType){
+            case AMOUNT -> {
+                return promotion.getDiscountValue();
+            }
+            case PERCENTAGE -> {
+                return product.getPrice()*promotion.getDiscountValue()/100;
+            }
+        }
+        return 0d;
+    }
+
+    public List<OrderItem> calculateOrderItem(List<OrderItemDto> orderItemDtos) {
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (OrderItemDto orderItemDto : orderItemDtos) {
+            Integer productId = orderItemDto.getProductId();
+            Product product = findById(productId);
+            orderItemDto.setUnitPrice(orderItemDto.getUnitPrice() - getPromotionAmount(product));
+            Size size = sizeService.findByName(orderItemDto.getSizeType());
+            OrderItem orderItem = OrderItem.builder()
+                                    .product(product)
+                                    .size(size.getName())
+                                    .quantity(orderItemDto.getQuantity())
+                                    .unitPrice(orderItemDto.getUnitPrice())
+                                    .build();
+            orderItems.add(orderItem);
+            productSizeService.increaseSoldOut(product, size, orderItemDto.getQuantity());
+        }
+        return orderItems;
+    };
+
 }

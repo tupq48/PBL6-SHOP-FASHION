@@ -19,7 +19,6 @@ public class ImgBBUtils {
         try {
             final String apiUrl = "https://api.imgbb.com/1/upload";
             final String apiKey = "e40f7c96227b1eb79c06061374424f3f";
-            final String expiration = "600";
             byte[] imageBytes = image.getBytes(); // Đọc dữ liệu của hình ảnh từ nguồn nào đó (ví dụ: file)
 
             // Tạo RestTemplate
@@ -31,7 +30,6 @@ public class ImgBBUtils {
 
             // Tạo đối tượng MultiValueMap để chứa các tham số và file
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("expiration", expiration);
             body.add("key", apiKey);
             body.add("image", new ByteArrayResource(imageBytes) {
                 @Override
@@ -54,9 +52,6 @@ public class ImgBBUtils {
             HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
             String responseBody = responseEntity.getBody();
 
-            // In ra phản hồi
-            System.out.println("Response Code: " + statusCode);
-            System.out.println("Response Body: " + responseBody);
             imageUrl = getImageUrl(responseBody);
 
         } catch (Exception e) {

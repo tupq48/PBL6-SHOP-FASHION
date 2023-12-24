@@ -17,4 +17,10 @@ public class Category {
     private String name;
     private String description;
     private String imageUrl;
+    private Boolean isDeleted = false;
+
+    @PrePersist
+    void onCreate() {
+        this.isDeleted = false;
+    }
 }

@@ -2,6 +2,7 @@ package com.shop.pbl6_shop_fashion.service;
 
 import com.shop.pbl6_shop_fashion.dto.user.UserDto;
 import com.shop.pbl6_shop_fashion.entity.Role;
+import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.enums.RoleType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,4 +23,6 @@ public interface UserService {
 
     List<Role> updatePermissionUser(int id, RoleType roleType);
     Slice<UserDto> searchUsers(String keyword, Pageable pageable);
+
+    User findById(Integer userId);
 }
