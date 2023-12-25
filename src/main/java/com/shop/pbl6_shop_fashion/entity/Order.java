@@ -4,8 +4,6 @@ import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,9 +28,12 @@ public class Order {
     private String shippingAddress;
     private String phoneNumber;
     private String note;
-    private double totalAmount;
-    private double feeShip;
-    private double discountAmount;
+    private long totalPayment;
+    private long totalProductAmount;
+    private long shippingFee;
+    private long discountAmount;
+    private long discountShippingFee;
+    private String vnpTxnRef;
     @ManyToMany
     @JoinTable(
             name = "order_voucher",

@@ -32,7 +32,7 @@ public interface VoucherService {
 
     long getValueDiscount(Voucher voucher, double valueOrder);
 
-    List<VoucherDto> getTopVoucher(double orderAmount, VoucherType voucherType, Pageable pageable);
+    List<VoucherDto> getTopVoucher(double orderAmount);
 
     boolean reduceVoucher(Voucher voucher);
 
