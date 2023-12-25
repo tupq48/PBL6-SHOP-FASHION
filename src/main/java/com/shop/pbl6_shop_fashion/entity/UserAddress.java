@@ -23,5 +23,8 @@ public class UserAddress {
     private String name;
     private String street;
     private boolean isDefault;
+    private String wardCode;
+    private long districtId;
+
 
 }

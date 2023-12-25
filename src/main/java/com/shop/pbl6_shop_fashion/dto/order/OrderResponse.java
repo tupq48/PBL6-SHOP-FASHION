@@ -1,7 +1,5 @@
 package com.shop.pbl6_shop_fashion.dto.order;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.shop.pbl6_shop_fashion.entity.OrderItem;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import lombok.*;
@@ -23,9 +21,12 @@ public class OrderResponse {
     private String shippingAddress;
     private String phoneNumber;
     private String note;
-    private double totalAmount;
-    private double feeShip;
-    private double discountAmount;
+    private long totalPayment;
+    private long totalProductAmount;
+    private long shippingFee;
+    private long discountAmount;
+    private long discountShippingFee;
     private List<OrderItemDto> orderItems;
     private int userId;
+    private String urlPayment;
 }

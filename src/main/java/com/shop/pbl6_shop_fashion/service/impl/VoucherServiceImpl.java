@@ -50,7 +50,6 @@ public class VoucherServiceImpl implements VoucherService {
         return VoucherMapper.toVoucherDto(voucherRepository.save(voucher));
     }
 
-
     @Override
     public VoucherDto updateVoucher(int id, VoucherDto voucherDto) {
         validateDiscountTypeAndValue(voucherDto.getDiscountType(), voucherDto.getDiscountValue());
@@ -68,12 +67,12 @@ public class VoucherServiceImpl implements VoucherService {
     public Slice<VoucherDto> getAllVouchers(Pageable pageable, Boolean active) {
         Pageable defaultPageable = getPageable(pageable);
 
-        if (null == active) {
+        if (active == null) {
             return voucherRepository.findAll(defaultPageable)
                     .map(VoucherMapper::toVoucherDto);
         }
 
-        Slice<Voucher> voucherSlice = voucherRepository.findAllByActive(active, defaultPageable);
+        Slice<Voucher> voucherSlice = voucherRepository.findAllByExpiryDateAfterAndActive(LocalDateTime.now(), active, defaultPageable);
 
         return voucherSlice
                 .map(VoucherMapper::toVoucherDto);
@@ -82,14 +81,15 @@ public class VoucherServiceImpl implements VoucherService {
     private Pageable getPageable(Pageable pageable) {
         return pageable != null ?
                 pageable :
-                PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "expiryDate", "discountType"));
+                PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "discountType"));
     }
 
     @Override
     public Slice<VoucherDto> getVouchersByStatusAndVoucherType(boolean active, VoucherType voucherType, Pageable pageable) {
         Pageable defaultPageable = getPageable(pageable);
+        LocalDateTime timeNow = LocalDateTime.now();
 
-        Slice<Voucher> voucherSlice = voucherRepository.findAllByActiveAndVoucherType(active, voucherType, defaultPageable);
+        Slice<Voucher> voucherSlice = voucherRepository.findAllByExpiryDateAfterAndActiveAndVoucherType(timeNow, active, voucherType, defaultPageable);
 
         return voucherSlice
                 .map(VoucherMapper::toVoucherDto);
@@ -147,8 +147,11 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public List<VoucherDto> getTopVoucher(double orderAmount, VoucherType voucherType, Pageable pageable) {
-        return null;
+    public List<VoucherDto> getTopVoucher(double orderAmount) {
+        return voucherRepository.findTop10PurchaseVouchers(orderAmount, LocalDateTime.now())
+                .stream()
+                .map(VoucherMapper::toVoucherDto)
+                .toList();
     }
 
     @Override
@@ -169,6 +172,7 @@ public class VoucherServiceImpl implements VoucherService {
         voucherRepository.save(voucher);
         return true;
     }
+
     @Override
     @Retryable(
             retryFor = {StaleObjectStateException.class},

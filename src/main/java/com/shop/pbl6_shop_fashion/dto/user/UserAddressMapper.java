@@ -33,7 +33,8 @@ public class UserAddressMapper implements TypeMapper<UserAddress, UserAddressDto
         }
         userAddress.setDefault(source.isDefault());
 
-        // Bạn cần thêm logic để set các trường khác tùy theo yêu cầu
+        userAddress.setDistrictId(source.getDistrictId());
+        userAddress.setWardCode(source.getWardCode());
 
         return userAddress;
     }
@@ -52,6 +53,8 @@ public class UserAddressMapper implements TypeMapper<UserAddress, UserAddressDto
         userAddressDto.setName(target.getName());
         userAddressDto.setStreet(target.getStreet());
         userAddressDto.setDefault(target.isDefault());
+        userAddressDto.setDistrictId(target.getDistrictId());
+        userAddressDto.setWardCode(target.getWardCode());
 
         // Bạn cần thêm logic để set các trường khác tùy theo yêu cầu
 

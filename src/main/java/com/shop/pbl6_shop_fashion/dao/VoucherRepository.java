@@ -11,16 +11,19 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface VoucherRepository extends JpaRepository<Voucher,Integer> {
+public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
     boolean existsByCode(String code);
-    Optional<Voucher> findByCode(String code);
-    Slice<Voucher> findAllByActive(boolean active,Pageable pageable);
 
-    Slice<Voucher> findAllByActiveAndVoucherType(boolean active, VoucherType voucherType,Pageable pageable);
+    Optional<Voucher> findByCode(String code);
+
+    Slice<Voucher> findAllByExpiryDateAfterAndActive(LocalDateTime expiryDate, boolean active, Pageable pageable);
+
+    Slice<Voucher> findAllByExpiryDateAfterAndActiveAndVoucherType(LocalDateTime expiryDate, boolean active, VoucherType voucherType, Pageable pageable);
 
     @Modifying
     @Query("UPDATE Voucher v SET v.active = :isActive WHERE v.id IN :ids")
@@ -28,13 +31,14 @@ public interface VoucherRepository extends JpaRepository<Voucher,Integer> {
 
     @Query("SELECT v FROM Voucher v WHERE v.active=true " +
             "AND v.minimumPurchaseAmount <= :orderAmount " +
-            "AND v.voucherType = :voucherType " +
+            "AND v.expiryDate > :timeNow " +
             "ORDER BY CASE v.discountType " +
             "WHEN com.shop.pbl6_shop_fashion.enums.DiscountType.PERCENTAGE THEN v.discountValue * :orderAmount / 100 " +
             "ELSE v.discountValue END DESC")
-    List<Voucher> findTopPurchaseVouchers(@Param("orderAmount") double orderAmount,
-                                          @Param("voucherType") VoucherType voucherType,
-                                          Pageable pageable);
+    List<Voucher> findTop10PurchaseVouchers(@Param("orderAmount") double orderAmount,
+                                            @Param("timeNow") LocalDateTime timeNow
+                                            );
+
     List<Voucher> findTop10ByDiscountTypeAndActiveIs(DiscountType discountType, boolean active);
 
     List<Voucher> findTop10ByActiveAndVoucherType(boolean active, VoucherType voucherType);

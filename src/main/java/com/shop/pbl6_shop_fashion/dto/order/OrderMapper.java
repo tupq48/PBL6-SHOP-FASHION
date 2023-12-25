@@ -3,13 +3,6 @@ package com.shop.pbl6_shop_fashion.dto.order;
 import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
 import com.shop.pbl6_shop_fashion.entity.Order;
 import com.shop.pbl6_shop_fashion.entity.OrderItem;
-import jakarta.validation.constraints.NotNull;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class OrderMapper {
     public static OrderResponse toOrderResponse(Order order) {
@@ -23,11 +16,18 @@ public class OrderMapper {
         orderResponse.setShippingAddress(order.getShippingAddress());
         orderResponse.setPhoneNumber(order.getPhoneNumber());
         orderResponse.setNote(order.getNote());
-        orderResponse.setTotalAmount(order.getTotalAmount());
-        orderResponse.setFeeShip(order.getFeeShip());
+
+        orderResponse.setTotalPayment(order.getTotalPayment());
+        orderResponse.setShippingFee(order.getShippingFee());
         orderResponse.setDiscountAmount(order.getDiscountAmount());
+        orderResponse.setDiscountShippingFee(order.getDiscountShippingFee());
+        orderResponse.setTotalProductAmount(order.getTotalProductAmount());
+
         if (order.getOrderItems() != null) {
-            orderResponse.setOrderItems(order.getOrderItems().stream().map(OrderMapper::toOrderItemDTO).toList());
+            orderResponse.setOrderItems(order.getOrderItems()
+                    .stream()
+                    .map(OrderMapper::toOrderItemDTO)
+                    .toList());
         }
 
         if (order.getUser() != null) {
@@ -47,8 +47,12 @@ public class OrderMapper {
         order.setShippingAddress(orderDto.getShippingAddress());
         order.setPhoneNumber(orderDto.getPhoneNumber());
         order.setNote(orderDto.getNote());
-        order.setTotalAmount(orderDto.getTotalAmount());
+
+        order.setTotalPayment(orderDto.getTotalPayment());
+        order.setShippingFee(orderDto.getShippingFee());
         order.setDiscountAmount(orderDto.getDiscountAmount());
+        order.setDiscountShippingFee(orderDto.getDiscountShippingFee());
+        order.setTotalProductAmount(orderDto.getTotalProductAmount());
 
 
         return order;
