@@ -1,14 +1,9 @@
 package com.shop.pbl6_shop_fashion.api;
 
 import com.shop.pbl6_shop_fashion.payment.PaymentService;
-import com.shop.pbl6_shop_fashion.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -29,8 +24,7 @@ public class PaymentController {
 
     @PostMapping("/create-order")
     public String refundOrder(@RequestParam("amount") int orderTotal) {
-        String vnpayUrl = paymentService.getUrlPayment(orderTotal, "GD");
-        return vnpayUrl;
+        return paymentService.getUrlPayment(orderTotal, "GD", null);
     }
 
     @GetMapping("/payment-callback")

@@ -1,5 +1,6 @@
 package com.shop.pbl6_shop_fashion.service.impl;
 
+import com.google.gson.Gson;
 import com.shop.pbl6_shop_fashion.dao.OrderRepository;
 import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
@@ -7,12 +8,16 @@ import com.shop.pbl6_shop_fashion.dto.order.OrderItemDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderMapper;
 import com.shop.pbl6_shop_fashion.dto.order.OrderResponse;
 import com.shop.pbl6_shop_fashion.dto.voucher.VoucherMapper;
-import com.shop.pbl6_shop_fashion.entity.*;
+import com.shop.pbl6_shop_fashion.entity.Order;
+import com.shop.pbl6_shop_fashion.entity.OrderItem;
+import com.shop.pbl6_shop_fashion.entity.User;
+import com.shop.pbl6_shop_fashion.entity.Voucher;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import com.shop.pbl6_shop_fashion.enums.VoucherType;
 import com.shop.pbl6_shop_fashion.exception.OrderException;
-import com.shop.pbl6_shop_fashion.exception.VoucherBaseException;
+import com.shop.pbl6_shop_fashion.payment.PaymentService;
+import com.shop.pbl6_shop_fashion.payment.VnPayConfig;
 import com.shop.pbl6_shop_fashion.service.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final VoucherService voucherService;
     private final CartService cartService;
     private final GHNApiService ghnApiService;
+    private final PaymentService paymentService;
 
     @Override
     @Transactional
@@ -54,31 +60,51 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
         List<OrderItem> orderItems = productService.calculateOrderItemAndProcessProduct(orderItemDtoList);
 
-        final long feeShip = ghnApiService.getShippingFee(orderDto.getDistrictId(), orderDto.getWardCode());
         final User user = orderDto.getUserId() == 0 ? null : userService.findById(orderDto.getUserId());
-        long totalAmount = getTotalAmount(orderItems);
-        totalAmount += feeShip;
+        final long feeShip = ghnApiService.getShippingFee(orderDto.getDistrictId(), orderDto.getWardCode());
+        final long totalProductAmount = getTotalAmount(orderItems);
 
         // Process voucher
         List<Voucher> vouchers = new ArrayList<>();
         long amountDiscount = 0;
+        long feeShipDiscount = 0;
         if (orderDto.getIdsVoucher() != null && orderDto.getIdsVoucher().size() < 3) {
-            amountDiscount += applyVouchers(orderDto.getIdsVoucher(), vouchers, totalAmount);
+            amountDiscount = applyVouchers(orderDto.getIdsVoucher(), vouchers, totalProductAmount, VoucherType.PURCHASE);
+            feeShipDiscount = applyVouchers(orderDto.getIdsVoucher(), vouchers, totalProductAmount, VoucherType.FREE_SHIP);
+        }
+        final long totalPayment = totalProductAmount + feeShip - feeShipDiscount - amountDiscount;
+        OrderStatus orderStatus;
+        String vnpTxnRef = null;
+
+        if (orderDto.getPaymentMethod() == PaymentMethod.VNPAY) {
+            orderStatus = OrderStatus.PREPARING_PAYMENT;
+            vnpTxnRef = VnPayConfig.getRandomNumber();
+        } else {
+            orderStatus = OrderStatus.UNCONFIRMED;
         }
 
         order.setId(0);
-        order.setOrderStatus(OrderStatus.UNCONFIRMED);
+        order.setOrderStatus(orderStatus);
         order.setVouchers(vouchers);
         order.setOrderItems(orderItems);
-        order.setDiscountAmount(amountDiscount);
-        order.setTotalAmount(totalAmount);
-        order.setFeeShip(feeShip);
         order.setUser(user);
-        Order savedOrder = orderRepository.save(order);
+        order.setVnpTxnRef(vnpTxnRef);
 
+        order.setTotalProductAmount(totalProductAmount);
+        order.setShippingFee(feeShip);
+        order.setDiscountShippingFee(feeShipDiscount);
+        order.setDiscountAmount(amountDiscount);
+        order.setTotalPayment(totalPayment);
+
+        Order savedOrder = orderRepository.save(order);
         deleteCartItem(orderDto.getUserId(), orderDto.getOrderItems());
-        savedOrder.setOrderItems(orderItems);
-        return OrderMapper.toOrderResponse(savedOrder);
+
+        OrderResponse orderResponse = OrderMapper.toOrderResponse(savedOrder);
+        if (orderDto.getPaymentMethod() == PaymentMethod.VNPAY) {
+            String message = new Gson().toJson(orderResponse.getOrderItems());
+            orderResponse.setUrlPayment(paymentService.getUrlPayment(totalPayment, message, vnpTxnRef));
+        }
+        return orderResponse;
     }
 
     private long getTotalAmount(List<OrderItem> orderItems) {
@@ -226,23 +252,19 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private long applyVouchers(List<Integer> voucherIds, List<Voucher> vouchers, long totalAmount) {
-        List<VoucherType> appliedVoucherTypes = new ArrayList<>();
-        long amountDiscount = 0;
-
+    private long applyVouchers(List<Integer> voucherIds, List<Voucher> vouchers, long totalAmount, VoucherType targetVoucherType) {
         for (int idVoucher : voucherIds) {
             Voucher voucher = VoucherMapper.toVoucher(voucherService.getVoucherById(idVoucher));
-            if (appliedVoucherTypes.contains(voucher.getVoucherType())) {
-                throw new VoucherBaseException("Voucher type " + voucher.getVoucherType() + " has already been applied.");
+            if (targetVoucherType != null && targetVoucherType != voucher.getVoucherType()) {
+                continue;
             }
-            amountDiscount += voucherService.getValueDiscount(voucher, totalAmount);
-            voucherService.reduceVoucher(voucher);
-            voucher.setId(idVoucher);
-            vouchers.add(voucher);
-            appliedVoucherTypes.add(voucher.getVoucherType());
+            long voucherDiscount = voucherService.getValueDiscount(voucher, totalAmount);
+            if (voucherDiscount > 0) {
+                voucherService.reduceVoucher(voucher);
+                vouchers.add(voucher);
+                return voucherDiscount;
+            }
         }
-        return amountDiscount;
+        return 0;
     }
-
-
 }

@@ -3,7 +3,6 @@ package com.shop.pbl6_shop_fashion.api;
 import com.shop.pbl6_shop_fashion.dto.voucher.VoucherDto;
 import com.shop.pbl6_shop_fashion.enums.VoucherType;
 import com.shop.pbl6_shop_fashion.service.VoucherService;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -77,12 +75,9 @@ public class VoucherController {
 
     //READ top 10 best voucher by amount
     @GetMapping("top")
-    public ResponseEntity<?> getTopVouchers(@PageableDefault() Pageable pageable,
-                                            @RequestParam(defaultValue = "0") double orderAmount,
-                                            @RequestParam(required = false) VoucherType voucherType) {
-
+    public ResponseEntity<?> getTopVouchers(@RequestParam(defaultValue = "1") double orderAmount) {
         if (orderAmount > 0) {
-            List<VoucherDto> vouchers = voucherService.getTopVoucher(orderAmount, voucherType, pageable);
+            List<VoucherDto> vouchers = voucherService.getTopVoucher(orderAmount);
             return new ResponseEntity<>(vouchers, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

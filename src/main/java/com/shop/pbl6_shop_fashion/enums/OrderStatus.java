@@ -8,5 +8,6 @@ public enum OrderStatus {
     DELIVERED,    // Giao thành công
     CANCELLED,    // Đã hủy
     RETURN_EXCHANGE,  // Trả hàng/Đổi hàng
-    REFUNDED;    // Trả tiền
+    REFUNDED,   // Trả tiền
+    PREPARING_PAYMENT;  // Chuẩn bị thanh toán trực tuyến
 }

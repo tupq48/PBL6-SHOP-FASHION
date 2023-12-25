@@ -21,11 +21,11 @@ import java.util.*;
 public class VnPayService implements PaymentService {
 
     @Override
-    public String getUrlPayment(long total, String orderInfo) {
+    public String getUrlPayment(long total, String orderInfo,String vnp_TxnRef) {
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-        String vnp_TxnRef = VnPayConfig.getRandomNumber();
+//        String vnp_TxnRef = VnPayConfig.getRandomNumber();
         String vnp_IpAddr = "127.0.0.1";
         String vnp_TmnCode = VnPayConfig.vnp_TmnCode;
         String orderType = "order-type";
