@@ -1,6 +1,5 @@
 package com.shop.pbl6_shop_fashion.api;
 
-import com.shop.pbl6_shop_fashion.auth.RegisterRequest;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
 import com.shop.pbl6_shop_fashion.dto.util.ResponseObject;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
