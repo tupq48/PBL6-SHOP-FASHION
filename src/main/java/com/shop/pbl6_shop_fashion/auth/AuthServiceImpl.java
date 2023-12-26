@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
         newUser.setUsername(request.getUsername().trim().toLowerCase());
         newUser.setPassword(passwordEncoder.encode(request.getPassword().trim()));
         newUser.setFullName(request.getName());
-        newUser.setGmail(request.getEmail().trim().toLowerCase());
+        newUser.setGmail(request.getGmail().trim().toLowerCase());
 
         if (userRepository.existsUserByUsernameAndAccountProvider(request.getUsername(), AccountProvider.LOCAL)) {
             throw new DuplicateUsernameException("Username already exists: " + request.getUsername());
