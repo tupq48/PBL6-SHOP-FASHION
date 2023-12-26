@@ -126,8 +126,8 @@ public class ProductDao {
             product.setProductId((Integer) result[4]);
             product.setProductName((String) result[5]);
             product.setPrice((Long) result[6]);
-            product.setQuantity_sold((Long) result[7]);
-            product.setQuantity((Long) result[8]);
+            product.setQuantity((Long) result[7]);
+            product.setQuantity_sold((Long) result[8]);
             product.setDecription((String) result[9]);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
             List<String> createDate = new ArrayList<>();
