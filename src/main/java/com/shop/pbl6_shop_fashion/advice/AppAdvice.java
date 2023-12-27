@@ -3,7 +3,6 @@ package com.shop.pbl6_shop_fashion.advice;
 import com.shop.pbl6_shop_fashion.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,9 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.io.InvalidClassException;
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +43,7 @@ public class AppAdvice {
         String errorMessage = ex.getMessage();
         return getErrorResponse(request, ex.getMessage(), ex, HttpStatus.BAD_REQUEST.value());
     }
+
     @ExceptionHandler(ProductException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleException(ProductException ex, HttpServletRequest request) {
@@ -98,12 +96,17 @@ public class AppAdvice {
 
     @ExceptionHandler(JwtException.class)
     public ErrorResponse handleJwtException(JwtException ex, HttpServletRequest request) {
-        ResponseStatus httpStatus =ex.getClass().getAnnotation(ResponseStatus.class);
+        ResponseStatus httpStatus = ex.getClass().getAnnotation(ResponseStatus.class);
         return getErrorResponse(request, ex.getMessage(), ex, httpStatus.value().value());
     }
 
     @ExceptionHandler(VoucherBaseException.class)
-    public ErrorResponse handleVoucherException(VoucherBaseException ex,HttpServletRequest request){
+    public ErrorResponse handleVoucherException(VoucherBaseException ex, HttpServletRequest request) {
+        return getErrorResponse(request, ex.getMessage(), ex, ex.getStatusCode().value());
+    }
+
+    @ExceptionHandler(OrderException.class)
+    public ErrorResponse handleOrderException(OrderException ex, HttpServletRequest request) {
         return getErrorResponse(request, ex.getMessage(), ex, ex.getStatusCode().value());
     }
 

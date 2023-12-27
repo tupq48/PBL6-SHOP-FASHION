@@ -295,12 +295,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private boolean canUserUpdateStatus(OrderStatus currentStatus, OrderStatus newStatus) {
-        return (currentStatus == OrderStatus.CONFIRMED || currentStatus == OrderStatus.UNCONFIRMED) &&
+        return (currentStatus == OrderStatus.CONFIRMED || currentStatus == OrderStatus.UNCONFIRMED || currentStatus == OrderStatus.PREPARING_PAYMENT) &&
                 newStatus == OrderStatus.CANCELLED;
     }
 
     private boolean isValidStatusTransitionAdmin(OrderStatus currentStatus, OrderStatus newStatus) {
         return switch (currentStatus) {
+            case PREPARING_PAYMENT -> newStatus == OrderStatus.UNCONFIRMED || newStatus == OrderStatus.CANCELLED;
             case UNCONFIRMED -> newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELLED;
             case CONFIRMED -> newStatus == OrderStatus.PACKAGING || newStatus == OrderStatus.CANCELLED;
             case PACKAGING -> newStatus == OrderStatus.IN_TRANSIT || newStatus == OrderStatus.CANCELLED;
