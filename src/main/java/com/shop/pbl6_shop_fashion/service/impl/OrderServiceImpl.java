@@ -3,10 +3,7 @@ package com.shop.pbl6_shop_fashion.service.impl;
 import com.google.gson.Gson;
 import com.shop.pbl6_shop_fashion.dao.OrderRepository;
 import com.shop.pbl6_shop_fashion.dto.cart.CartItemDto;
-import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
-import com.shop.pbl6_shop_fashion.dto.order.OrderItemDto;
-import com.shop.pbl6_shop_fashion.dto.order.OrderMapper;
-import com.shop.pbl6_shop_fashion.dto.order.OrderResponse;
+import com.shop.pbl6_shop_fashion.dto.order.*;
 import com.shop.pbl6_shop_fashion.dto.voucher.VoucherMapper;
 import com.shop.pbl6_shop_fashion.entity.Order;
 import com.shop.pbl6_shop_fashion.entity.OrderItem;
@@ -19,6 +16,7 @@ import com.shop.pbl6_shop_fashion.exception.OrderException;
 import com.shop.pbl6_shop_fashion.payment.PaymentService;
 import com.shop.pbl6_shop_fashion.payment.VnPayConfig;
 import com.shop.pbl6_shop_fashion.service.*;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -32,13 +30,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +51,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse createOrder(OrderDto orderDto, PaymentMethod paymentMethod) {
+    public OrderDetailResponse createOrder(OrderDto orderDto, PaymentMethod paymentMethod) {
         Order order = OrderMapper.toOrder(orderDto);
 
         List<OrderItemDto> orderItemDtoList = orderDto.getOrderItems()
@@ -102,9 +100,9 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         deleteCartItem(orderDto.getUserId(), orderDto.getOrderItems());
 
-        OrderResponse orderResponse = OrderMapper.toOrderResponse(savedOrder);
+        OrderDetailResponse orderResponse = OrderMapper.toOrderDetailResponse(savedOrder);
         if (orderDto.getPaymentMethod() == PaymentMethod.VNPAY) {
-            String message = new Gson().toJson(orderResponse.getOrderItems());
+            String message = order.getId() + " " + (new Gson().toJson(orderResponse.getOrderItems()));
             orderResponse.setUrlPayment(paymentService.getUrlPayment(totalPayment, message, vnpTxnRef));
         }
         return orderResponse;
@@ -131,10 +129,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse getOrderDetailsById(int orderId) {
+    public OrderDetailResponse getOrderDetailsById(int orderId) {
         Order order = orderRepository.findOrderById(orderId)
                 .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
-        return OrderMapper.toOrderResponse(order);
+        return OrderMapper.toOrderDetailResponse(order);
     }
 
     @Override
@@ -147,20 +145,13 @@ public class OrderServiceImpl implements OrderService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yyyy");
             LocalDateTime startDateTime = parseDate(startDate, formatter, LocalDateTime.now().minus(7, ChronoUnit.DAYS));
             LocalDateTime endDateTime = parseDate(endDate, formatter, LocalDateTime.now());
-            System.out.println(LocalDateTime.now());
             orders = orderRepository.findAllByOrderStatusAndOrderDateBetween(newStatus, startDateTime, endDateTime, defaultPageable);
-            System.out.println(LocalDateTime.now());
         } else if (newStatus != null) {
-            System.out.println(LocalDateTime.now());
             orders = orderRepository.findAllByOrderStatus(newStatus, defaultPageable);
-            System.out.println(LocalDateTime.now());
         } else if (startDate != null && endDate != null) {
-            System.out.println(LocalDateTime.now());
             return getOrdersByDateRange(startDate, endDate, defaultPageable);
         } else {
-            System.out.println(LocalDateTime.now());
-            orders = orderRepository.getAll(defaultPageable);
-            System.out.println(LocalDateTime.now());
+            orders = orderRepository.findAll(defaultPageable);
         }
 
         return orders.map(OrderMapper::toOrderResponse);
@@ -181,10 +172,6 @@ public class OrderServiceImpl implements OrderService {
         return new OrderResponse();
     }
 
-    @Override
-    public OrderResponse confirmPayment(int orderId, PaymentMethod paymentMethod) {
-        return null;
-    }
 
     @Override
     public Slice<OrderResponse> getOrdersByStatus(OrderStatus status, Pageable pageable) {
@@ -235,6 +222,48 @@ public class OrderServiceImpl implements OrderService {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void updateWithVnPayCallback(int idOrder, String vnpTxnRef) {
+        Order order = orderRepository.findOrderByIdAndVnpTxnRef(idOrder, vnpTxnRef)
+                .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
+        order.setOrderStatus(OrderStatus.UNCONFIRMED);
+        orderRepository.save(order);
+    }
+
+    @Override
+    public String getPaymentCallBack(HttpServletRequest request) {
+        Map<String, String> fields = new HashMap<>();
+        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
+            String fieldName = URLEncoder.encode(params.nextElement(), StandardCharsets.US_ASCII);
+            String fieldValue = URLEncoder.encode(request.getParameter(fieldName), StandardCharsets.US_ASCII);
+            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                fields.put(fieldName, fieldValue);
+            }
+        }
+
+        String vnp_SecureHash = request.getParameter("vnp_SecureHash");
+        fields.remove("vnp_SecureHashType");
+        fields.remove("vnp_SecureHash");
+        String signValue = VnPayConfig.hashAllFields(fields);
+        // Valid signature
+        if (signValue.equals(vnp_SecureHash)) {
+            String vnp_TransactionStatus = request.getParameter("vnp_TransactionStatus");
+            if (VnPayConfig.transactionStatusSuccessful.equals(vnp_TransactionStatus)) {
+                String vnp_OrderInfo = request.getParameter("vnp_OrderInfo");
+                String vnp_TxnRef = request.getParameter("vnp_TxnRef");
+                int spaceIndex = vnp_OrderInfo.indexOf(" ");
+                String idPart = vnp_OrderInfo.substring(0, spaceIndex);
+                int idValue = Integer.parseInt(idPart);
+                updateWithVnPayCallback(idValue, vnp_TxnRef);
+                return "1";
+            }
+            return "0";
+        } else {
+            return "-1";
+        }
+    }
+
 
     private void cancelOrder(Order order) {
         order.setOrderStatus(OrderStatus.CANCELLED);

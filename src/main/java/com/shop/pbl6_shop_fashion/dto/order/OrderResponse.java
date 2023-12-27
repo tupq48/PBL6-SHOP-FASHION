@@ -5,7 +5,6 @@ import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Builder
 @Setter
@@ -26,7 +25,6 @@ public class OrderResponse {
     private long shippingFee;
     private long discountAmount;
     private long discountShippingFee;
-    private List<OrderItemDto> orderItems;
     private int userId;
     private String urlPayment;
 }

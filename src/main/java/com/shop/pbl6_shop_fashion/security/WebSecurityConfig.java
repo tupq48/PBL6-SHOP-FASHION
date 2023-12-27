@@ -5,7 +5,6 @@ import com.shop.pbl6_shop_fashion.security.oauth2.OAuth2AuthenticationFailureHan
 import com.shop.pbl6_shop_fashion.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.shop.pbl6_shop_fashion.security.oauth2.OAuth2UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,8 +28,8 @@ public class WebSecurityConfig {
             "/public/**", "/api/auth/**", "/oauth2/**",
             "/", "/error", "/csrf",
             "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**",
-            "/api/promotion/**", "/api/payment/**", "api/vouchers/**","api/orders/**",
-            "/api/promotion/**","/api/payment/**", "/api/statistical/**"
+            "/api/promotion/**", "/api/payments/**", "api/vouchers/**","api/orders/**",
+            "/api/statistical/**"
 
     };
     private final AuthenticationProvider authenticationProvider;

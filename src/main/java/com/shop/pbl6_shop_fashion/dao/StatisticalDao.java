@@ -1,25 +1,15 @@
 package com.shop.pbl6_shop_fashion.dao;
 
-import com.google.api.client.util.DateTime;
 import com.shop.pbl6_shop_fashion.dto.RevenueStatistics;
 import com.shop.pbl6_shop_fashion.dto.StatisticalDto;
-import com.shop.pbl6_shop_fashion.entity.Comment;
-import com.shop.pbl6_shop_fashion.entity.Order;
-import com.shop.pbl6_shop_fashion.entity.Product;
-import com.shop.pbl6_shop_fashion.entity.User;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -88,7 +78,6 @@ public class StatisticalDao {
             }
             revenueStatisticsList.add(revenueStatistics);
         }
-
         return revenueStatisticsList;
     }
 }

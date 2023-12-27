@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -48,7 +49,7 @@ public class Order {
     )
     private List<Voucher> vouchers;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,5 +59,20 @@ public class Order {
     @PrePersist
     protected void onCreate() {
         orderDate = LocalDateTime.now();
+    }
+
+    public void addOrderItem(OrderItem orderItem) {
+        if (orderItems == null) {
+            orderItems = new ArrayList<>();
+        }
+        orderItems.add(orderItem);
+        orderItem.setOrder(this);
+    }
+
+    public void setOrderItems(List<OrderItem> orderItems) {
+        for (OrderItem orderItem :
+                orderItems) {
+            addOrderItem(orderItem);
+        }
     }
 }
