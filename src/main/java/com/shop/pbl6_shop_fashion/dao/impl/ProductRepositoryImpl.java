@@ -38,6 +38,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                     "  FROM product_images                                                  \n" +
                     "  GROUP BY product_id                                                  \n" +
                     ") pi ON pd.id = pi.product_id                                          \n" +
+                    "WHERE pd.is_deleted != true                                            \n" +
                     "group by pd.id                                                         \n" +
                     "order by create_at desc                                                \n" +
                     "limit :number";
@@ -57,7 +58,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                     "  FROM product_images                                                      \n" +
                     "  GROUP BY product_id                                                      \n" +
                     ") pi ON p.id = pi.product_id                                               \n" +
-                    "where ct.id = :categoryId                                                  \n" +
+                    "where ct.id = :categoryId AND p.is_deleted != true                         \n" +
                     "limit :limit                                                               \n" +
                     "offset :offset";
 
@@ -91,7 +92,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     @Override
     public ProductDetailDto getProductDetailById(Integer id) {
         Product product = entityManager.find(Product.class, id);
-        if (product != null) {
+        if (product != null && !product.getIsDeleted()) {
             return convertProductToProductDetailDto(product);
         }
         return null;
@@ -100,7 +101,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     @Override
     public ProductPromotionDto getProductPromotionById(Integer id) {
         Product product = entityManager.find(Product.class, id);
-        if (product != null) {
+        if (product != null && !product.getIsDeleted()) {
             return mapPromotionToPromotionDto(id, product.getPromotion());
         }
         return null;
