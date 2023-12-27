@@ -23,11 +23,44 @@ public class OrderMapper {
         orderResponse.setDiscountShippingFee(order.getDiscountShippingFee());
         orderResponse.setTotalProductAmount(order.getTotalProductAmount());
 
-        if (order.getOrderItems() != null) {
-            orderResponse.setOrderItems(order.getOrderItems()
-                    .stream()
-                    .map(OrderMapper::toOrderItemDTO)
-                    .toList());
+//        if (order.getOrderItems() != null && order.getOrderItems().size()>0) {
+//            orderResponse.setOrderItems(
+//                    order.getOrderItems()
+//                            .stream()
+//                            .map(OrderMapper::toOrderItemDTO)
+//                            .toList());
+//        }
+
+        if (order.getUser() != null) {
+            orderResponse.setUserId(order.getUser().getId());
+        }
+        return orderResponse;
+
+    }
+    public static OrderDetailResponse toOrderDetailResponse(Order order) {
+        OrderDetailResponse orderResponse = new OrderDetailResponse();
+
+        orderResponse.setId(order.getId());
+        orderResponse.setOrderDate(order.getOrderDate());
+        orderResponse.setOrderStatus(order.getOrderStatus());
+        orderResponse.setPaymentMethod(order.getPaymentMethod());
+        orderResponse.setName(order.getName());
+        orderResponse.setShippingAddress(order.getShippingAddress());
+        orderResponse.setPhoneNumber(order.getPhoneNumber());
+        orderResponse.setNote(order.getNote());
+
+        orderResponse.setTotalPayment(order.getTotalPayment());
+        orderResponse.setShippingFee(order.getShippingFee());
+        orderResponse.setDiscountAmount(order.getDiscountAmount());
+        orderResponse.setDiscountShippingFee(order.getDiscountShippingFee());
+        orderResponse.setTotalProductAmount(order.getTotalProductAmount());
+
+        if (order.getOrderItems() != null && order.getOrderItems().size()>0) {
+            orderResponse.setOrderItems(
+                    order.getOrderItems()
+                            .stream()
+                            .map(OrderMapper::toOrderItemDTO)
+                            .toList());
         }
 
         if (order.getUser() != null) {
@@ -36,6 +69,7 @@ public class OrderMapper {
         return orderResponse;
 
     }
+
 
     public static Order toOrder(OrderDto orderDto) {
         Order order = new Order();

@@ -2,13 +2,14 @@ package com.shop.pbl6_shop_fashion.payment;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -18,10 +19,11 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class VnPayService implements PaymentService {
 
     @Override
-    public String getUrlPayment(long total, String orderInfo,String vnp_TxnRef) {
+    public String getUrlPayment(long total, String orderInfo, String vnp_TxnRef) {
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
@@ -82,31 +84,39 @@ public class VnPayService implements PaymentService {
         return VnPayConfig.vnp_PayUrl + "?" + queryUrl;
     }
 
-    @Override
-    public String getPaymentCallBack(HttpServletRequest request) {
-        Map<String, String> fields = new HashMap<>();
-        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
-            String fieldName = URLEncoder.encode(params.nextElement(), StandardCharsets.US_ASCII);
-            String fieldValue = URLEncoder.encode(request.getParameter(fieldName), StandardCharsets.US_ASCII);
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                fields.put(fieldName, fieldValue);
-            }
-        }
-
-        String vnp_SecureHash = request.getParameter("vnp_SecureHash");
-        fields.remove("vnp_SecureHashType");
-        fields.remove("vnp_SecureHash");
-        String signValue = VnPayConfig.hashAllFields(fields);
-        if (signValue.equals(vnp_SecureHash)) {
-            // Valid signature
-            String transactionStatus = request.getParameter("vnp_TransactionStatus");
-
-            return VnPayConfig.transactionStatusSuccessful.equals(transactionStatus) ? "successful" : "unsuccessful";
-
-        } else {
-            return "invalid-signature";
-        }
-    }
+//    @Override
+//    public String getPaymentCallBack(HttpServletRequest request) {
+//        Map<String, String> fields = new HashMap<>();
+//        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
+//            String fieldName = URLEncoder.encode(params.nextElement(), StandardCharsets.US_ASCII);
+//            String fieldValue = URLEncoder.encode(request.getParameter(fieldName), StandardCharsets.US_ASCII);
+//            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+//                fields.put(fieldName, fieldValue);
+//            }
+//        }
+//
+//        String vnp_SecureHash = request.getParameter("vnp_SecureHash");
+//        fields.remove("vnp_SecureHashType");
+//        fields.remove("vnp_SecureHash");
+//        String signValue = VnPayConfig.hashAllFields(fields);
+//        // Valid signature
+//        if (signValue.equals(vnp_SecureHash)) {
+//            String vnp_TransactionStatus = request.getParameter("vnp_TransactionStatus");
+//            if (VnPayConfig.transactionStatusSuccessful.equals(vnp_TransactionStatus)) {
+//                String vnp_OrderInfo = request.getParameter("vnp_OrderInfo");
+//                String vnp_TxnRef = request.getParameter("vnp_TxnRef");
+//                int idValue = 0;
+//                if (vnp_OrderInfo.contains("OrderId:")) {
+//                    idValue = Integer.parseInt(vnp_OrderInfo.split("OrderId:")[1].trim());
+//                }
+//                orderService.updateWithVnPayCallback(idValue, vnp_TxnRef);
+//                return "1";
+//            }
+//            return "0";
+//        } else {
+//            return "-1";
+//        }
+//    }
 
     @Override
     public String refundPayment(String vnp_TxnRef, long amountOrder, String vnp_PayDate) throws IOException {
@@ -185,6 +195,7 @@ public class VnPayService implements PaymentService {
         return getVnpMessage(String.valueOf(responseBody));
 
     }
+
     public String getVnpMessage(String jsonResponse) {
         int startIndex = jsonResponse.indexOf("\"vnp_Message\":\"");
         if (startIndex == -1) {

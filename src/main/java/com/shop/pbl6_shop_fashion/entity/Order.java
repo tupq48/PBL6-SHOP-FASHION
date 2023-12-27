@@ -6,24 +6,30 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "orders")
 @NoArgsConstructor
 @AllArgsConstructor
-@Setter
 @Getter
+@Setter
 @Builder
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private LocalDateTime orderDate;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
+
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
+
     private String name;
     private String shippingAddress;
     private String phoneNumber;
@@ -34,6 +40,7 @@ public class Order {
     private long discountAmount;
     private long discountShippingFee;
     private String vnpTxnRef;
+
     @ManyToMany
     @JoinTable(
             name = "order_voucher",
@@ -41,8 +48,10 @@ public class Order {
             inverseJoinColumns = @JoinColumn(name = "voucher_id")
     )
     private List<Voucher> vouchers;
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -50,5 +59,20 @@ public class Order {
     @PrePersist
     protected void onCreate() {
         orderDate = LocalDateTime.now();
+    }
+
+    public void addOrderItem(OrderItem orderItem) {
+        if (orderItems == null) {
+            orderItems = new ArrayList<>();
+        }
+        orderItems.add(orderItem);
+        orderItem.setOrder(this);
+    }
+
+    public void setOrderItems(List<OrderItem> orderItems) {
+        for (OrderItem orderItem :
+                orderItems) {
+            addOrderItem(orderItem);
+        }
     }
 }
