@@ -75,10 +75,13 @@ public class ProductService {
 
     public List<ProductDetail> getAllProducts(int page, int pageSize) {
 
-        return productDao.getAllProducts(page,pageSize);
+        return productDao.getAllProducts(page, pageSize);
     }
-    public PaginationResponse<ProductDetail> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
-        return productDao.getProductsByCategoryorBrand(category_id,brand_id,page,pageSize);
+
+    public PaginationResponse<ProductDetail> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize) {
+        return productDao.getProductsByCategoryorBrand(category_id, brand_id, page, pageSize);
+    }
+
     @CacheEvict("products")
     public void updateImages(Integer id, List<MultipartFile> files) {
         List<String> imageUrls = new ArrayList<>();
@@ -218,12 +221,15 @@ public class ProductService {
         }
         return sizes;
     }
+
     public PaginationResponse<ProductDetail> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category, int page, int pageSize) {
-        return  productDao.searchProductsMobile(keyword, minprice, maxprice, category,page,pageSize);
+        return productDao.searchProductsMobile(keyword, minprice, maxprice, category, page, pageSize);
     }
+
     public List<ProductDetail> getBestSellingProducts(Integer limit) {
         return productDao.getBestSellingProducts(limit);
     }
+
     public Product findById(Integer id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductException("Product not found"));
@@ -243,14 +249,6 @@ public class ProductService {
             }
         }
         return 0d;
-    }
-
-    public PaginationResponse<ProductDetail> searchProductsMobile(String keyword, Integer minprice, Integer maxprice, String category, int page, int pageSize) {
-        return productDao.searchProductsMobile(keyword, minprice, maxprice, category, page, pageSize);
-    }
-
-    public List<ProductDetail> getBestSellingProducts(Integer limit) {
-        return productDao.getBestSellingProducts(limit);
     }
 
     public List<OrderItem> calculateOrderItemAndProcessProduct(List<OrderItemDto> orderItemDtos) {
@@ -292,6 +290,15 @@ public class ProductService {
             orderItems.add(orderItem);
         }
         return orderItems;
+    }
+
+    public void rollBackProduct(List<OrderItem> orderItems) {
+        for (OrderItem orderItem : orderItems) {
+            Integer productId = orderItem.getProduct().getId();
+            Product product = findById(productId);
+            Size size = sizeService.findByName(orderItem.getSize());
+            productSizeService.rollbackSoldOut(product, size, orderItem.getQuantity());
+        }
     }
 }
 

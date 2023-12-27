@@ -12,18 +12,23 @@ import java.util.List;
 @Table(name = "orders")
 @NoArgsConstructor
 @AllArgsConstructor
-@Setter
 @Getter
+@Setter
 @Builder
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private LocalDateTime orderDate;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
+
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
+
     private String name;
     private String shippingAddress;
     private String phoneNumber;
@@ -34,6 +39,7 @@ public class Order {
     private long discountAmount;
     private long discountShippingFee;
     private String vnpTxnRef;
+
     @ManyToMany
     @JoinTable(
             name = "order_voucher",
@@ -41,8 +47,10 @@ public class Order {
             inverseJoinColumns = @JoinColumn(name = "voucher_id")
     )
     private List<Voucher> vouchers;
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "order")
     private List<OrderItem> orderItems;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

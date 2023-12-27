@@ -27,7 +27,9 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -84,6 +86,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setId(0);
+
         order.setOrderStatus(orderStatus);
         order.setVouchers(vouchers);
         order.setOrderItems(orderItems);
@@ -129,7 +132,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse getOrderDetailsById(int orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findOrderById(orderId)
                 .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
         return OrderMapper.toOrderResponse(order);
     }
@@ -144,14 +147,22 @@ public class OrderServiceImpl implements OrderService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yyyy");
             LocalDateTime startDateTime = parseDate(startDate, formatter, LocalDateTime.now().minus(7, ChronoUnit.DAYS));
             LocalDateTime endDateTime = parseDate(endDate, formatter, LocalDateTime.now());
+            System.out.println(LocalDateTime.now());
             orders = orderRepository.findAllByOrderStatusAndOrderDateBetween(newStatus, startDateTime, endDateTime, defaultPageable);
+            System.out.println(LocalDateTime.now());
         } else if (newStatus != null) {
+            System.out.println(LocalDateTime.now());
             orders = orderRepository.findAllByOrderStatus(newStatus, defaultPageable);
+            System.out.println(LocalDateTime.now());
         } else if (startDate != null && endDate != null) {
+            System.out.println(LocalDateTime.now());
             return getOrdersByDateRange(startDate, endDate, defaultPageable);
         } else {
-            orders = orderRepository.findAll(defaultPageable);
+            System.out.println(LocalDateTime.now());
+            orders = orderRepository.getAll(defaultPageable);
+            System.out.println(LocalDateTime.now());
         }
+
         return orders.map(OrderMapper::toOrderResponse);
     }
 
@@ -201,6 +212,42 @@ public class OrderServiceImpl implements OrderService {
         return orders.map(OrderMapper::toOrderResponse);
     }
 
+    @Override
+    @Transactional
+    @Scheduled(fixedDelay = 3600000) // Run every 1h (60 * 60 * 1000 milliseconds)
+    public void cancelUnpaidOrdersAfterTime() {
+        try {
+            int minusMinutes = 15;
+            LocalDateTime targetTime = LocalDateTime.now().minusMinutes(minusMinutes);
+            List<Order> unpaidOrders = orderRepository.findAllByOrderDateBeforeAndOrderStatus(targetTime, OrderStatus.PREPARING_PAYMENT);
+
+            // Hủy đơn hàng
+            for (Order order : unpaidOrders) {
+                try {
+                    cancelOrder(order);
+                } catch (Exception e) {
+                    // Log or handle the exception as needed
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            // Log or handle the exception as needed
+            e.printStackTrace();
+        }
+    }
+
+    private void cancelOrder(Order order) {
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+        rollBackProducts(order.getOrderItems());
+    }
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void rollBackProducts(List<OrderItem> orderItems) {
+        productService.rollBackProduct(orderItems);
+    }
+
     private LocalDateTime parseDate(String date, DateTimeFormatter formatter, LocalDateTime defaultValue) {
         try {
             return Optional.ofNullable(date)
@@ -223,7 +270,7 @@ public class OrderServiceImpl implements OrderService {
                 newStatus == OrderStatus.CANCELLED;
     }
 
-    private boolean isValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
+    private boolean isValidStatusTransitionAdmin(OrderStatus currentStatus, OrderStatus newStatus) {
         return switch (currentStatus) {
             case UNCONFIRMED -> newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELLED;
             case CONFIRMED -> newStatus == OrderStatus.PACKAGING || newStatus == OrderStatus.CANCELLED;
@@ -234,7 +281,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderResponse updateOrderStatus(int orderId, OrderStatus newStatus, boolean isAdmin) {
-        Order orderToUpdate = orderRepository.findById(orderId)
+        Order orderToUpdate = orderRepository.findOrderById(orderId)
                 .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
 
         OrderStatus currentStatus = orderToUpdate.getOrderStatus();
@@ -243,9 +290,12 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderException("User does not have permission to update status", HttpStatus.FORBIDDEN);
         }
 
-        if (isValidStatusTransition(currentStatus, newStatus)) {
+        if (isValidStatusTransitionAdmin(currentStatus, newStatus)) {
             orderToUpdate.setOrderStatus(newStatus);
             orderRepository.save(orderToUpdate);
+            if (newStatus == OrderStatus.CANCELLED) {
+                rollBackProducts(orderToUpdate.getOrderItems());
+            }
             return OrderMapper.toOrderResponse(orderToUpdate);
         } else {
             throw new OrderException("Invalid status transition", HttpStatus.BAD_REQUEST);

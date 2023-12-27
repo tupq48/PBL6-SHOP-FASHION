@@ -16,7 +16,7 @@ public interface OrderService {
 
     OrderResponse getOrderDetailsById(int orderId);
 
-    Slice<OrderResponse> getAllOrders(Pageable pageable,OrderStatus newStatus,String startDate, String endDate);
+    Slice<OrderResponse> getAllOrders(Pageable pageable, OrderStatus newStatus, String startDate, String endDate);
 
 
     @Transactional
@@ -32,4 +32,6 @@ public interface OrderService {
     Slice<OrderResponse> getOrdersByCustomer(int customerId, Pageable pageable);
 
     Slice<OrderResponse> getOrdersByDateRange(String startDate, String endDate, Pageable pageable);
+
+    void cancelUnpaidOrdersAfterTime();
 }

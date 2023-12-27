@@ -24,10 +24,11 @@ public class OrderMapper {
         orderResponse.setTotalProductAmount(order.getTotalProductAmount());
 
         if (order.getOrderItems() != null) {
-            orderResponse.setOrderItems(order.getOrderItems()
-                    .stream()
-                    .map(OrderMapper::toOrderItemDTO)
-                    .toList());
+            orderResponse.setOrderItems(
+                    order.getOrderItems()
+                            .stream()
+                            .map(OrderMapper::toOrderItemDTO)
+                            .toList());
         }
 
         if (order.getUser() != null) {
