@@ -75,7 +75,7 @@ public class ProductService {
 
     @Cacheable("products")
     // not filter isDeleted product out yet
-    public List<ProductDetail> getAllProducts(int page, int pageSize) {
+    public PaginationResponse<ProductDetail> getAllProducts(int page, int pageSize) {
 
         return productDao.getAllProducts(page, pageSize);
     }

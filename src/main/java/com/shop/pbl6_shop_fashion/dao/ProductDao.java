@@ -235,7 +235,7 @@ public class ProductDao {
 
         return product;
     }
-    public List<ProductDetail> getAllProducts(int page, int pageSize){
+    public PaginationResponse<ProductDetail> getAllProducts(int page, int pageSize){
         int firstResult = (page - 1) * pageSize;
         String sql="WITH AnhSanPham AS (\n" +
                 "    SELECT pr.*,GROUP_CONCAT(pi.url) AS Link_anh\n" +
@@ -252,9 +252,13 @@ public class ProductDao {
                 "LEFT JOIN brands br on br.id = pr.brand_id\n" +
                 "GROUP BY pr.id;";
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
-        query.setFirstResult(firstResult);
-        query.setMaxResults(pageSize);
         List<Object[]> results = query.getResultList();
+        int totalItems = results.size();
+
+        Double totalPage = Math.ceil(results.size()/(double)pageSize);
+        query.setMaxResults(pageSize);
+        query.setFirstResult(firstResult);
+        results = query.getResultList();
         System.out.println("result:" + results.size());
         List<ProductDetail> products = new ArrayList<>();
         for (Object[] result:results){
@@ -300,7 +304,15 @@ public class ProductDao {
             product.setProduct_image(imagesList);
             products.add(product);
         }
-        return products;
+        PaginationResponse<ProductDetail> response = new PaginationResponse<>();
+        response.setItems(products);
+        response.setTotalItems(totalItems);
+        response.setCurrentPage(page);
+        response.setTotalPages(totalPage);
+        response.setPageSize(pageSize);
+
+        // Trả về đối tượng phản hồi
+        return response;
     }
 
     public PaginationResponse<ProductDetail> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
