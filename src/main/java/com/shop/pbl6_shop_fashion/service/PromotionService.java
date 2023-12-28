@@ -4,26 +4,30 @@ import com.shop.pbl6_shop_fashion.dao.PromotionRepository;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.promotion.PromotionDto;
 import com.shop.pbl6_shop_fashion.dto.util.ResponseObject;
+import com.shop.pbl6_shop_fashion.entity.Product;
 import com.shop.pbl6_shop_fashion.entity.Promotion;
-import com.shop.pbl6_shop_fashion.enums.DiscountType;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.hibernate.type.StandardBasicTypes;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PromotionService {
-    @Autowired
-    PromotionRepository promotionRepository;
 
+    private final PromotionRepository promotionRepository;
+
+    private final ProductService productService;
     public List<Promotion> getAll() {
-        return promotionRepository.findAll();
+        List<Promotion> promotions = promotionRepository.findAll();
+        return promotions.stream().filter(Promotion::isActive).collect(Collectors.toList());
     }
 
     public Promotion getPromotionById(Integer id) {
@@ -94,4 +98,16 @@ public class PromotionService {
         data.put("products", products);
         return ResponseObject.builder().data(data).build();
     }
+
+    public void deletePromotion(Integer promotionId) {
+        Promotion promotion = promotionRepository.findById(promotionId).get();
+        List<Product> products = productService.getProductByPromotion(promotion);
+        promotion.setActive(false);
+        promotion.setEndAt(LocalDateTime.now());
+        promotionRepository.save(promotion);
+        products.forEach(product -> product.setPromotion(null));
+        productService.saveAll(products);
+    }
+
+
 }
