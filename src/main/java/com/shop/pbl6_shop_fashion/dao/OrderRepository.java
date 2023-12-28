@@ -23,9 +23,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     Slice<Order> findAllByOrderStatus(OrderStatus orderStatus, Pageable pageable);
 
     Slice<Order> findAllByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
-
     Slice<Order> findAllByOrderStatusAndOrderDateBetween(OrderStatus orderStatus, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
-
+    @EntityGraph(attributePaths = "orderItems", type = EntityGraph.EntityGraphType.FETCH)
     List<Order> findAllByOrderDateBeforeAndOrderStatus(LocalDateTime orderDate, OrderStatus orderStatus);
 
     Optional<Order> findOrderByIdAndVnpTxnRef(int id, String vnpTxnRef);

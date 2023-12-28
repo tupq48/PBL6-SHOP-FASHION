@@ -41,6 +41,8 @@ public class Order {
     private long discountShippingFee;
     private String vnpTxnRef;
 
+    private String vnpTransaction;
+
     @ManyToMany
     @JoinTable(
             name = "order_voucher",

@@ -3,6 +3,7 @@ package com.shop.pbl6_shop_fashion.service;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDetailResponse;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderResponse;
+import com.shop.pbl6_shop_fashion.entity.Order;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,7 +35,6 @@ public interface OrderService {
 
     void cancelUnpaidOrdersAfterTime();
 
-    void updateWithVnPayCallback(int idOrder, String vnpTxnRef);
-
     String getPaymentCallBack(HttpServletRequest request);
+    String refundVnpay(Order order);
 }
