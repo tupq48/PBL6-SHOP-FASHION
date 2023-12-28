@@ -20,10 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -289,6 +286,20 @@ public class OrderServiceImpl implements OrderService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Page<OrderItemDto> findOrderItemsByOrderStatusAndIsRate(OrderStatus orderStatus, int userId, boolean isRate, Pageable pageable) {
+        if (pageable == null) {
+            pageable = PageRequest.of(0, 10);
+        }
+        Sort sort = Sort.by(Sort.Direction.DESC, "id");
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        orderStatus = OrderStatus.DELIVERED;
+        Page<OrderItem> orderItemPage = orderRepository.findOrderItemsByOrderStatusAndIsRate(orderStatus, userId, isRate, pageable);
+        return orderItemPage.map(OrderMapper::toOrderItemDTO);
+
     }
 
 

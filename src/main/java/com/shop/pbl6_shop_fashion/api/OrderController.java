@@ -8,6 +8,7 @@ import com.shop.pbl6_shop_fashion.service.impl.GHNApiService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,4 +69,10 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateAdminOrderStatus(orderIds, orderStatus));
     }
 
+    @GetMapping("{userId}/order-items")
+    public ResponseEntity<?> getAllOrderItemByUserIdAndRate(@PathVariable int userId,
+                                                            @RequestParam boolean isRate,
+                                                            @RequestParam(required = false) @PageableDefault Pageable pageable) {
+        return ResponseEntity.ok(orderService.findOrderItemsByOrderStatusAndIsRate(OrderStatus.DELIVERED, userId, isRate, pageable));
+    }
 }
