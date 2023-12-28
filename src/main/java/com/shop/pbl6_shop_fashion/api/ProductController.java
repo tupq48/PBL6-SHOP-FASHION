@@ -104,9 +104,9 @@ public class ProductController {
         return pr;
     }
     @GetMapping("/product/getAll")
-    public List<ProductDetail> getProductsMobile(
+    public PaginationResponse<ProductDetail> getProductsMobile(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
+            @RequestParam(value = "pageSize", defaultValue = "1000") int pageSize
     ){
         return productService.getAllProducts(page, pageSize);
     }
