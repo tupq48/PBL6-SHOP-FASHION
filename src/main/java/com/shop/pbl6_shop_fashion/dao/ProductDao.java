@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class ProductDao {
@@ -422,22 +423,44 @@ public class ProductDao {
                 "                group by pr.id)\n" +
                 "                select pr.id,pr.name, pr.price, pr.quantity, pr.quantity_sold,group_concat(ps.discount_value), group_concat(ps.discount_type), link_anh\n" +
                 "                from products pr\n" +
-                 "LEFT JOIN promotions ps ON pr.promotion_id = ps.id "     +           "                join AnhSanPham asp on asp.id = pr.id\n" +
+                "LEFT JOIN promotions ps ON pr.promotion_id = ps.id "     +
+                "join AnhSanPham asp on asp.id = pr.id\n" +
                 "                join categories ct on ct.id = pr.category_id\n" +
-                "                where pr.is_deleted != true and pr.name like :keyword and pr.price BETWEEN :minprice AND :maxprice and ct.name like :category \n" +
-                "                group by pr.id";
+                "                where pr.is_deleted != true and ";
+
+        if(!Objects.equals(keyword, "")){
+            sql+="pr.name like ? " +
+                    "group by pr.id";
+        }
+        if(minprice>=0 && maxprice>0){
+            sql+="pr.price BETWEEN ? AND ? " +
+                    " group by pr.id";
+        }
+        if(!Objects.equals(category, "")){
+            sql+="ct.name like ? " +
+                    "group by pr.id";
+        }
 
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
-        query.setParameter("keyword","%" +keyword+"%");
-        query.setParameter("category","%" +category+"%");
-        query.setParameter("minprice", minprice);
-        query.setParameter("maxprice", maxprice);
+        if(!Objects.equals(keyword, "")){
+            query.setParameter(1,"%" +keyword+"%");
+        }
+        if(minprice>=0 && maxprice>0){
+            query.setParameter(1, minprice);
+            query.setParameter(2, maxprice);
+
+        }
+        if(!Objects.equals(category, "")){
+            query.setParameter(1,"%" +category+"%");
+
+        }
 
         List<Object[]> results = query.getResultList();
         int totalItems = results.size();
+        System.out.println("totalItems: " + totalItems);
         Double totalPage = Math.ceil(results.size()/(double)pageSize);
-        query.setMaxResults(pageSize);
         query.setFirstResult(firstResult);
+        query.setMaxResults(pageSize);
         results = query.getResultList();
         List<ProductDetail> products = new ArrayList<>();
         for (Object[] result:results){
@@ -490,12 +513,9 @@ public class ProductDao {
 
         for (String str : stringList) {
             try {
-                // Chuyển đổi từ chuỗi sang số nguyên
                 int number = Integer.parseInt(str);
-                // Thêm số nguyên vào danh sách
                 integerList.add(number);
             } catch (NumberFormatException e) {
-                // Xử lý nếu chuỗi không thể chuyển đổi thành số nguyên
                 System.err.println("Không thể chuyển đổi chuỗi thành số nguyên: " + str);
             }
         }

@@ -129,11 +129,11 @@ public class ProductController {
     @GetMapping("/product/searchAll")
     public PaginationResponse<ProductDetail> searchProductsMobile(
             @RequestParam(name="keyword", defaultValue = "") String keyword,
-            @RequestParam(name="minprice", defaultValue = "0") Integer minprice,
-            @RequestParam(name="maxprice", defaultValue = "999999999") Integer maxprice,
+            @RequestParam(name="minprice", defaultValue = "-1") Integer minprice,
+            @RequestParam(name="maxprice", defaultValue = "0") Integer maxprice,
             @RequestParam(name="category", defaultValue = "") String category,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize){
+            @RequestParam(value = "pageSize", defaultValue = "1000") int pageSize){
         return productService.searchProductsMobile(keyword,minprice,maxprice,category,page,pageSize);
     }
 
