@@ -310,5 +310,13 @@ public class ProductService {
         product.setIsDeleted(true);
         productRepository.save(product);
     }
+
+    public List<Product> getProductByPromotion(Promotion promotion) {
+        return productRepository.findAllByPromotion(promotion);
+    }
+
+    public List<Product> saveAll(List<Product> products) {
+        return productRepository.saveAll(products);
+    }
 }
 
