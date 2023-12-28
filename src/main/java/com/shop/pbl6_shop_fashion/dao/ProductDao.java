@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class ProductDao {
@@ -234,7 +235,7 @@ public class ProductDao {
 
         return product;
     }
-    public List<ProductDetail> getAllProducts(int page, int pageSize){
+    public PaginationResponse<ProductDetail> getAllProducts(int page, int pageSize){
         int firstResult = (page - 1) * pageSize;
         String sql="WITH AnhSanPham AS (\n" +
                 "    SELECT pr.*,GROUP_CONCAT(pi.url) AS Link_anh\n" +
@@ -251,9 +252,13 @@ public class ProductDao {
                 "LEFT JOIN brands br on br.id = pr.brand_id\n" +
                 "GROUP BY pr.id;";
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
-        query.setFirstResult(firstResult);
-        query.setMaxResults(pageSize);
         List<Object[]> results = query.getResultList();
+        int totalItems = results.size();
+
+        Double totalPage = Math.ceil(results.size()/(double)pageSize);
+        query.setMaxResults(pageSize);
+        query.setFirstResult(firstResult);
+        results = query.getResultList();
         System.out.println("result:" + results.size());
         List<ProductDetail> products = new ArrayList<>();
         for (Object[] result:results){
@@ -299,7 +304,15 @@ public class ProductDao {
             product.setProduct_image(imagesList);
             products.add(product);
         }
-        return products;
+        PaginationResponse<ProductDetail> response = new PaginationResponse<>();
+        response.setItems(products);
+        response.setTotalItems(totalItems);
+        response.setCurrentPage(page);
+        response.setTotalPages(totalPage);
+        response.setPageSize(pageSize);
+
+        // Trả về đối tượng phản hồi
+        return response;
     }
 
     public PaginationResponse<ProductDetail> getProductsByCategoryorBrand(Integer category_id, Integer brand_id, int page, int pageSize){
@@ -308,7 +321,8 @@ public class ProductDao {
                 "    SELECT pr.*,GROUP_CONCAT(pi.url) AS Link_anh\n" +
                 "    FROM products pr\n" +
                 "    JOIN product_images pi ON pi.product_id = pr.id\n" +
-                "    GROUP BY pr.id\n" +
+                "   WHERE pr.is_deleted != true \n" +
+                "   GROUP BY pr.id\n" +
                 ")\n" +
                 "SELECT pr.id,pr.name,pr.price,pr.quantity,pr.quantity_sold,\tGROUP_CONCAT(ps.discount_value) AS discount_values,GROUP_CONCAT(ps.discount_type) AS discount_types,link_anh,\n" +
                 "    pr.category_id as Loai,ct.name as Ten_loai,pr.brand_id as Thuong_hieu,br.name as Ten_thuong_hieu, br.image_url as Anh_thuong_hieu, ct.image_url as Anh_Loai_sp\n" +
@@ -319,16 +333,16 @@ public class ProductDao {
                 "LEFT JOIN brands br on br.id = pr.brand_id\n";
 
         if(category_id != 0 && brand_id == 0){
-            sql+="where ct.id= ?\n" +
+            sql+="where ct.id= ? and pr.is_deleted != true\n" +
                     "GROUP BY pr.id;";
 
 
         }
         else if(brand_id != 0 && category_id == 0){
-            sql+="where br.id= ?\n" +
+            sql+="where br.id= ? and pr.is_deleted != true\n" +
                     "GROUP BY pr.id;";
         } else if (brand_id != 0 && category_id!=0) {
-            sql+= "where br.id=? and ct.id=?\n" +
+            sql+= "where br.id=? and ct.id=? and pr.is_deleted != true\n" +
                     "GROUP BY pr.id;";
         }
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
@@ -421,22 +435,44 @@ public class ProductDao {
                 "                group by pr.id)\n" +
                 "                select pr.id,pr.name, pr.price, pr.quantity, pr.quantity_sold,group_concat(ps.discount_value), group_concat(ps.discount_type), link_anh\n" +
                 "                from products pr\n" +
-                 "LEFT JOIN promotions ps ON pr.promotion_id = ps.id "     +           "                join AnhSanPham asp on asp.id = pr.id\n" +
+                "LEFT JOIN promotions ps ON pr.promotion_id = ps.id "     +
+                "join AnhSanPham asp on asp.id = pr.id\n" +
                 "                join categories ct on ct.id = pr.category_id\n" +
-                "                where pr.name like :keyword and pr.price BETWEEN :minprice AND :maxprice and ct.name like :category \n" +
-                "                group by pr.id";
+                "                where pr.is_deleted != true and ";
+
+        if(!Objects.equals(keyword, "")){
+            sql+="pr.name like ? " +
+                    "group by pr.id";
+        }
+        if(minprice>=0 && maxprice>0){
+            sql+="pr.price BETWEEN ? AND ? " +
+                    " group by pr.id";
+        }
+        if(!Objects.equals(category, "")){
+            sql+="ct.name like ? " +
+                    "group by pr.id";
+        }
 
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
-        query.setParameter("keyword","%" +keyword+"%");
-        query.setParameter("category","%" +category+"%");
-        query.setParameter("minprice", minprice);
-        query.setParameter("maxprice", maxprice);
+        if(!Objects.equals(keyword, "")){
+            query.setParameter(1,"%" +keyword+"%");
+        }
+        if(minprice>=0 && maxprice>0){
+            query.setParameter(1, minprice);
+            query.setParameter(2, maxprice);
+
+        }
+        if(!Objects.equals(category, "")){
+            query.setParameter(1,"%" +category+"%");
+
+        }
 
         List<Object[]> results = query.getResultList();
         int totalItems = results.size();
+        System.out.println("totalItems: " + totalItems);
         Double totalPage = Math.ceil(results.size()/(double)pageSize);
-        query.setMaxResults(pageSize);
         query.setFirstResult(firstResult);
+        query.setMaxResults(pageSize);
         results = query.getResultList();
         List<ProductDetail> products = new ArrayList<>();
         for (Object[] result:results){
@@ -489,12 +525,9 @@ public class ProductDao {
 
         for (String str : stringList) {
             try {
-                // Chuyển đổi từ chuỗi sang số nguyên
                 int number = Integer.parseInt(str);
-                // Thêm số nguyên vào danh sách
                 integerList.add(number);
             } catch (NumberFormatException e) {
-                // Xử lý nếu chuỗi không thể chuyển đổi thành số nguyên
                 System.err.println("Không thể chuyển đổi chuỗi thành số nguyên: " + str);
             }
         }
@@ -529,6 +562,7 @@ public class ProductDao {
                 "    LEFT JOIN AnhSanPham asp ON asp.id = pr.id\n" +
                 "    LEFT JOIN categories ct ON ct.id = pr.category_id\n" +
                 "    LEFT JOIN brands br ON br.id = pr.brand_id\n" +
+                "WHERE pr.is_deleted != true \n" +
                 "GROUP BY pr.id\n" +
                 "    order by pr.quantity_sold desc\n" +
                 "    limit ?\n" +

@@ -22,6 +22,7 @@ public class Product {
     private int id;
 //    @Column(unique = true) // sản phẩm thì không nhất thiết phải unique name, 2 sp 2 brand cùng name vẫn được
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String status;
     private long price;
@@ -51,10 +52,13 @@ public class Product {
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
+    private Boolean isDeleted;
+
     @PrePersist
     protected void onCreate() {
         createAt = LocalDateTime.now();
         updateAt = LocalDateTime.now();
+        isDeleted = false;
     }
 
     @PreUpdate
