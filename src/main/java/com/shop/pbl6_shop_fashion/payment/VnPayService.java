@@ -27,7 +27,9 @@ public class VnPayService implements PaymentService {
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-//        String vnp_TxnRef = VnPayConfig.getRandomNumber();
+        if (vnp_TxnRef == null) {
+            vnp_TxnRef = VnPayConfig.getRandomNumber();
+        }
         String vnp_IpAddr = "127.0.0.1";
         String vnp_TmnCode = VnPayConfig.vnp_TmnCode;
         String orderType = "order-type";
@@ -84,40 +86,6 @@ public class VnPayService implements PaymentService {
         return VnPayConfig.vnp_PayUrl + "?" + queryUrl;
     }
 
-//    @Override
-//    public String getPaymentCallBack(HttpServletRequest request) {
-//        Map<String, String> fields = new HashMap<>();
-//        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
-//            String fieldName = URLEncoder.encode(params.nextElement(), StandardCharsets.US_ASCII);
-//            String fieldValue = URLEncoder.encode(request.getParameter(fieldName), StandardCharsets.US_ASCII);
-//            if ((fieldValue != null) && (fieldValue.length() > 0)) {
-//                fields.put(fieldName, fieldValue);
-//            }
-//        }
-//
-//        String vnp_SecureHash = request.getParameter("vnp_SecureHash");
-//        fields.remove("vnp_SecureHashType");
-//        fields.remove("vnp_SecureHash");
-//        String signValue = VnPayConfig.hashAllFields(fields);
-//        // Valid signature
-//        if (signValue.equals(vnp_SecureHash)) {
-//            String vnp_TransactionStatus = request.getParameter("vnp_TransactionStatus");
-//            if (VnPayConfig.transactionStatusSuccessful.equals(vnp_TransactionStatus)) {
-//                String vnp_OrderInfo = request.getParameter("vnp_OrderInfo");
-//                String vnp_TxnRef = request.getParameter("vnp_TxnRef");
-//                int idValue = 0;
-//                if (vnp_OrderInfo.contains("OrderId:")) {
-//                    idValue = Integer.parseInt(vnp_OrderInfo.split("OrderId:")[1].trim());
-//                }
-//                orderService.updateWithVnPayCallback(idValue, vnp_TxnRef);
-//                return "1";
-//            }
-//            return "0";
-//        } else {
-//            return "-1";
-//        }
-//    }
-
     @Override
     public String refundPayment(String vnp_TxnRef, long amountOrder, String vnp_PayDate) throws IOException {
         //Command: refund
@@ -168,18 +136,11 @@ public class VnPayService implements PaymentService {
         vnp_Params.addProperty("vnp_SecureHash", vnp_SecureHash);
 
         URL url = new URL(VnPayConfig.vnp_ApiUrl);
-        // Set up headers
         String requestBody = new Gson().toJson(vnp_Params);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-
-        // Set up the request entity with headers and body
         HttpEntity<?> requestEntity = new HttpEntity<>(requestBody, headers);
-
-        // Create a RestTemplate instance
         RestTemplate restTemplate = new RestTemplate();
-
-        // Make the HTTP POST request
         ResponseEntity<?> responseEntity = null;
         try {
             responseEntity = restTemplate.postForEntity(url.toURI(), requestEntity, String.class);
@@ -187,25 +148,70 @@ public class VnPayService implements PaymentService {
             throw new RuntimeException(e);
         }
 
-        // Extract and return the response body
         var responseBody = responseEntity.getBody();
         if (responseBody != null) {
             System.out.println("Response Body: " + responseBody);
         }
-        return getVnpMessage(String.valueOf(responseBody));
+        return concatenateResponseAndTransactionStatus(String.valueOf(responseBody));
 
     }
 
-    public String getVnpMessage(String jsonResponse) {
-        int startIndex = jsonResponse.indexOf("\"vnp_Message\":\"");
+    public String concatenateResponseAndTransactionStatus(String jsonResponse) {
+        String responseCode = getVnpMessage(jsonResponse, "vnp_ResponseCode");
+        String transactionStatus = getVnpMessage(jsonResponse, "vnp_TransactionStatus");
+
+        if (responseCode != null && transactionStatus != null) {
+            return VnPayConfig.getTransactionStatusMessage(transactionStatus) + ", " + VnPayConfig.getRefundStatusMessage(responseCode);
+        } else {
+            return null; // Handle the case when either value is not found
+        }
+    }
+
+    public String getVnpMessage(String jsonResponse, String key) {
+        String keyString = "\"" + key + "\":\"";
+        int startIndex = jsonResponse.indexOf(keyString);
         if (startIndex == -1) {
             return null;
         }
-        startIndex += 15; // "vnp_Message\":\" có 15 ký tự
+        startIndex += keyString.length();
         int endIndex = jsonResponse.indexOf("\"", startIndex);
 
         return jsonResponse.substring(startIndex, endIndex);
     }
+
+    //    @Override
+//    public String getPaymentCallBack(HttpServletRequest request) {
+//        Map<String, String> fields = new HashMap<>();
+//        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
+//            String fieldName = URLEncoder.encode(params.nextElement(), StandardCharsets.US_ASCII);
+//            String fieldValue = URLEncoder.encode(request.getParameter(fieldName), StandardCharsets.US_ASCII);
+//            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+//                fields.put(fieldName, fieldValue);
+//            }
+//        }
+//
+//        String vnp_SecureHash = request.getParameter("vnp_SecureHash");
+//        fields.remove("vnp_SecureHashType");
+//        fields.remove("vnp_SecureHash");
+//        String signValue = VnPayConfig.hashAllFields(fields);
+//        // Valid signature
+//        if (signValue.equals(vnp_SecureHash)) {
+//            String vnp_TransactionStatus = request.getParameter("vnp_TransactionStatus");
+//            if (VnPayConfig.transactionStatusSuccessful.equals(vnp_TransactionStatus)) {
+//                String vnp_OrderInfo = request.getParameter("vnp_OrderInfo");
+//                String vnp_TxnRef = request.getParameter("vnp_TxnRef");
+//                int idValue = 0;
+//                if (vnp_OrderInfo.contains("OrderId:")) {
+//                    idValue = Integer.parseInt(vnp_OrderInfo.split("OrderId:")[1].trim());
+//                }
+//                orderService.updateWithVnPayCallback(idValue, vnp_TxnRef);
+//                return "1";
+//            }
+//            return "0";
+//        } else {
+//            return "-1";
+//        }
+//    }
 
 
 }

@@ -19,17 +19,17 @@ import com.shop.pbl6_shop_fashion.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -40,6 +40,8 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
+@EnableAsync
 public class OrderServiceImpl implements OrderService {
     private final ProductService productService;
     private final OrderRepository orderRepository;
@@ -201,7 +203,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @Scheduled(fixedDelay = 3600000) // Run every 1h (60 * 60 * 1000 milliseconds)
+    @Scheduled(fixedDelay = 1000000) // Run every 1h (60 * 60 * 1000 milliseconds)
     public void cancelUnpaidOrdersAfterTime() {
         try {
             int minusMinutes = 15;
@@ -223,12 +225,19 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    @Override
-    public void updateWithVnPayCallback(int idOrder, String vnpTxnRef) {
+    public void updateWithVnPayCallback(int idOrder, String vnpTxnRef, String vnpPayDate, String vnpTransaction) {
         Order order = orderRepository.findOrderByIdAndVnpTxnRef(idOrder, vnpTxnRef)
                 .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
-        order.setOrderStatus(OrderStatus.UNCONFIRMED);
-        orderRepository.save(order);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        try {
+            LocalDateTime payDate = LocalDateTime.parse(vnpPayDate, formatter);
+            order.setOrderDate(payDate);
+            order.setOrderStatus(OrderStatus.UNCONFIRMED);
+            order.setVnpTransaction(vnpTransaction);
+            orderRepository.save(order);
+        } catch (DateTimeParseException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -249,26 +258,55 @@ public class OrderServiceImpl implements OrderService {
         // Valid signature
         if (signValue.equals(vnp_SecureHash)) {
             String vnp_TransactionStatus = request.getParameter("vnp_TransactionStatus");
+            String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
+            String vnp_OrderInfo = request.getParameter("vnp_OrderInfo");
+            String vnp_TxnRef = request.getParameter("vnp_TxnRef");
+            String vnp_PayDate = request.getParameter("vnp_PayDate");
+            String vnpTransactionMes = VnPayConfig.getTransactionStatusMessage(vnp_TransactionStatus) + ", " + VnPayConfig.getPaymentMessage(vnp_ResponseCode);
             if (VnPayConfig.transactionStatusSuccessful.equals(vnp_TransactionStatus)) {
-                String vnp_OrderInfo = request.getParameter("vnp_OrderInfo");
-                String vnp_TxnRef = request.getParameter("vnp_TxnRef");
-                int spaceIndex = vnp_OrderInfo.indexOf(" ");
-                String idPart = vnp_OrderInfo.substring(0, spaceIndex);
-                int idValue = Integer.parseInt(idPart);
-                updateWithVnPayCallback(idValue, vnp_TxnRef);
-                return "1";
+                vnpTransactionMes = VnPayConfig.getTransactionStatusMessage(vnp_TransactionStatus);
             }
-            return "0";
+            int spaceIndex = vnp_OrderInfo.indexOf(" ");
+            String idPart = vnp_OrderInfo.substring(0, spaceIndex);
+            int idValue = Integer.parseInt(idPart);
+            updateWithVnPayCallback(idValue, vnp_TxnRef, vnp_PayDate, vnpTransactionMes);
+            return VnPayConfig.transactionStatusSuccessful.equals(vnp_TransactionStatus) ? "1" : "0";
         } else {
             return "-1";
         }
+    }
+
+    @Override
+    public String refundVnpay(Order order) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            LocalDateTime payDateTime = order.getOrderDate();
+            String payDate = payDateTime.format(formatter);
+            return paymentService.refundPayment(order.getVnpTxnRef(), order.getTotalPayment(), payDate);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Page<OrderItemDto> findOrderItemsByOrderStatusAndIsRate(OrderStatus orderStatus, int userId, boolean isRate, Pageable pageable) {
+        if (pageable == null) {
+            pageable = PageRequest.of(0, 10);
+        }
+        Sort sort = Sort.by(Sort.Direction.DESC, "id");
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        orderStatus = OrderStatus.DELIVERED;
+        Page<OrderItem> orderItemPage = orderRepository.findOrderItemsByOrderStatusAndIsRate(orderStatus, userId, isRate, pageable);
+        return orderItemPage.map(OrderMapper::toOrderItemDTO);
+
     }
 
 
     private void cancelOrder(Order order) {
         order.setOrderStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
-        rollBackProducts(order.getOrderItems());
+        productService.rollBackProduct(order.getOrderItems());
     }
 
     @Async
@@ -322,15 +360,41 @@ public class OrderServiceImpl implements OrderService {
 
         if (isValidStatusTransitionAdmin(currentStatus, newStatus)) {
             orderToUpdate.setOrderStatus(newStatus);
-            orderRepository.save(orderToUpdate);
-            if (newStatus == OrderStatus.CANCELLED) {
-                rollBackProducts(orderToUpdate.getOrderItems());
-            }
+            System.out.println("2 : " + LocalDateTime.now());
+            processUpdate(orderToUpdate, currentStatus);
+            System.out.println("3 : " + LocalDateTime.now());
             return OrderMapper.toOrderResponse(orderToUpdate);
         } else {
             throw new OrderException("Invalid status transition", HttpStatus.BAD_REQUEST);
         }
     }
+
+    @Async
+    @Transactional
+    void processUpdate(Order orderToUpdate, OrderStatus prevStatus) {
+        try {
+            if (orderToUpdate.getOrderStatus() == OrderStatus.CANCELLED) {
+                rollBackProducts(orderToUpdate.getOrderItems());
+                isRefundPayment(orderToUpdate, prevStatus);
+            } else {
+                orderRepository.save(orderToUpdate);
+            }
+        } catch (Exception e) {
+            log.error("Error processing cancellation for order " + orderToUpdate.getId(), e);
+        }
+    }
+
+    @Async
+    @Transactional
+    void isRefundPayment(Order orderToUpdate, OrderStatus prevStatus) {
+        if (orderToUpdate.getPaymentMethod() == PaymentMethod.VNPAY && prevStatus != OrderStatus.PREPARING_PAYMENT) {
+            String mes = refundVnpay(orderToUpdate);
+            orderToUpdate.setVnpTransaction(mes);
+            orderRepository.save(orderToUpdate);
+            log.info(orderToUpdate.getId() + " " + mes);
+        }
+    }
+
 
     private long applyVouchers(List<Integer> voucherIds, List<Voucher> vouchers, long totalAmount, VoucherType targetVoucherType) {
         for (int idVoucher : voucherIds) {

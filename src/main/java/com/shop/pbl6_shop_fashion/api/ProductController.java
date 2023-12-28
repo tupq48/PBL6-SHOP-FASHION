@@ -21,7 +21,6 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    // =============================== PQT ============================================
     @GetMapping("/detail/{id}")
     public ResponseEntity<ProductDetailDto> getProductById(@PathVariable Integer id) {
         return ResponseEntity.ok(productService.getProductDetailById(id));
@@ -51,7 +50,7 @@ public class ProductController {
         // giống trang home, sort theo số lượng bán
     }
 
-    @PatchMapping("/images/{id}")
+    @PutMapping("/images/{id}")
     public void updateImages(@PathVariable Integer id,
                             @RequestParam("files") List<MultipartFile> files)
     {
@@ -79,7 +78,7 @@ public class ProductController {
     }
 
 
-    @PatchMapping("/{productId}")
+    @PutMapping("/{productId}")
     public void updateProduct(@PathVariable(value = "productId") Integer productId,
                               @RequestParam(value = "name", required = false) String name,
                               @RequestParam(value = "desc", required = false) String desc,
@@ -105,9 +104,9 @@ public class ProductController {
         return pr;
     }
     @GetMapping("/product/getAll")
-    public List<ProductDetail> getProductsMobile(
+    public PaginationResponse<ProductDetail> getProductsMobile(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
+            @RequestParam(value = "pageSize", defaultValue = "1000") int pageSize
     ){
         return productService.getAllProducts(page, pageSize);
     }
@@ -130,11 +129,17 @@ public class ProductController {
     @GetMapping("/product/searchAll")
     public PaginationResponse<ProductDetail> searchProductsMobile(
             @RequestParam(name="keyword", defaultValue = "") String keyword,
-            @RequestParam(name="minprice", defaultValue = "0") Integer minprice,
-            @RequestParam(name="maxprice", defaultValue = "100000") Integer maxprice,
+            @RequestParam(name="minprice", defaultValue = "-1") Integer minprice,
+            @RequestParam(name="maxprice", defaultValue = "0") Integer maxprice,
             @RequestParam(name="category", defaultValue = "") String category,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize){
+            @RequestParam(value = "pageSize", defaultValue = "1000") int pageSize){
         return productService.searchProductsMobile(keyword,minprice,maxprice,category,page,pageSize);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable(name = "id") Integer productId) {
+        productService.deleteProduct(productId);
+        return ResponseEntity.ok("Deleted success Product with ID: " + productId);
     }
 }

@@ -15,6 +15,7 @@ import com.shop.pbl6_shop_fashion.exception.ProductException;
 import com.shop.pbl6_shop_fashion.util.ConnectionProvider;
 import com.shop.pbl6_shop_fashion.util.ImgBBUtils;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -65,6 +66,7 @@ public class ProductService {
         return productRepository.getProductByCategoryAndPage(categoryId, page, limit);
     }
 
+    // not filter isDeleted product out yet
     public com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto searchProductDetail(Integer id) {
         com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto product = productDao.searchDetailProducts(id);
         System.out.println("product service: " + product);
@@ -72,8 +74,8 @@ public class ProductService {
     }
 
     @Cacheable("products")
-
-    public List<ProductDetail> getAllProducts(int page, int pageSize) {
+    // not filter isDeleted product out yet
+    public PaginationResponse<ProductDetail> getAllProducts(int page, int pageSize) {
 
         return productDao.getAllProducts(page, pageSize);
     }
@@ -160,9 +162,10 @@ public class ProductService {
     }
 
     @CacheEvict("products")
-    public void updateProduct(Integer productId, String name, String desc, Integer price, String unit, Integer
-            brandId,
-                              Integer categoryId, List<String> productSizes, List<MultipartFile> images, Integer promotionId) {
+    public void updateProduct(Integer productId, String name, String desc,
+                              Integer price, String unit, Integer brandId,
+                              Integer categoryId, List<String> productSizes,
+                              List<MultipartFile> images, Integer promotionId) {
         Product product = entityManager.find(Product.class, productId);
         if (product == null) return;
         if (name != null) product.setName(name);
@@ -299,6 +302,21 @@ public class ProductService {
             Size size = sizeService.findByName(orderItem.getSize());
             productSizeService.rollbackSoldOut(product, size, orderItem.getQuantity());
         }
+    }
+
+    @Transactional
+    public void deleteProduct(Integer productId) {
+        Product product = findById(productId);
+        product.setIsDeleted(true);
+        productRepository.save(product);
+    }
+
+    public List<Product> getProductByPromotion(Promotion promotion) {
+        return productRepository.findAllByPromotion(promotion);
+    }
+
+    public List<Product> saveAll(List<Product> products) {
+        return productRepository.saveAll(products);
     }
 }
 

@@ -37,6 +37,7 @@ public class OrderMapper {
         return orderResponse;
 
     }
+
     public static OrderDetailResponse toOrderDetailResponse(Order order) {
         OrderDetailResponse orderResponse = new OrderDetailResponse();
 
@@ -55,7 +56,7 @@ public class OrderMapper {
         orderResponse.setDiscountShippingFee(order.getDiscountShippingFee());
         orderResponse.setTotalProductAmount(order.getTotalProductAmount());
 
-        if (order.getOrderItems() != null && order.getOrderItems().size()>0) {
+        if (order.getOrderItems() != null && order.getOrderItems().size() > 0) {
             orderResponse.setOrderItems(
                     order.getOrderItems()
                             .stream()
@@ -103,11 +104,13 @@ public class OrderMapper {
 
     public static OrderItemDto toOrderItemDTO(OrderItem orderItem) {
         OrderItemDto orderItemDTO = new OrderItemDto();
+
         orderItemDTO.setQuantity(orderItem.getQuantity());
         orderItemDTO.setSizeType(orderItem.getSize());
         orderItemDTO.setProductId(orderItem.getProduct().getId());
         orderItemDTO.setRate(orderItem.isRate());
         orderItemDTO.setId(orderItem.getId());
+        orderItemDTO.setOrderId(orderItem.getOrder().getId());
         orderItemDTO.setUnitPrice(orderItem.getUnitPrice());
         return orderItemDTO;
     }

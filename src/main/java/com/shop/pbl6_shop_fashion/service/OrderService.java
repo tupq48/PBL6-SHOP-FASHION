@@ -2,10 +2,13 @@ package com.shop.pbl6_shop_fashion.service;
 
 import com.shop.pbl6_shop_fashion.dto.order.OrderDetailResponse;
 import com.shop.pbl6_shop_fashion.dto.order.OrderDto;
+import com.shop.pbl6_shop_fashion.dto.order.OrderItemDto;
 import com.shop.pbl6_shop_fashion.dto.order.OrderResponse;
+import com.shop.pbl6_shop_fashion.entity.Order;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
 import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +37,9 @@ public interface OrderService {
 
     void cancelUnpaidOrdersAfterTime();
 
-    void updateWithVnPayCallback(int idOrder, String vnpTxnRef);
-
     String getPaymentCallBack(HttpServletRequest request);
+
+    String refundVnpay(Order order);
+
+    Page<OrderItemDto> findOrderItemsByOrderStatusAndIsRate(OrderStatus orderStatus, int userId, boolean isRate, Pageable pageable);
 }
