@@ -183,9 +183,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Slice<OrderResponse> getOrdersByCustomer(int customerId, Pageable pageable) {
+    public Slice<OrderResponse> getOrdersByCustomer(int customerId, OrderStatus orderStatus, Pageable pageable) {
         Pageable defaultPageable = getPageableDefault(pageable);
-        Slice<Order> orders = orderRepository.findAllByUserId(customerId, defaultPageable);
+        Slice<Order> orders;
+        if (orderStatus != null) {
+            orders = orderRepository.findAllByUserIdAndOrderStatus(customerId, orderStatus, defaultPageable);
+        } else {
+            orders = orderRepository.findAllByUserId(customerId, defaultPageable);
+        }
         return orders.map(OrderMapper::toOrderResponse);
     }
 

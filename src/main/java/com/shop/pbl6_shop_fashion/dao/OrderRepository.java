@@ -44,5 +44,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
                                                          @Param("userId") int userId, // Thêm tham số cho user_id
                                                          @Param("isRate") boolean isRate,
                                                          Pageable pageable);
+
+    Slice<Order> findAllByUserIdAndOrderStatus(int user_id, OrderStatus orderStatus,Pageable pageable);
 }
 

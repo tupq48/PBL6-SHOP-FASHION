@@ -31,7 +31,7 @@ public interface OrderService {
 
     Slice<OrderResponse> getOrdersByStatus(OrderStatus status, Pageable pageable);
 
-    Slice<OrderResponse> getOrdersByCustomer(int customerId, Pageable pageable);
+    Slice<OrderResponse> getOrdersByCustomer(int customerId,OrderStatus orderStatus,  Pageable pageable);
 
     Slice<OrderResponse> getOrdersByDateRange(String startDate, String endDate, Pageable pageable);
 

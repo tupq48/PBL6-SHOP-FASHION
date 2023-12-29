@@ -48,8 +48,9 @@ public class OrderController {
 
     @GetMapping("users/{userId}")
     public ResponseEntity<?> getAllOrdersByUserId(@RequestParam(required = false) Pageable pageable,
+                                                  @RequestParam(required = false) OrderStatus orderStatus,
                                                   @PathVariable int userId) {
-        return ResponseEntity.ok(orderService.getOrdersByCustomer(userId, pageable));
+        return ResponseEntity.ok(orderService.getOrdersByCustomer(userId,orderStatus, pageable));
     }
 
     @PostMapping
@@ -69,7 +70,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateAdminOrderStatus(orderIds, orderStatus));
     }
 
-    @GetMapping("{userId}/order-items")
+    @GetMapping("users/{userId}/order-items")
     public ResponseEntity<?> getAllOrderItemByUserIdAndRate(@PathVariable int userId,
                                                             @RequestParam boolean isRate,
                                                             @RequestParam(required = false) @PageableDefault Pageable pageable) {
