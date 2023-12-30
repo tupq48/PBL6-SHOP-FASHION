@@ -21,7 +21,7 @@ public class Comment {
     private String content;
     private int rate;
     private LocalDateTime createAt;
-    private boolean isVisible;
+    private Boolean isVisible;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -32,5 +32,6 @@ public class Comment {
     @PrePersist
     public void onCreate() {
         createAt = LocalDateTime.now();
+        isVisible = true;
     }
 }
