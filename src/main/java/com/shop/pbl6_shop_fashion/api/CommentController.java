@@ -3,6 +3,7 @@ package com.shop.pbl6_shop_fashion.api;
 import com.shop.pbl6_shop_fashion.dto.comment.CommentDto;
 import com.shop.pbl6_shop_fashion.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class CommentController {
     }
 
     @PutMapping("/{commnetId}")
-    public void updateProduct(@RequestParam(value = "commentId") Integer commentId,
+    public void updateComment(@RequestParam(value = "commentId") Integer commentId,
                               @RequestParam("rate") Integer rate,
                               @RequestParam("content") String content) {
         commentService.updateComment(commentId, rate, content);
@@ -32,5 +33,11 @@ public class CommentController {
     @GetMapping()
     public List<CommentDto> getAllComment() {
         return commentService.getAllComment();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteComment(@PathVariable Integer id) {
+        commentService.deleteComment(id);
+        return ResponseEntity.ok("Deleted success comment with Id: " + id);
     }
 }

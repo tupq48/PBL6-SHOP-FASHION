@@ -30,7 +30,7 @@ public class CommentService {
         }
         Product product = entityManager.find(Product.class, productId);
         User user = entityManager.find(User.class, userId);
-        comment.setVisible(true);
+        comment.setIsVisible(true);
         comment.setUser(user);
         comment.setProduct(product);
         comment.setRate(rate);
@@ -57,5 +57,11 @@ public class CommentService {
 
     public List<CommentDto> getAllComment() {
         return commentRepository.getAll();
+    }
+
+    public void deleteComment(int commentId) {
+        Comment comment = commentRepository.findById(commentId).get();
+        comment.setIsVisible(false);
+        commentRepository.save(comment);
     }
 }
