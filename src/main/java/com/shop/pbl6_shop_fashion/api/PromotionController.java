@@ -1,6 +1,7 @@
 package com.shop.pbl6_shop_fashion.api;
 
 import com.shop.pbl6_shop_fashion.dto.promotion.PromotionDto;
+import com.shop.pbl6_shop_fashion.dto.promotion.UpdatePromotionRequest;
 import com.shop.pbl6_shop_fashion.entity.Promotion;
 import com.shop.pbl6_shop_fashion.service.PromotionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,5 +59,12 @@ public class PromotionController {
     public ResponseEntity<?> deletePromotion(@PathVariable Integer promotionId) {
         promotionService.deletePromotion(promotionId);
         return ResponseEntity.ok("Deleted success promotion with id: " + promotionId);
+    }
+
+    @PutMapping("/{promotionId}")
+    public ResponseEntity<?> updatePromotion(@PathVariable Integer promotionId,
+                                             @RequestBody UpdatePromotionRequest request) {
+        promotionService.updatePromotion(promotionId, request);
+        return null;
     }
 }

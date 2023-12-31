@@ -197,13 +197,15 @@ public class ProductService {
         if (promotionId != null) product.setPromotion(entityManager.find(Promotion.class, promotionId));
 
         product.setUpdateAt(LocalDateTime.now());
-
-        List<String> imageUrls = ImgBBUtils.uploadImages(images);
-        List<ProductImage> productImages = new ArrayList<>();
-        imageUrls.forEach(imageUrl -> {
-            productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
-        });
-        product.setImages(productImages);
+        if (images != null) {
+            updateImages(productId, images);
+//            List<String> imageUrls = ImgBBUtils.uploadImages(images);
+//            List<ProductImage> productImages = new ArrayList<>();
+//            imageUrls.forEach(imageUrl -> {
+//                productImages.add(ProductImage.builder().url(imageUrl).product(product).build());
+//            });
+//            product.setImages(productImages);
+        }
 
         Product savedProduct = productRepository.save(product);
         return;
@@ -305,6 +307,7 @@ public class ProductService {
     }
 
     @Transactional
+    @CacheEvict("products")
     public void deleteProduct(Integer productId) {
         Product product = findById(productId);
         product.setIsDeleted(true);
