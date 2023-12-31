@@ -23,7 +23,10 @@ public class BrandController {
     public List<Brand> getAllBrand() {
         return brandService.getAllBrand();
     }
-
+    @GetMapping("/getBrandById")
+    public Brand getBrandById(@RequestParam("id") Integer id){
+        return brandService.getBrandById(id);
+    }
     @PostMapping("/add")
     public ResponseEntity<?> createBrand(@RequestParam("image") MultipartFile image,
                                       @RequestParam("name") String name,

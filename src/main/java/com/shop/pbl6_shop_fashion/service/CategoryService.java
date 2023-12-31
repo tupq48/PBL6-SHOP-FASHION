@@ -68,4 +68,8 @@ public class CategoryService {
         categoryRepository.save(category);
     }
 
+    public Category getCategoryById(Integer id) {
+        Category category = categoryRepository.findById(id).get();
+        return category;
+    }
 }
