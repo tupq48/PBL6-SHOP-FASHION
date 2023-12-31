@@ -2,10 +2,9 @@ package com.shop.pbl6_shop_fashion.api;
 
 import com.shop.pbl6_shop_fashion.dto.comment.CommentDto;
 import com.shop.pbl6_shop_fashion.service.CommentService;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,23 +16,28 @@ public class CommentController {
 
     @PostMapping()
     public void addComment(@RequestParam("rate") Integer rate,
+                           @RequestParam("orderItemId") Integer orderItemId,
                            @RequestParam("productId") Integer productId,
                            @RequestParam("userId") Integer userId,
-                           @RequestParam("content") String content
-    ) {
-        commentService.addComment(productId, rate, userId, content);
+                           @RequestParam("content") String content) {
+        commentService.addComment(productId, rate, userId, content,orderItemId);
     }
 
     @PutMapping("/{commnetId}")
-    public void updateProduct(@RequestParam(value = "commentId") Integer commentId,
+    public void updateComment(@RequestParam(value = "commentId") Integer commentId,
                               @RequestParam("rate") Integer rate,
-                              @RequestParam("content") String content
-    ) {
+                              @RequestParam("content") String content) {
         commentService.updateComment(commentId, rate, content);
     }
 
     @GetMapping()
     public List<CommentDto> getAllComment() {
         return commentService.getAllComment();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteComment(@PathVariable Integer id) {
+        commentService.deleteComment(id);
+        return ResponseEntity.ok("Deleted success comment with Id: " + id);
     }
 }
