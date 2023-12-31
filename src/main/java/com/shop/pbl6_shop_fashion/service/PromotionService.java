@@ -3,6 +3,7 @@ package com.shop.pbl6_shop_fashion.service;
 import com.shop.pbl6_shop_fashion.dao.PromotionRepository;
 import com.shop.pbl6_shop_fashion.dto.Product.ProductDto;
 import com.shop.pbl6_shop_fashion.dto.promotion.PromotionDto;
+import com.shop.pbl6_shop_fashion.dto.promotion.UpdatePromotionRequest;
 import com.shop.pbl6_shop_fashion.dto.util.ResponseObject;
 import com.shop.pbl6_shop_fashion.entity.Product;
 import com.shop.pbl6_shop_fashion.entity.Promotion;
@@ -110,4 +111,20 @@ public class PromotionService {
     }
 
 
+    public void updatePromotion(Integer promotionId, UpdatePromotionRequest request) {
+        Promotion promotion = promotionRepository.findById(promotionId).get();
+        if (!promotion.isActive())
+            return;
+        if (request.getPromotionName() != null)
+            promotion.setName(request.getPromotionName());
+        if (request.getDescription() != null)
+            promotion.setDescription(request.getDescription());
+        if (request.getDiscountValue() != null)
+            promotion.setDiscountValue(request.getDiscountValue());
+        if (request.getEndAt() != null)
+            promotion.setEndAt(request.getEndAt());
+        if (request.getDiscountType() != null)
+            promotion.setDiscountType(request.getDiscountType());
+        promotionRepository.save(promotion);
+    }
 }
