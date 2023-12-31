@@ -23,6 +23,10 @@ public class CategoryController {
     public List<Category> getAllCategory() {
         return categoryService.getAllCategory();
     }
+    @GetMapping("/getCategoryById")
+    public Category getAllCategoryById(@RequestParam("id")Integer id) {
+        return categoryService.getCategoryById(id);
+    }
 
     // get top 5 category bán nhiều nhất để hiển thị trên homepage
     @GetMapping("/home")

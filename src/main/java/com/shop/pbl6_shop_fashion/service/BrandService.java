@@ -56,4 +56,9 @@ public class BrandService {
         brand.setIsDeleted(true);
         brandRepository.save(brand);
     }
+
+    public Brand getBrandById(Integer id) {
+        Brand brand = brandRepository.findById(id).get();
+        return brand;
+    }
 }
