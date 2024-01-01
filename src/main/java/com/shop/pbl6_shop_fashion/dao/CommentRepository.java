@@ -9,10 +9,10 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
     @Query(value = """
-    select new com.shop.pbl6_shop_fashion.dto.comment.CommentDto(c.content, c.createAt, c.rate, u.fullName)
+    select new com.shop.pbl6_shop_fashion.dto.comment.CommentDto(c.id, c.content, c.createAt, c.rate, u.fullName)
     from Comment c
     join c.user u
+    where c.isVisible = true
     """)
     List<CommentDto> getAll();
-
 }
