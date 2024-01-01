@@ -175,7 +175,7 @@ public class ProductDao {
             String sizeTypes = (String) result[15];
             String sizeNames = (String) result[16];
             String SizeQuantity = (String) result[17];
-            String star = (String) result[19];
+            String star = (String) result[20];
             List<String> cmtContent = new ArrayList<>();
             if( dateString != null) {
                 cmtContent = List.of(comments.split(","));
