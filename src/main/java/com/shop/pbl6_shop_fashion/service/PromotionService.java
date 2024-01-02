@@ -125,6 +125,31 @@ public class PromotionService {
             promotion.setEndAt(request.getEndAt());
         if (request.getDiscountType() != null)
             promotion.setDiscountType(request.getDiscountType());
-        promotionRepository.save(promotion);
+        if (request.getStartAt() != null)
+            promotion.setStartAt(request.getStartAt());
+
+        Promotion savedPromotion = promotionRepository.save(promotion);
+
+
+        List<Product> products = productService.getProductByPromotion(promotion);
+        products.forEach(product -> product.setPromotion(null));
+        productService.saveAll(products);
+
+        if (request.getProductIds() != null) {
+            String sql = "UPDATE products                   \n" +
+                    "SET `promotion_id` = '"+ savedPromotion.getId() +"'          \n" +
+                    "WHERE ";
+            for (String str : request.getProductIds().split(",")) {
+                sql = sql + " id = '" + str + "' OR ";
+            }
+            sql = sql.substring(0, sql.length()-3);
+
+            Session session = ConnectionProvider.openSession();
+            Transaction transaction = session.beginTransaction();
+            session.createNativeQuery(sql)
+                    .executeUpdate();
+            transaction.commit();
+            session.close();
+        }
     }
 }

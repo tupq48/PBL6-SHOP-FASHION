@@ -18,4 +18,6 @@ public class UpdatePromotionRequest {
     private Double discountValue;
     private DiscountType discountType;
     private LocalDateTime endAt;
+    private LocalDateTime startAt;
+    private String productIds;
 }
