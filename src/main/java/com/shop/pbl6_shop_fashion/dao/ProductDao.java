@@ -268,30 +268,43 @@ public class ProductDao {
                 "    JOIN product_images pi ON pi.product_id = pr.id\n" +
                 "    GROUP BY\n" +
                 "        pr.id\n" +
+                "), KM AS (\n" +
+                "    SELECT\n" +
+                "        pr.id AS SPID,\n" +
+                "        GROUP_CONCAT(ps.discount_value) AS discount_value1,\n" +
+                "        GROUP_CONCAT(ps.discount_type) AS discount_type1\n" +
+                "    FROM\n" +
+                "        products pr\n" +
+                "    LEFT JOIN\n" +
+                "        promotions ps ON pr.promotion_id = ps.id\n" +
+                "    GROUP BY\n" +
+                "        pr.id\n" +
                 ")\n" +
                 "\n" +
                 "SELECT\n" +
                 "    pr.id,\n" +
                 "    pr.name,\n" +
                 "    pr.price,\n" +
-                "\tSUM(psi.quantity) as quantity,\n" +
-                "\tSUM(psi.quantity_sold) as quantity_sold,\n" +
-                "\n" +
-                "    GROUP_CONCAT(ps.discount_value) AS discount_values,\n" +
-                "    GROUP_CONCAT(ps.discount_type) AS discount_types,\n" +
+                "    SUM(psi.quantity) AS quantity,\n" +
+                "    SUM(psi.quantity_sold) AS quantity_sold,\n" +
+                "\tdiscount_value1,\n" +
+                "    discount_type1,\n" +
                 "    Link_anh,\n" +
                 "    pr.category_id AS Loai,\n" +
                 "    ct.name AS Ten_loai,\n" +
                 "    pr.brand_id AS Thuong_hieu,\n" +
                 "    br.name AS Ten_thuong_hieu\n" +
+                "    \n" +
                 "FROM\n" +
                 "    products pr\n" +
                 "LEFT JOIN promotions ps ON pr.promotion_id = ps.id\n" +
                 "LEFT JOIN AnhSanPham asp ON asp.id = pr.id\n" +
                 "LEFT JOIN categories ct ON ct.id = pr.category_id\n" +
                 "LEFT JOIN brands br ON br.id = pr.brand_id\n" +
-                "LEFT JOIN product_size psi on psi.product_id=pr.id\n" +
-                "where pr.is_deleted != true\n"+
+                "LEFT JOIN product_size psi ON psi.product_id = pr.id\n" +
+                "LEFT JOIN KM ON pr.id = KM.SPID\n" +
+                "WHERE\n" +
+                "    pr.is_deleted != TRUE\n" +
                 "GROUP BY\n" +
                 "    pr.id;\n";
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
@@ -338,6 +351,8 @@ public class ProductDao {
 
                     }
             }
+            product.setDiscount_value(discountValue);
+            product.setDiscount_type(discount_type);
             product.setPrice_promote(proce_pro);
             String images = (String) result[7];
             List<String> imagesList = new ArrayList<>();
@@ -503,7 +518,20 @@ public class ProductDao {
                     "        GROUP_CONCAT(pi.url) AS Link_anh\n" +
                     "    FROM\n" +
                     "        products pr\n" +
-                    "    LEFT JOIN product_images pi ON pi.product_id = pr.id\n" +
+                    "    LEFT JOIN\n" +
+                    "        product_images pi ON pi.product_id = pr.id\n" +
+                    "    GROUP BY\n" +
+                    "        pr.id\n" +
+                    "),\n" +
+                    "KM AS (\n" +
+                    "    SELECT\n" +
+                    "        pr.id AS SPID,\n" +
+                    "        GROUP_CONCAT(ps.discount_value) AS discount_value1,\n" +
+                    "        GROUP_CONCAT(ps.discount_type) AS discount_type1\n" +
+                    "    FROM\n" +
+                    "        products pr\n" +
+                    "    LEFT JOIN\n" +
+                    "        promotions ps ON pr.promotion_id = ps.id\n" +
                     "    GROUP BY\n" +
                     "        pr.id\n" +
                     ")\n" +
@@ -512,18 +540,25 @@ public class ProductDao {
                     "    pr.id,\n" +
                     "    pr.name,\n" +
                     "    pr.price,\n" +
-                    "    SUM(psi.quantity),\n" +
-                    "    SUM(psi.quantity_sold),\n" +
-                    "    GROUP_CONCAT(ps.discount_value) AS discount_values,\n" +
-                    "    GROUP_CONCAT(ps.discount_type) AS discount_types,\n" +
+                    "    SUM(psi.quantity) AS total_quantity,\n" +
+                    "    SUM(psi.quantity_sold) AS total_quantity_sold,\n" +
+                    "    discount_value1,\n" +
+                    "    discount_type1,\n" +
                     "    Link_anh\n" +
                     "FROM\n" +
                     "    products pr\n" +
-                    "LEFT JOIN promotions ps ON pr.promotion_id = ps.id\n" +
-                    "JOIN AnhSanPham asp ON asp.id = pr.id\n" +
-                    "JOIN categories ct ON ct.id = pr.category_id\n" +
-                    "left join product_size psi on psi.product_id = pr.id\n" +
-                    "WHERE pr.is_deleted != true and pr.name like :keyword and pr.price BETWEEN :minprice AND :maxprice and ct.name like :category\n" +
+                    "LEFT JOIN\n" +
+                    "    promotions ps ON pr.promotion_id = ps.id\n" +
+                    "JOIN\n" +
+                    "    AnhSanPham asp ON asp.id = pr.id\n" +
+                    "JOIN\n" +
+                    "    categories ct ON ct.id = pr.category_id\n" +
+                    "LEFT JOIN\n" +
+                    "    product_size psi ON psi.product_id = pr.id\n" +
+                    "LEFT JOIN\n" +
+                    "    KM ON pr.id = KM.SPID\n" +
+                    "WHERE\n" +
+                    "    pr.is_deleted != true and pr.name like :keyword and pr.price BETWEEN :minprice AND :maxprice and ct.name like :category\n" +
                     " group by pr.id" ;
 
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
@@ -567,6 +602,8 @@ public class ProductDao {
 
                 }
             }
+            product.setDiscount_value(discountValue);
+            product.setDiscount_type(discount_type);
             product.setPrice_promote(proce_pro);
             String images = (String) result[7];
             List<String> imagesList= new ArrayList<>();
