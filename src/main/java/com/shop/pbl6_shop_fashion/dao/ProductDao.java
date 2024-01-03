@@ -27,107 +27,108 @@ public class ProductDao {
 //        databaseConfig.dataSource();
         String sql=
                 "WITH AnhSanPham AS (\n" +
-                "    SELECT\n" +
-                "        pr.*,\n" +
-                "        GROUP_CONCAT(pi.url) AS Link_anh\n" +
-                "    FROM\n" +
-                "        products pr\n" +
-                "    JOIN\n" +
-                "        product_images pi ON pi.product_id = pr.id\n" +
-                "    GROUP BY\n" +
-                "        pr.id\n" +
-                "),\n" +
-                "\n" +
-                "Sizes AS (\n" +
-                "    SELECT\n" +
-                "        GROUP_CONCAT(ps.quantity) AS SoLuongConLai,\n" +
-                "        pr.id AS Id_sp,\n" +
-                "        GROUP_CONCAT(s.id) AS loai_size,\n" +
-                "        GROUP_CONCAT(s.name) AS ten_size\n" +
-                "    FROM\n" +
-                "        product_size ps\n" +
-                "    LEFT JOIN\n" +
-                "        products pr ON pr.id = ps.product_id\n" +
-                "    LEFT JOIN\n" +
-                "        sizes s ON s.id = ps.size_id\n" +
-                "    GROUP BY\n" +
-                "        pr.id\n" +
-                "),\n" +
-                "\n" +
-                "CMT_US AS (\n" +
-                "    SELECT\n" +
-                "        GROUP_CONCAT(cmt.content) AS noidungcmt,\n" +
-                "        GROUP_CONCAT(cmt.create_at) AS ngaytaocmt,\n" +
-                "        GROUP_CONCAT(us.full_name) AS nguoicmt,\n" +
-                "        GROUP_CONCAT(us.url_image) AS Avatar,\n" +
-                "        pr.id AS idsp,\n" +
-                "        pr.name,\n" +
-                "        GROUP_CONCAT(cmt.rate) AS star\n" +
-                "    FROM\n" +
-                "        products pr\n" +
-                "    LEFT JOIN\n" +
-                "        comments cmt ON pr.id = cmt.product_id\n" +
-                "    LEFT JOIN\n" +
-                "        users us ON us.id = cmt.user_id\n" +
-                "    GROUP BY\n" +
-                "        pr.id\n" +
-                "),\n" +
-                "\n" +
-                "KM AS (\n" +
-                "    SELECT\n" +
-                "        pr.id AS SPID,\n" +
-                "        GROUP_CONCAT(ps.discount_value) AS discount_value,\n" +
-                "        GROUP_CONCAT(ps.discount_type) AS discount_type\n" +
-                "    FROM\n" +
-                "        products pr\n" +
-                "    LEFT JOIN\n" +
-                "        promotions ps ON pr.promotion_id = ps.id\n" +
-                "    GROUP BY\n" +
-                "        pr.id\n" +
-                ")\n" +
-                "\n" +
-                "SELECT\n" +
-                "    ct.id AS Loai_san_pham,\n" +
-                "    ct.name AS Ten_loai_san_pham,\n" +
-                "    br.id AS Ma_thuong_hieu,\n" +
-                "    br.name AS Ten_thuong_hieu,\n" +
-                "    pr.id,\n" +
-                "    pr.name,\n" +
-                "    pr.price,\n" +
-                "    SUM(psi.quantity) AS quantity,\n" +
-                "\tSUM(psi.quantity_sold) AS quantity_sold,\n" +
-                "    pr.description,\n" +
-                "    Link_anh,\n" +
-                "    ngaytaocmt,\n" +
-                "    noidungcmt,\n" +
-                "    nguoicmt,\n" +
-                "    Avatar,\n" +
-                "    loai_size,\n" +
-                "    ten_size,\n" +
-                "    SoLuongConLai,\n" +
-                "    discount_value,\n" +
-                "    discount_type,\n" +
-                "    star\n" +
-                "FROM\n" +
-                "    products pr\n" +
-                "JOIN\n" +
-                "    brands br ON br.id = pr.brand_id\n" +
-                "JOIN\n" +
-                "    categories ct ON ct.id = pr.category_id\n" +
-                "LEFT JOIN\n" +
-                "    product_size psi ON psi.product_id = pr.id\n" +
-                "LEFT JOIN\n" +
-                "    AnhSanPham asp ON pr.id = asp.id\n" +
-                "JOIN\n" +
-                "    Sizes siz ON siz.Id_sp = pr.id\n" +
-                "LEFT JOIN\n" +
-                "    CMT_US ON pr.id = CMT_US.idsp\n" +
-                "LEFT JOIN\n" +
-                "    KM ON pr.id = KM.SPID\n" +
-                "WHERE\n" +
-                "    pr.id = ? and pr.is_deleted != true\n" +
-                "GROUP BY\n" +
-                "    pr.id;\n";
+                        "    SELECT\n" +
+                        "        pr.*,\n" +
+                        "        GROUP_CONCAT(pi.url) AS Link_anh\n" +
+                        "    FROM\n" +
+                        "        products pr\n" +
+                        "    JOIN\n" +
+                        "        product_images pi ON pi.product_id = pr.id\n" +
+                        "    GROUP BY\n" +
+                        "        pr.id\n" +
+                        "),\n" +
+                        "\n" +
+                        "Sizes AS (\n" +
+                        "    SELECT\n" +
+                        "        GROUP_CONCAT(ps.quantity) AS SoLuongConLai,\n" +
+                        "        pr.id AS Id_sp,\n" +
+                        "        GROUP_CONCAT(s.id) AS loai_size,\n" +
+                        "        GROUP_CONCAT(s.name) AS ten_size\n" +
+                        "    FROM\n" +
+                        "        product_size ps\n" +
+                        "    LEFT JOIN\n" +
+                        "        products pr ON pr.id = ps.product_id\n" +
+                        "    LEFT JOIN\n" +
+                        "        sizes s ON s.id = ps.size_id\n" +
+                        "    GROUP BY\n" +
+                        "        pr.id\n" +
+                        "),\n" +
+                        "\n" +
+                        "CMT_US AS (\n" +
+                        "    SELECT\n" +
+                        "        GROUP_CONCAT(cmt.content) AS noidungcmt,\n" +
+                        "        GROUP_CONCAT(cmt.create_at) AS ngaytaocmt,\n" +
+                        "        GROUP_CONCAT(us.full_name) AS nguoicmt,\n" +
+                        "        GROUP_CONCAT(us.url_image) AS Avatar,\n" +
+                        "        pr.id AS idsp,\n" +
+                        "        pr.name,\n" +
+                        "        GROUP_CONCAT(cmt.rate) AS star\n" +
+                        "    FROM\n" +
+                        "        products pr\n" +
+                        "    LEFT JOIN\n" +
+                        "        comments cmt ON pr.id = cmt.product_id\n" +
+                        "    LEFT JOIN\n" +
+                        "        users us ON us.id = cmt.user_id\n" +
+                        "    GROUP BY\n" +
+                        "        pr.id\n" +
+                        "),\n" +
+                        "\n" +
+                        "KM AS (\n" +
+                        "    SELECT\n" +
+                        "        pr.id AS SPID,\n" +
+                        "        GROUP_CONCAT(ps.discount_value) AS discount_value,\n" +
+                        "        GROUP_CONCAT(ps.discount_type) AS discount_type, \n" +
+                        "        ps.id as pro_id\n" +
+                        "    FROM\n" +
+                        "        products pr\n" +
+                        "    LEFT JOIN\n" +
+                        "        promotions ps ON pr.promotion_id = ps.id\n" +
+                        "    GROUP BY\n" +
+                        "        pr.id\n" +
+                        ")\n" +
+                        "\n" +
+                        "SELECT\n" +
+                        "    ct.id AS Loai_san_pham,\n" +
+                        "    ct.name AS Ten_loai_san_pham,\n" +
+                        "    br.id AS Ma_thuong_hieu,\n" +
+                        "    br.name AS Ten_thuong_hieu,\n" +
+                        "    pr.id,\n" +
+                        "    pr.name,\n" +
+                        "    pr.price,\n" +
+                        "    SUM(psi.quantity) AS quantity,\n" +
+                        "    SUM(psi.quantity_sold) AS quantity_sold,\n" +
+                        "    pr.description,\n" +
+                        "    Link_anh,\n" +
+                        "    ngaytaocmt,\n" +
+                        "    noidungcmt,\n" +
+                        "    nguoicmt,\n" +
+                        "    Avatar,\n" +
+                        "    loai_size,\n" +
+                        "    ten_size,\n" +
+                        "    SoLuongConLai,\n" +
+                        "    discount_value,\n" +
+                        "    discount_type,\n" +
+                        "    star, pro_id\n" +
+                        "FROM\n" +
+                        "    products pr\n" +
+                        "JOIN\n" +
+                        "    brands br ON br.id = pr.brand_id\n" +
+                        "JOIN\n" +
+                        "    categories ct ON ct.id = pr.category_id\n" +
+                        "LEFT JOIN\n" +
+                        "    product_size psi ON psi.product_id = pr.id\n" +
+                        "LEFT JOIN\n" +
+                        "    AnhSanPham asp ON pr.id = asp.id\n" +
+                        "JOIN\n" +
+                        "    Sizes siz ON siz.Id_sp = pr.id\n" +
+                        "LEFT JOIN\n" +
+                        "    CMT_US ON pr.id = CMT_US.idsp\n" +
+                        "LEFT JOIN\n" +
+                        "    KM ON pr.id = KM.SPID\n" +
+                        "WHERE\n" +
+                        "    pr.id = ? AND pr.is_deleted != TRUE\n" +
+                        "GROUP BY\n" +
+                        "    pr.id;\n";
 
         // Tạo truy vấn native SQL
         Query query = ConnectionProvider.openSession().createNativeQuery(sql);
@@ -150,6 +151,7 @@ public class ProductDao {
             product.setQuantity((BigDecimal) result[7]);
             product.setQuantity_sold((BigDecimal) result[8]);
             product.setDecription((String) result[9]);
+            product.setPromotionId((Integer) result[21]);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
             List<String> createDate = new ArrayList<>();
 

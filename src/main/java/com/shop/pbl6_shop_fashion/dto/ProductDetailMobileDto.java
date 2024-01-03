@@ -31,6 +31,7 @@ public class ProductDetailMobileDto {
     private List<String> SizeQuantity;
     private List<Integer> rate;
     private Double avgRate;
+    private Integer promotionId;
 
 
 
