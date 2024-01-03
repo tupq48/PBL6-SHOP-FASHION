@@ -93,7 +93,16 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     public ProductDetailDto getProductDetailById(Integer id) {
         Product product = entityManager.find(Product.class, id);
         if (product != null && !product.getIsDeleted()) {
-            return convertProductToProductDetailDto(product);
+            var result = convertProductToProductDetailDto(product);
+            Promotion promotion = product.getPromotion();
+            Double value = result.getLohang_gia_ban_ra() - 0d;
+            if (promotion != null) {
+                Double discount = getDiscountValue(Math.toIntExact(result.getLohang_gia_ban_ra()), promotion.getDiscountType(), promotion.getDiscountValue());
+                 value = result.getLohang_gia_ban_ra() - discount;
+                value = value > 0 ? value : 1;
+            }
+            result.setActualPrice(value);
+            return result;
         }
         return null;
     }

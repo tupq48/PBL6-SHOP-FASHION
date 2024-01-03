@@ -47,24 +47,28 @@ public class PasswordServiceImpl implements PasswordService {
      */
     @Override
     public boolean changePassword(PasswordChangeRequest request, Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new PasswordException("Wrong password");
-        }
+        User userAuthentication = (User) authentication.getPrincipal();
         if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
             throw new PasswordException("Password are not the same");
         }
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
+        User userDb = userRepository.findById(userAuthentication.getId())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), userDb.getPassword())) {
+            throw new PasswordException("Wrong password");
+        }
+
+        userDb.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(userDb);
         return true;
     }
 
 
     @Override
     public String sendOTPEmail(String username) throws MessagingException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Username is not found : " + username));
+        String usernameAfter = username.toLowerCase().trim();
+        User user = userRepository.findByUsername(usernameAfter)
+                .orElseThrow(() -> new UserNotFoundException("Username is not found : " + usernameAfter));
 
         if (user.getAccountProvider().name().equals(AccountProvider.LOCAL.name())
                 && user.getGmail() != null) {
@@ -103,8 +107,9 @@ public class PasswordServiceImpl implements PasswordService {
      */
     @Override
     public String verifyOTP(String username, String otp) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Username is not found : " + username));
+        String usernameAfter = username.toLowerCase().trim();
+        User user = userRepository.findByUsername(usernameAfter)
+                .orElseThrow(() -> new UserNotFoundException("Username is not found : " + usernameAfter));
 
         OTPSetPassword passwordReset = otpResetPasswordRepository.findByUser(user);
 
@@ -131,7 +136,6 @@ public class PasswordServiceImpl implements PasswordService {
         throw new OTPSetPasswordException("The provided OTP is incorrect or expired");
 
     }
-
 
 
     /**
@@ -166,7 +170,7 @@ public class PasswordServiceImpl implements PasswordService {
             throw new OTPSetPasswordException("The provided OTP does not exist with user");
         }
 
-        if (passwordReset.getNumberOfAttempts() < maxAttempts) {
+        if (passwordReset.getNumberOfAttempts() >= maxAttempts) {
             throw new OTPSetPasswordException("The provided OTP has reached the maximum number of attempts");
         }
 

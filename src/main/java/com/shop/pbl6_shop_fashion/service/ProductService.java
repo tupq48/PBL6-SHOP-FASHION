@@ -162,6 +162,7 @@ public class ProductService {
     }
 
     @CacheEvict("products")
+    @Transactional
     public void updateProduct(Integer productId, String name, String desc,
                               Integer price, String unit, Integer brandId,
                               Integer categoryId, List<String> productSizes,
@@ -186,7 +187,8 @@ public class ProductService {
                     }
                 }
             }
-            product.setProductSizes(sizeList);
+            sizeList.addAll(currentSizes);
+            productSizeService.saveAll(sizeList);
 
             Integer quantity = 0;
             for (ProductSize productSize : sizeList) {

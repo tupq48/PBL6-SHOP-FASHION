@@ -79,14 +79,14 @@ public class OrderServiceImpl implements OrderService {
         String vnpTxnRef = null;
 
         if (orderDto.getPaymentMethod() == PaymentMethod.VNPAY) {
-            orderStatus = OrderStatus.PREPARING_PAYMENT;
             vnpTxnRef = VnPayConfig.getRandomNumber();
+            String message = order.getId() + " " + (new Gson().toJson(orderItemDtoList));
+            order.setUrlVnPay(paymentService.getUrlPayment(totalPayment, message, vnpTxnRef));
+            orderStatus = OrderStatus.PREPARING_PAYMENT;
         } else {
-            orderStatus = OrderStatus.UNCONFIRMED;
+            orderStatus = OrderStatus.CONFIRMED;
         }
-
         order.setId(0);
-
         order.setOrderStatus(orderStatus);
         order.setVouchers(vouchers);
         order.setOrderItems(orderItems);
@@ -101,13 +101,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
         deleteCartItem(orderDto.getUserId(), orderDto.getOrderItems());
-
-        OrderDetailResponse orderResponse = OrderMapper.toOrderDetailResponse(savedOrder);
-        if (orderDto.getPaymentMethod() == PaymentMethod.VNPAY) {
-            String message = order.getId() + " " + (new Gson().toJson(orderResponse.getOrderItems()));
-            orderResponse.setUrlPayment(paymentService.getUrlPayment(totalPayment, message, vnpTxnRef));
-        }
-        return orderResponse;
+        return OrderMapper.toOrderDetailResponse(savedOrder);
     }
 
     private long getTotalAmount(List<OrderItem> orderItems) {
@@ -167,11 +161,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus) {
-        for (int orderId : orderIds) {
-            updateOrderStatus(orderId, newStatus, true);
+    public void updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus) {
+        if (orderIds == null || orderIds.isEmpty()) {
+            throw new OrderException("Error with orderIds", HttpStatus.BAD_REQUEST);
         }
-        return new OrderResponse();
+        orderRepository.updateOrderStatusWithIds(orderIds, newStatus);
     }
 
 
@@ -231,13 +225,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public void updateWithVnPayCallback(int idOrder, String vnpTxnRef, String vnpPayDate, String vnpTransaction) {
-        Order order = orderRepository.findOrderByIdAndVnpTxnRef(idOrder, vnpTxnRef)
+        System.out.println(vnpTxnRef);
+        Order order = orderRepository.findOrderByPaymentMethodAndVnpTxnRef(PaymentMethod.VNPAY, vnpTxnRef)
                 .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         try {
             LocalDateTime payDate = LocalDateTime.parse(vnpPayDate, formatter);
             order.setOrderDate(payDate);
-            order.setOrderStatus(OrderStatus.UNCONFIRMED);
+            order.setOrderStatus(OrderStatus.CONFIRMED);
             order.setVnpTransaction(vnpTransaction);
             orderRepository.save(order);
         } catch (DateTimeParseException e) {
@@ -266,6 +261,7 @@ public class OrderServiceImpl implements OrderService {
             String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
             String vnp_OrderInfo = request.getParameter("vnp_OrderInfo");
             String vnp_TxnRef = request.getParameter("vnp_TxnRef");
+            System.out.println(vnp_TxnRef);
             String vnp_PayDate = request.getParameter("vnp_PayDate");
             String vnpTransactionMes = VnPayConfig.getTransactionStatusMessage(vnp_TransactionStatus) + ", " + VnPayConfig.getPaymentMessage(vnp_ResponseCode);
             if (VnPayConfig.transactionStatusSuccessful.equals(vnp_TransactionStatus)) {
