@@ -20,4 +20,5 @@ public class ProductDetailDto {
     private List<ProductImageDto> hinhsanpham_url;
     private Long lohang_gia_ban_ra; // price product
     private List<CommentDto> comments;
+    private Double actualPrice;
 }

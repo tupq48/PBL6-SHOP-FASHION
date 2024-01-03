@@ -3,6 +3,7 @@ package com.shop.pbl6_shop_fashion.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -11,8 +12,8 @@ import java.util.List;
 public class ProductDetail {
         private String product_name;
         private Long price;
-        private Long quantity;
-        private Long quantity_sold;
+        private BigDecimal quantity;
+        private BigDecimal quantity_sold;
         private Integer product_id;
         private Long price_promote;
         private List<String> product_image;

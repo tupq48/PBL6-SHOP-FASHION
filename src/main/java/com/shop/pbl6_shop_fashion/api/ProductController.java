@@ -90,7 +90,6 @@ public class ProductController {
                               @RequestParam(value = "images", required = false) List<MultipartFile> images,
                               @RequestParam(value = "promotionId", required = false) Integer promotionId
                               ) {
-        System.out.println(images);
         productService.updateProduct(productId, name,desc,price,unit,brandId,categoryId,productSizes,images,promotionId);
     }
 
@@ -100,7 +99,6 @@ public class ProductController {
     public com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto ProductDetail(
             @RequestParam(name="id", required = false) Integer id){
         com.shop.pbl6_shop_fashion.dto.ProductDetailMobileDto pr = productService.searchProductDetail(id);
-        System.out.println("product: " + pr);
         return pr;
     }
     @GetMapping("/product/getAll")
@@ -129,8 +127,8 @@ public class ProductController {
     @GetMapping("/product/searchAll")
     public PaginationResponse<ProductDetail> searchProductsMobile(
             @RequestParam(name="keyword", defaultValue = "") String keyword,
-            @RequestParam(name="minprice", defaultValue = "-1") Integer minprice,
-            @RequestParam(name="maxprice", defaultValue = "0") Integer maxprice,
+            @RequestParam(name="minprice", defaultValue = "0") Integer minprice,
+            @RequestParam(name="maxprice", defaultValue = "99999999") Integer maxprice,
             @RequestParam(name="category", defaultValue = "") String category,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "1000") int pageSize){
