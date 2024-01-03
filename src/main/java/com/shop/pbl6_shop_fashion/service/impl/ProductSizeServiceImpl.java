@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class ProductSizeServiceImpl implements ProductSizeService {
@@ -39,5 +41,10 @@ public class ProductSizeServiceImpl implements ProductSizeService {
         productSize.setQuantitySold(productSize.getQuantitySold() - amountSoldOut);
         productSizeRepository.save(productSize);
         return true;
+    }
+
+    @Override
+    public List<ProductSize> saveAll(List<ProductSize> productSizes) {
+        return productSizeRepository.saveAll(productSizes);
     }
 }
