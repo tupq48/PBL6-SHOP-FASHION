@@ -175,7 +175,7 @@ public class ProductDao {
             String sizeTypes = (String) result[15];
             String sizeNames = (String) result[16];
             String SizeQuantity = (String) result[17];
-            String star = (String) result[19];
+            String star = (String) result[20];
             List<String> cmtContent = new ArrayList<>();
             if( dateString != null) {
                 cmtContent = List.of(comments.split(","));
@@ -221,11 +221,11 @@ public class ProductDao {
             product.setSizeQuantity(SizeQuantityList);
             product.setRate(rateListInteger);
             List<String> discountValueList = new ArrayList<>();
-            String discountValue = (String) result[17];
+            String discountValue = (String) result[18];
             if( discountValue != null) {
                 discountValueList = List.of(discountValue.split(","));
             }
-            String discount_type = (String) result[18];
+            String discount_type = (String) result[19];
             List<String> discountTypeList = new ArrayList<>();
 
             if( discount_type != null) {
