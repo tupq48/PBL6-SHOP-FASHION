@@ -42,6 +42,7 @@ public class Order {
     private String vnpTxnRef;
 
     private String vnpTransaction;
+    private String urlVnPay;
 
     @ManyToMany
     @JoinTable(

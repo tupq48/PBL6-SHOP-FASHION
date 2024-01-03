@@ -3,14 +3,17 @@ package com.shop.pbl6_shop_fashion.dao;
 import com.shop.pbl6_shop_fashion.entity.Order;
 import com.shop.pbl6_shop_fashion.entity.OrderItem;
 import com.shop.pbl6_shop_fashion.enums.OrderStatus;
+import com.shop.pbl6_shop_fashion.enums.PaymentMethod;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,6 +37,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findAllByOrderDateBeforeAndOrderStatus(LocalDateTime orderDate, OrderStatus orderStatus);
 
     Optional<Order> findOrderByIdAndVnpTxnRef(int id, String vnpTxnRef);
+    Optional<Order> findOrderByPaymentMethodAndVnpTxnRef(PaymentMethod paymentMethod, String vnpTxnRef);
 
     @Query("SELECT oi FROM OrderItem oi " +
             "JOIN oi.order o " +
@@ -45,6 +49,13 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
                                                          @Param("isRate") boolean isRate,
                                                          Pageable pageable);
 
-    Slice<Order> findAllByUserIdAndOrderStatus(int user_id, OrderStatus orderStatus,Pageable pageable);
+    Slice<Order> findAllByUserIdAndOrderStatus(int user_id, OrderStatus orderStatus, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Order o SET o.orderStatus = :orderStatus WHERE o.id IN :orderIds")
+    void updateOrderStatusWithIds(@Param("orderIds") List<Integer> orderIds,
+                                  @Param("orderStatus") OrderStatus orderStatus);
+
 }
 

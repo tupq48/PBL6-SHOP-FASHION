@@ -34,6 +34,7 @@ public class OrderMapper {
         if (order.getUser() != null) {
             orderResponse.setUserId(order.getUser().getId());
         }
+        orderResponse.setUrlPayment(order.getUrlVnPay());
         return orderResponse;
 
     }
@@ -67,6 +68,7 @@ public class OrderMapper {
         if (order.getUser() != null) {
             orderResponse.setUserId(order.getUser().getId());
         }
+        orderResponse.setUrlPayment(order.getUrlVnPay());
         return orderResponse;
 
     }

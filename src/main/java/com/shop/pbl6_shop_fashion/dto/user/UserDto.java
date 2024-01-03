@@ -14,7 +14,7 @@ import java.time.LocalDate;
 public class UserDto {
     private int id;
     private String username;
-    @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Name must not contain numbers or special characters")
+    @Pattern(regexp = "^[\\p{L}\\s]*$", message = "Name must not contain numbers or special characters")
     @Length(min = 5, max = 100)
     private String name;
     private String urlImage;

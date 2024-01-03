@@ -27,7 +27,7 @@ public interface OrderService {
     OrderResponse updateUserOrderStatus(int orderId, OrderStatus newStatus);
 
     @Transactional
-    OrderResponse updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus);
+    void updateAdminOrderStatus(List<Integer> orderIds, OrderStatus newStatus);
 
     Slice<OrderResponse> getOrdersByStatus(OrderStatus status, Pageable pageable);
 

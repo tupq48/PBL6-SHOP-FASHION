@@ -82,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
+                            request.getUsername().toLowerCase().trim(),
                             request.getPassword()
                     )
             );

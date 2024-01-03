@@ -13,8 +13,8 @@ import org.hibernate.validator.constraints.Length;
 @Builder
 public class RegisterRequest {
     @NotBlank(message = "Name User is not null or empty")
-    @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Name must not contain numbers or special characters")
-    @Length(min = 1,max = 100)
+    @Pattern(regexp = "^[\\p{L}\\s]*$", message = "Name must not contain numbers or special characters")
+    @Length(min = 1, max = 100)
     private String name;
 
     @Email
@@ -24,6 +24,6 @@ public class RegisterRequest {
     @Pattern(regexp = "^[a-zA-Z0-9_.-]{5,50}$", message = "Invalid username format")
     private String username;
     @NotBlank(message = "Password is not null or empty")
-    @Length(min = 6,max = 50)
+    @Length(min = 6, max = 50)
     private String password;
 }
