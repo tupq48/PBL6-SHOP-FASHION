@@ -8,8 +8,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
-
 
 import java.security.Key;
 import java.util.Date;
@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.springframework.security.core.GrantedAuthority;
 
 @Service
 public class JwtService {
@@ -52,8 +51,7 @@ public class JwtService {
 
     public String generateToken(
             Map<String, Object> extraClaims,
-            User userDetails
-    ) {
+            User userDetails) {
         return buildToken(extraClaims, userDetails, jwtExpiration);
     }
 
@@ -88,7 +86,7 @@ public class JwtService {
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
-             // Token is invalid
+            // Token is invalid
         }
     }
 

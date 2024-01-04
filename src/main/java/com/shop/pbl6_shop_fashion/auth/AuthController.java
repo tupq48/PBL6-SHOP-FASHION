@@ -72,8 +72,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify-gg")
-    public void verify(@RequestParam("token") String token) throws IOException {
-        googleVerify.verifyGoogleSignIn(token);
+    public ResponseEntity<?> verify(@RequestParam("token") String token) throws IOException {
+        return ResponseEntity.ok(googleVerify.verifyGoogleSignIn(token));
     }
-
 }
