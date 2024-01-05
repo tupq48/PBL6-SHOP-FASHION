@@ -390,6 +390,9 @@ public class OrderServiceImpl implements OrderService {
     void isRefundPayment(Order orderToUpdate, OrderStatus prevStatus) {
         if (orderToUpdate.getPaymentMethod() == PaymentMethod.VNPAY && prevStatus != OrderStatus.PREPARING_PAYMENT) {
             String mes = refundVnpay(orderToUpdate);
+            if(mes.contains("Giao dịch thành công")){
+                orderToUpdate.setOrderStatus(OrderStatus.REFUNDED);
+            }
             orderToUpdate.setVnpTransaction(mes);
             orderRepository.save(orderToUpdate);
             log.info(orderToUpdate.getId() + " " + mes);
