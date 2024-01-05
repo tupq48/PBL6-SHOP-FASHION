@@ -1,10 +1,5 @@
 package com.shop.pbl6_shop_fashion.security.oauth2;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.gson.GsonFactory;
 import com.shop.pbl6_shop_fashion.auth.AuthResponse;
 import com.shop.pbl6_shop_fashion.dao.RoleRepository;
 import com.shop.pbl6_shop_fashion.dao.TokenRefreshRepository;
@@ -20,11 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.UUID;
 
 @Service
@@ -37,55 +29,66 @@ public class GoogleVerify {
     private final JwtService jwtService;
     private final TokenRefreshRepository tokenRefreshRepository;
 
-    public AuthResponse verifyGoogleSignIn(String idTokenString) {
-        NetHttpTransport httpTransport = new NetHttpTransport();
-        JsonFactory jsonFactory = new GsonFactory();
+    public AuthResponse verifyGoogleSignIn(String gmail, String fullName, String urlImage) {
+        User user = getUser(gmail, fullName, urlImage);
+        TokenRefresh tokenRefresh = getTokenRefresh(user);
 
-        if (idTokenString == null || idTokenString.isEmpty()) {
-            // Handle the case where idTokenString is null or empty
-            throw new RuntimeException("NULL");
-        }
-
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(httpTransport, jsonFactory)
-                .setAudience(Collections.singletonList(CLIENT_ID))
+        return AuthResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .fullName(user.getFullName())
+                .accessToken(jwtService.generateToken(user))
+                .refreshToken(tokenRefresh.getToken())
                 .build();
 
-        try {
-            GoogleIdToken idToken = verifier.verify(idTokenString);
-            if (idToken != null) {
-                GoogleIdToken.Payload payload = idToken.getPayload();
-                // Print user identifier
-                String userId = payload.getSubject();
-                System.out.println("User ID: " + userId);
+//        NetHttpTransport httpTransport = new NetHttpTransport();
+//        JsonFactory jsonFactory = new GsonFactory();
+//
+//        if (idTokenString == null || idTokenString.isEmpty()) {
+//            // Handle the case where idTokenString is null or empty
+//            throw new RuntimeException("NULL");
+//        }
+//
+//        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(httpTransport, jsonFactory)
+//                .setAudience(Collections.singletonList(CLIENT_ID))
+//                .build();
 
-                // Get profile information from payload
-                String email = payload.getEmail();
-                boolean emailVerified = payload.getEmailVerified();
-                String name = (String) payload.get("name");
-                String pictureUrl = (String) payload.get("picture");
-                String locale = (String) payload.get("locale");
-                String familyName = (String) payload.get("family_name");
-                String givenName = (String) payload.get("given_name");
-
-                User user = getUser(email, name, pictureUrl);
-                TokenRefresh tokenRefresh = getTokenRefresh(user);
-
-                return AuthResponse.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .fullName(user.getFullName())
-                        .accessToken(jwtService.generateToken(user))
-                        .refreshToken(tokenRefresh.getToken())
-                        .build();
-            } else {
-                throw new RuntimeException("IdToken NULL");
-            }
-        } catch (GeneralSecurityException | IOException e) {
-            System.out.println("Error");
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
-            // Handle exceptions appropriately
-        }
+//        try {
+//            GoogleIdToken idToken = verifier.verify(idTokenString);
+//            if (idToken != null) {
+//                GoogleIdToken.Payload payload = idToken.getPayload();
+//                // Print user identifier
+//                String userId = payload.getSubject();
+//                System.out.println("User ID: " + userId);
+//
+//                // Get profile information from payload
+//                String email = payload.getEmail();
+//                boolean emailVerified = payload.getEmailVerified();
+//                String name = (String) payload.get("name");
+//                String pictureUrl = (String) payload.get("picture");
+//                String locale = (String) payload.get("locale");
+//                String familyName = (String) payload.get("family_name");
+//                String givenName = (String) payload.get("given_name");
+//
+//                User user = getUser(email, name, pictureUrl);
+//                TokenRefresh tokenRefresh = getTokenRefresh(user);
+//
+//                return AuthResponse.builder()
+//                        .id(user.getId())
+//                        .username(user.getUsername())
+//                        .fullName(user.getFullName())
+//                        .accessToken(jwtService.generateToken(user))
+//                        .refreshToken(tokenRefresh.getToken())
+//                        .build();
+//            } else {
+//                throw new RuntimeException("IdToken NULL");
+//            }
+//        } catch (GeneralSecurityException | IOException e) {
+//            System.out.println("Error");
+//            e.printStackTrace();
+//            throw new RuntimeException(e.getMessage());
+//            // Handle exceptions appropriately
+//        }
     }
 
     private User getUser(String email, String name, String pictureUrl) {
