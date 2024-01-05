@@ -59,8 +59,13 @@ public class UserAddressServiceImpl implements UserAddressService {
 
         boolean isDefaultBeforeSave = userAddress.isDefault();
 
-        userAddress.setAddress(updateUserAddress.getAddress());
         userAddress.setPhoneNumber(updateUserAddress.getPhoneNumber());
+        userAddress.setAddress(updateUserAddress.getAddress());
+        userAddress.setName(updateUserAddress.getName());
+        userAddress.setStreet(updateUserAddress.getStreet());
+        userAddress.setDefault(updateUserAddress.isDefault());
+        userAddress.setDistrictId(updateUserAddress.getDistrictId());
+        userAddress.setWardCode(updateUserAddress.getWardCode());
         userAddress = userAddressRepository.save(userAddress);
 
         if (userAddress.isDefault() && !isDefaultBeforeSave) {
