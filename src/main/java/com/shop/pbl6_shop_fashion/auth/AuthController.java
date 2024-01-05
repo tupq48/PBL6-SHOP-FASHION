@@ -36,7 +36,6 @@ public class AuthController {
         return ResponseEntity.ok(authService.authenticate(request));
     }
 
-
     @PostMapping("/refresh-token")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         authService.refreshToken(request, response);
@@ -72,7 +71,9 @@ public class AuthController {
     }
 
     @PostMapping("/verify-gg")
-    public ResponseEntity<?> verify(@RequestParam("token") String token) throws IOException {
-        return ResponseEntity.ok(googleVerify.verifyGoogleSignIn(token));
+    public ResponseEntity<?> verify(@RequestParam() String gmail,
+                                    @RequestParam() String fullName,
+                                    @RequestParam() String urlImage) throws IOException {
+        return ResponseEntity.ok(googleVerify.verifyGoogleSignIn(gmail,fullName,urlImage));
     }
 }
