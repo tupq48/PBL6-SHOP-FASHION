@@ -223,23 +223,6 @@ public class OrderServiceImpl implements OrderService {
             e.printStackTrace();
         }
     }
-
-    public void updateWithVnPayCallback(int idOrder, String vnpTxnRef, String vnpPayDate, String vnpTransaction) {
-        System.out.println(vnpTxnRef);
-        Order order = orderRepository.findOrderByPaymentMethodAndVnpTxnRef(PaymentMethod.VNPAY, vnpTxnRef)
-                .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        try {
-            LocalDateTime payDate = LocalDateTime.parse(vnpPayDate, formatter);
-            order.setOrderDate(payDate);
-            order.setOrderStatus(OrderStatus.CONFIRMED);
-            order.setVnpTransaction(vnpTransaction);
-            orderRepository.save(order);
-        } catch (DateTimeParseException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public String getPaymentCallBack(HttpServletRequest request) {
         Map<String, String> fields = new HashMap<>();
@@ -257,6 +240,7 @@ public class OrderServiceImpl implements OrderService {
         String signValue = VnPayConfig.hashAllFields(fields);
         // Valid signature
         if (signValue.equals(vnp_SecureHash)) {
+            System.out.println(request.toString());
             String vnp_TransactionStatus = request.getParameter("vnp_TransactionStatus");
             String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
             String vnp_OrderInfo = request.getParameter("vnp_OrderInfo");
@@ -264,18 +248,40 @@ public class OrderServiceImpl implements OrderService {
             System.out.println(vnp_TxnRef);
             String vnp_PayDate = request.getParameter("vnp_PayDate");
             String vnpTransactionMes = VnPayConfig.getTransactionStatusMessage(vnp_TransactionStatus) + ", " + VnPayConfig.getPaymentMessage(vnp_ResponseCode);
-            if (VnPayConfig.transactionStatusSuccessful.equals(vnp_TransactionStatus)) {
+            if (vnpTransactionMes.contains("Giao dịch thành công")) {
                 vnpTransactionMes = VnPayConfig.getTransactionStatusMessage(vnp_TransactionStatus);
+                updateWithVnPayCallback(true, vnp_TxnRef, vnp_PayDate, vnpTransactionMes);
+            } else {
+                updateWithVnPayCallback(false, vnp_TxnRef, vnp_PayDate, vnpTransactionMes);
             }
-            int spaceIndex = vnp_OrderInfo.indexOf(" ");
-            String idPart = vnp_OrderInfo.substring(0, spaceIndex);
-            int idValue = Integer.parseInt(idPart);
-            updateWithVnPayCallback(idValue, vnp_TxnRef, vnp_PayDate, vnpTransactionMes);
             return VnPayConfig.transactionStatusSuccessful.equals(vnp_TransactionStatus) ? "1" : "0";
         } else {
+            System.out.println("Valid");
             return "-1";
         }
     }
+
+    public void updateWithVnPayCallback(boolean isSuccess, String vnpTxnRef, String vnpPayDate, String vnpTransaction) {
+        System.out.println(vnpTxnRef);
+        Order order = orderRepository.findOrderByPaymentMethodAndVnpTxnRef(PaymentMethod.VNPAY, vnpTxnRef)
+                .orElseThrow(() -> new OrderException("Order Not Found", HttpStatus.NOT_FOUND));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        try {
+            LocalDateTime payDate = LocalDateTime.parse(vnpPayDate, formatter);
+            order.setOrderDate(payDate);
+            if (isSuccess) {
+                order.setOrderStatus(OrderStatus.CONFIRMED);
+            }
+            else {
+                order.setOrderStatus(OrderStatus.PREPARING_PAYMENT);
+            }
+            order.setVnpTransaction(vnpTransaction);
+            orderRepository.save(order);
+        } catch (DateTimeParseException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public String refundVnpay(Order order) {
@@ -390,7 +396,7 @@ public class OrderServiceImpl implements OrderService {
     void isRefundPayment(Order orderToUpdate, OrderStatus prevStatus) {
         if (orderToUpdate.getPaymentMethod() == PaymentMethod.VNPAY && prevStatus != OrderStatus.PREPARING_PAYMENT) {
             String mes = refundVnpay(orderToUpdate);
-            if(mes.contains("Giao dịch thành công")){
+            if (mes.contains("Giao dịch thành công")) {
                 orderToUpdate.setOrderStatus(OrderStatus.REFUNDED);
             }
             orderToUpdate.setVnpTransaction(mes);
