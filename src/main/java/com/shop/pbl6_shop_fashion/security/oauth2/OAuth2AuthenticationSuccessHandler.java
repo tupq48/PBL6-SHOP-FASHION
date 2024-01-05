@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -58,8 +60,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .collect(Collectors.toList());
         userDetails.setRoles(roles);
         userDetails.setUsername(customUserOAuth.getUsername());
-        userDetails.setFullName(userDetails.getFullName());
-        userDetails.setGmail(userDetails.getGmail());
+        userDetails.setFullName(customUserOAuth.getFullName());
+        userDetails.setGmail(customUserOAuth.getEmail());
         userDetails.setUrlImage(customUserOAuth.getAvatarUrl());
 
 
@@ -72,11 +74,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         tokenRefresh.setExpirationDate(LocalDateTime.now().plusDays(refreshExpirationDay));
         tokenRefreshRepository.save(tokenRefresh);
         String accessToken = jwtService.generateToken(userDetails);
+        String encodedName = URLEncoder.encode(userDetails.getFullName(), StandardCharsets.UTF_8);
         targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", tokenRefresh.getToken())
                 .queryParam("id", userDetails.getId())
-                .queryParam("name", userDetails.getFullName())
+                .queryParam("name", encodedName)
                 .build().toUriString();
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
